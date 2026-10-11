@@ -18,6 +18,130 @@ const map = new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl(), "top-right");
 let startMarker = null, endMarker = null;
 
+const KMZ_LAYERS = [
+  {
+    file: "Haul Roads.kmz",
+    id: "haul-roads",
+    color: "#e63946",
+    width: 3.5
+  },
+  {
+    file: "Public Roads.kmz",
+    id: "public-roads",
+    color: "#f4a261",
+    width: 2.5
+  },
+  {
+    file: "D2 Site Boundary.kmz",
+    id: "d2-site-boundary",
+    color: "#7b2cbf",
+    width: 3
+  }
+];
+
+async function loadKmzLayer(config) {
+  const url = `maps/${encodeURIComponent(config.file)}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`${config.file}: HTTP ${response.status}`);
+  }
+
+  const archive = await JSZip.loadAsync(await response.arrayBuffer());
+
+  const kmlFile = Object.values(archive.files).find(
+    file => !file.dir && /\.kml$/i.test(file.name)
+  );
+
+  if (!kmlFile) {
+    throw new Error(`${config.file}: no KML file found`);
+  }
+
+  const kmlText = await kmlFile.async("text");
+  const xml = new DOMParser().parseFromString(
+    kmlText,
+    "application/xml"
+  );
+
+  if (xml.querySelector("parsererror")) {
+    throw new Error(`${config.file}: invalid KML XML`);
+  }
+
+  const geojson = toGeoJSON.kml(xml);
+  const sourceId = `${config.id}-source`;
+
+  map.addSource(sourceId, {
+    type: "geojson",
+    data: geojson
+  });
+
+  // Draw polygon fills first.
+  map.addLayer({
+    id: `${config.id}-fill`,
+    type: "fill",
+    source: sourceId,
+    filter: ["==", ["geometry-type"], "Polygon"],
+    paint: {
+      "fill-color": config.color,
+      "fill-opacity": config.id === "d2-site-boundary" ? 0.12 : 0.04
+    }
+  });
+
+  // Draw roads and polygon outlines.
+  map.addLayer({
+    id: `${config.id}-line`,
+    type: "line",
+    source: sourceId,
+    filter: [
+      "in",
+      ["geometry-type"],
+      ["literal", ["LineString", "Polygon"]]
+    ],
+    paint: {
+      "line-color": config.color,
+      "line-width": config.width,
+      "line-opacity": 0.9
+    },
+    layout: {
+      "line-cap": "round",
+      "line-join": "round"
+    }
+  });
+
+  // Draw point features if the KMZ contains any.
+  map.addLayer({
+    id: `${config.id}-points`,
+    type: "circle",
+    source: sourceId,
+    filter: ["==", ["geometry-type"], "Point"],
+    paint: {
+      "circle-radius": 5,
+      "circle-color": config.color,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1.5
+    }
+  });
+
+  // Keep the calculated route above the KMZ layers.
+  if (map.getLayer("route-line")) {
+    map.moveLayer("route-line");
+  }
+  
+  console.info(
+    `Loaded ${config.file}: ${geojson.features.length} features`
+  );
+}
+
+async function loadKmzLayers() {
+  for (const config of KMZ_LAYERS) {
+    try {
+      await loadKmzLayer(config);
+    } catch (error) {
+      console.error(`Could not load ${config.file}:`, error);
+    }
+  }
+}
+
 function setMessage(text, type = "") { messageEl.textContent = text; messageEl.className = `message ${type}`.trim(); }
 function setServiceStatus(text, type = "") { statusEl.textContent = text; statusEl.className = `status ${type}`.trim(); }
 function formatDuration(seconds) {
@@ -111,4 +235,7 @@ destinationSelect.addEventListener("change", () => {
   if (destinationSelect.value) setMessage(`Destination ${destinationSelect.value} selected. Click Calculate route.`);
   else setMessage("Select a destination to begin.");
 });
-map.on("load", loadDestinations);
+map.on("load", () => {
+  loadDestinations();
+  loadKmzLayers();
+});
