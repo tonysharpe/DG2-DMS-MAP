@@ -68,6 +68,16 @@ async function loadKmzLayer(config) {
   }
 
   const geojson = toGeoJSON.kml(xml);
+
+  const styleId = "poly-E65100-1200-255";
+  const styleElement = [...xml.querySelectorAll("Style")]
+    .find(el => el.id === styleId);
+  
+  console.log(
+    "Referenced KML style:",
+    styleElement?.outerHTML ?? "Style not found"
+  );
+  
   console.log("KML styles:", [...xml.querySelectorAll("Style, StyleMap")]);
   console.log(
     "GeoJSON style properties:",
