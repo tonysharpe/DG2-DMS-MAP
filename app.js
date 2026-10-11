@@ -7,11 +7,7 @@ const summaryEl = document.getElementById("routeSummary");
 
 const map = new maplibregl.Map({
   container: "map",
-  style: {
-    version: 8,
-    sources: { osm: { type: "raster", tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize: 256, attribution: "© OpenStreetMap contributors" } },
-    layers: [{ id: "osm", type: "raster", source: "osm" }]
-  },
+  style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
   center: [46.603, 24.716],
   zoom: 14
 });
