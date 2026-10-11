@@ -16,6 +16,12 @@ let startMarker = null, endMarker = null;
 
 const KMZ_LAYERS = [
   {
+    file: "D2 Site Boundary.kmz",
+    id: "d2-site-boundary",
+    color: "#7b2cbf",
+    width: 3
+  },
+  {
     file: "Haul Roads.kmz",
     id: "haul-roads",
     color: "#e63946",
@@ -26,12 +32,6 @@ const KMZ_LAYERS = [
     id: "public-roads",
     color: "#f4a261",
     width: 2.5
-  },
-  {
-    file: "D2 Site Boundary.kmz",
-    id: "d2-site-boundary",
-    color: "#7b2cbf",
-    width: 3
   }
 ];
 
