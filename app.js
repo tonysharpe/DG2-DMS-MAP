@@ -164,26 +164,45 @@ async function loadKmzLayer(config) {
 
   const geojson = toGeoJSON.kml(xml);
 
-  const styleId = "poly-E65100-1200-255";
-  const styleElement = [...xml.querySelectorAll("Style")]
-    .find(el => el.id === styleId);
-  
-  console.log(
-    "Referenced KML style:",
-    styleElement?.outerHTML ?? "Style not found"
-  );
-  
-  console.log("KML styles:", [...xml.querySelectorAll("Style, StyleMap")]);
-  console.log(
-    "GeoJSON style properties:",
-    geojson.features.slice(0, 5).map(feature => ({
-      name: feature.properties?.name,
-      styleUrl: feature.properties?.styleUrl,
-      styleHash: feature.properties?.styleHash,
-      style: feature.properties?.style
-    }))
-  );
-  
+  // Apply the original KML style to each GeoJSON feature.
+  const defaultFillOpacity =
+    config.id === "d2-site-boundary" ? 0.12 : 0.04;
+
+  geojson.features.forEach(feature => {
+    feature.properties = feature.properties || {};
+
+    const style = getKmlStyle(
+      xml,
+      feature.properties.styleUrl
+    );
+
+    const values = getKmlStyleValues(style);
+
+    feature.properties._lineColor =
+      values?.line?.color || config.color;
+
+    feature.properties._lineWidth =
+      values?.line ? values.width : config.width;
+
+    feature.properties._lineOpacity =
+      values?.line
+        ? values.line.opacity * (values.outlineEnabled ? 1 : 0)
+        : 0.9;
+
+    feature.properties._fillColor =
+      values?.fill?.color || config.color;
+
+    feature.properties._fillOpacity =
+      values?.fill
+        ? values.fill.opacity * (values.fillEnabled ? 1 : 0)
+        : defaultFillOpacity;
+
+    feature.properties._pointColor =
+      values?.line?.color ||
+      values?.fill?.color ||
+      config.color;
+  });
+
   const sourceId = `${config.id}-source`;
 
   map.addSource(sourceId, {
@@ -191,19 +210,19 @@ async function loadKmzLayer(config) {
     data: geojson
   });
 
-  // Draw polygon fills first.
+  // Polygon fills use each feature's KML fill style.
   map.addLayer({
     id: `${config.id}-fill`,
     type: "fill",
     source: sourceId,
     filter: ["==", ["geometry-type"], "Polygon"],
     paint: {
-      "fill-color": config.color,
-      "fill-opacity": config.id === "d2-site-boundary" ? 0.12 : 0.04
+      "fill-color": ["get", "_fillColor"],
+      "fill-opacity": ["get", "_fillOpacity"]
     }
   });
 
-  // Draw roads and polygon outlines.
+  // Roads and polygon outlines use each feature's KML line style.
   map.addLayer({
     id: `${config.id}-line`,
     type: "line",
@@ -214,9 +233,9 @@ async function loadKmzLayer(config) {
       ["literal", ["LineString", "Polygon"]]
     ],
     paint: {
-      "line-color": config.color,
-      "line-width": config.width,
-      "line-opacity": 0.9
+      "line-color": ["get", "_lineColor"],
+      "line-width": ["get", "_lineWidth"],
+      "line-opacity": ["get", "_lineOpacity"]
     },
     layout: {
       "line-cap": "round",
@@ -224,7 +243,7 @@ async function loadKmzLayer(config) {
     }
   });
 
-  // Draw point features if the KMZ contains any.
+  // Point features use their KML style color where available.
   map.addLayer({
     id: `${config.id}-points`,
     type: "circle",
@@ -232,7 +251,8 @@ async function loadKmzLayer(config) {
     filter: ["==", ["geometry-type"], "Point"],
     paint: {
       "circle-radius": 5,
-      "circle-color": config.color,
+      "circle-color": ["get", "_pointColor"],
+      "circle-opacity": ["get", "_lineOpacity"],
       "circle-stroke-color": "#ffffff",
       "circle-stroke-width": 1.5
     }
@@ -242,7 +262,7 @@ async function loadKmzLayer(config) {
   if (map.getLayer("route-line")) {
     map.moveLayer("route-line");
   }
-  
+
   console.info(
     `Loaded ${config.file}: ${geojson.features.length} features`
   );
