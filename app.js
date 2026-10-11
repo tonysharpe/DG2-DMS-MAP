@@ -344,13 +344,36 @@ async function calculateRoute() {
     map.addSource("route-source", { type: "geojson", data: data.route });
     map.addLayer({ id: "route-line", type: "line", source: "route-source", layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": "#175cd3", "line-width": 6, "line-opacity": 0.92 } });
 
-    const coords = getAllCoordinates(data.route);
-    if (coords.length) {
-      const bounds = coords.reduce((b, c) => b.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
-      map.fitBounds(bounds, { padding: { top: 70, bottom: 80, left: 60, right: 60 }, maxZoom: 17, duration: 700 });
-      startMarker = addEndpointMarker(coords[0], "#12b76a", "Route start");
-      endMarker = addEndpointMarker(coords[coords.length - 1], "#f04438", "Route end");
-    }
+const coords = getAllCoordinates(data.route);
+if (coords.length) {
+  const bounds = coords.reduce(
+    (b, c) => b.extend(c),
+    new maplibregl.LngLatBounds(coords[0], coords[0])
+  );
+
+  if (Array.isArray(data.gate_coordinates) && Array.isArray(data.destination_coordinates)) {
+    bounds.extend(data.gate_coordinates);
+    bounds.extend(data.destination_coordinates);
+  }
+
+  map.fitBounds(bounds, {
+    padding: { top: 70, bottom: 80, left: 60, right: 60 },
+    maxZoom: 17,
+    duration: 700
+  });
+
+  if (Array.isArray(data.gate_coordinates)) {
+    startMarker = addEndpointMarker(
+      data.gate_coordinates, "#12b76a", `Gate ${data.gate_id}`
+    );
+  }
+
+  if (Array.isArray(data.destination_coordinates)) {
+    endMarker = addEndpointMarker(
+      data.destination_coordinates, "#f04438", `Destination ${data.destination_id}`
+    );
+  }
+}
     document.getElementById("gateValue").textContent = data.gate_id ?? "—";
     document.getElementById("startValue").textContent = data.start_junction ?? "—";
     document.getElementById("endValue").textContent = data.end_junction ?? "—";
