@@ -1,0 +1,114 @@
+const API_BASE = "https://dg2-dms-mapping.onrender.com";
+const statusEl = document.getElementById("serviceStatus");
+const destinationSelect = document.getElementById("destinationSelect");
+const routeButton = document.getElementById("routeButton");
+const messageEl = document.getElementById("message");
+const summaryEl = document.getElementById("routeSummary");
+
+const map = new maplibregl.Map({
+  container: "map",
+  style: {
+    version: 8,
+    sources: { osm: { type: "raster", tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize: 256, attribution: "© OpenStreetMap contributors" } },
+    layers: [{ id: "osm", type: "raster", source: "osm" }]
+  },
+  center: [46.603, 24.716],
+  zoom: 14
+});
+map.addControl(new maplibregl.NavigationControl(), "top-right");
+let startMarker = null, endMarker = null;
+
+function setMessage(text, type = "") { messageEl.textContent = text; messageEl.className = `message ${type}`.trim(); }
+function setServiceStatus(text, type = "") { statusEl.textContent = text; statusEl.className = `status ${type}`.trim(); }
+function formatDuration(seconds) {
+  if (!Number.isFinite(seconds)) return "—";
+  const total = Math.round(seconds), mins = Math.floor(total / 60), secs = total % 60;
+  return mins ? `${mins} min ${secs} sec` : `${secs} sec`;
+}
+function clearRoute() {
+  if (map.getLayer("route-line")) map.removeLayer("route-line");
+  if (map.getSource("route-source")) map.removeSource("route-source");
+  if (startMarker) { startMarker.remove(); startMarker = null; }
+  if (endMarker) { endMarker.remove(); endMarker = null; }
+  summaryEl.hidden = true;
+}
+function getAllCoordinates(geojson) {
+  const points = [];
+  function visit(coords) {
+    if (!Array.isArray(coords)) return;
+    if (coords.length >= 2 && typeof coords[0] === "number" && typeof coords[1] === "number") { points.push(coords); return; }
+    coords.forEach(visit);
+  }
+  (geojson.features || []).forEach(feature => { if (feature.geometry) visit(feature.geometry.coordinates); });
+  return points;
+}
+function addEndpointMarker(coords, color, label) {
+  const node = document.createElement("div");
+  Object.assign(node.style, { width: "14px", height: "14px", borderRadius: "50%", background: color, border: "2px solid white", boxShadow: "0 0 0 1px #344054" });
+  node.title = label;
+  return new maplibregl.Marker({ element: node }).setLngLat(coords).addTo(map);
+}
+async function loadDestinations() {
+  try {
+    const health = await fetch(`${API_BASE}/health`);
+    if (!health.ok) throw new Error(`Health check returned HTTP ${health.status}`);
+    setServiceStatus("Routing service connected", "ok");
+    const response = await fetch(`${API_BASE}/destinations`);
+    if (!response.ok) throw new Error(`Destinations request returned HTTP ${response.status}`);
+    const data = await response.json(), destinations = data.destinations || [];
+    if (!destinations.length) throw new Error("The routing service returned no destinations.");
+    destinationSelect.innerHTML = "";
+    const placeholder = document.createElement("option");
+    placeholder.value = ""; placeholder.textContent = "Select a destination…";
+    destinationSelect.appendChild(placeholder);
+    destinations.forEach(id => {
+      const option = document.createElement("option");
+      option.value = id; option.textContent = id;
+      destinationSelect.appendChild(option);
+    });
+    destinationSelect.disabled = false; routeButton.disabled = false;
+    setMessage(`${destinations.length} destinations loaded. Select one and calculate a route.`);
+  } catch (error) {
+    setServiceStatus("Routing service unavailable", "error");
+    setMessage(`Could not load destinations: ${error.message}. Check the API service and network connection.`, "error");
+  }
+}
+async function calculateRoute() {
+  const destinationId = destinationSelect.value;
+  if (!destinationId) { setMessage("Select a destination first.", "error"); return; }
+  routeButton.disabled = true; routeButton.textContent = "Calculating…";
+  setMessage(`Calculating route to ${destinationId}…`); clearRoute();
+  try {
+    const response = await fetch(`${API_BASE}/route`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ destination_id: destinationId }) });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || `Request failed with HTTP ${response.status}`);
+    if (data.status === "no_route") throw new Error(data.message || "No route is available for this destination.");
+    if (data.status !== "ok" || !data.route || !Array.isArray(data.route.features)) throw new Error("API response did not contain route geometry in the expected format.");
+
+    map.addSource("route-source", { type: "geojson", data: data.route });
+    map.addLayer({ id: "route-line", type: "line", source: "route-source", layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": "#175cd3", "line-width": 6, "line-opacity": 0.92 } });
+
+    const coords = getAllCoordinates(data.route);
+    if (coords.length) {
+      const bounds = coords.reduce((b, c) => b.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
+      map.fitBounds(bounds, { padding: { top: 70, bottom: 80, left: 60, right: 60 }, maxZoom: 17, duration: 700 });
+      startMarker = addEndpointMarker(coords[0], "#12b76a", "Route start");
+      endMarker = addEndpointMarker(coords[coords.length - 1], "#f04438", "Route end");
+    }
+    document.getElementById("gateValue").textContent = data.gate_id ?? "—";
+    document.getElementById("startValue").textContent = data.start_junction ?? "—";
+    document.getElementById("endValue").textContent = data.end_junction ?? "—";
+    document.getElementById("timeValue").textContent = formatDuration(data.travel_time_seconds);
+    document.getElementById("roadsValue").textContent = (data.road_ids || []).length;
+    document.getElementById("roadSequence").textContent = (data.road_ids || []).join(" → ") || "—";
+    summaryEl.hidden = false; setMessage(`Route to ${destinationId} found.`, "success");
+  } catch (error) { setMessage(`Route calculation failed: ${error.message}`, "error"); }
+  finally { routeButton.disabled = false; routeButton.textContent = "Calculate route"; }
+}
+routeButton.addEventListener("click", calculateRoute);
+destinationSelect.addEventListener("change", () => {
+  clearRoute();
+  if (destinationSelect.value) setMessage(`Destination ${destinationSelect.value} selected. Click Calculate route.`);
+  else setMessage("Select a destination to begin.");
+});
+map.on("load", loadDestinations);

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Temporary Road Routing</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div><h1>Temporary Road Routing</h1><p>Choose a destination to calculate a route from its assigned gate.</p></div>
+    <div class="status" id="serviceStatus">Checking routing service…</div>
+  </header>
+  <main class="layout">
+    <aside class="panel">
+      <label for="destinationSelect">Destination</label>
+      <select id="destinationSelect" disabled><option value="">Loading destinations…</option></select>
+      <button id="routeButton" disabled>Calculate route</button>
+      <div id="message" class="message" role="status">Connecting to routing service…</div>
+      <section id="routeSummary" class="summary" hidden>
+        <h2>Route details</h2>
+        <dl>
+          <div><dt>Gate</dt><dd id="gateValue">—</dd></div>
+          <div><dt>Start junction</dt><dd id="startValue">—</dd></div>
+          <div><dt>End junction</dt><dd id="endValue">—</dd></div>
+          <div><dt>Estimated travel time</dt><dd id="timeValue">—</dd></div>
+          <div><dt>Roads in route</dt><dd id="roadsValue">—</dd></div>
+        </dl>
+        <h3>Road sequence</h3><p id="roadSequence" class="road-sequence">—</p>
+      </section>
+      <p class="hint">Travel time is calculated by the routing backend using road lengths and speeds in the current network data.</p>
+    </aside>
+    <section class="map-wrap" aria-label="Route map">
+      <div id="map"></div>
+      <div class="map-legend">
+        <span><i class="legend-line"></i> Calculated route</span>
+        <span><i class="legend-dot"></i> Route start</span>
+        <span><i class="legend-end"></i> Route end</span>
+      </div>
+    </section>
+  </main>
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
