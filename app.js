@@ -39,6 +39,101 @@ const KMZ_LAYERS = [
   }
 ];
 
+
+function getKmlStyle(xml, styleUrl) {
+  if (!styleUrl) return null;
+
+  const id = styleUrl.split("#").pop();
+  const elements = [...xml.getElementsByTagName("*")];
+
+  let style = elements.find(
+    el => el.localName === "Style" &&
+          el.getAttribute("id") === id
+  );
+
+  if (style) return style;
+
+  const styleMap = elements.find(
+    el => el.localName === "StyleMap" &&
+          el.getAttribute("id") === id
+  );
+
+  if (!styleMap) return null;
+
+  const pairs = [...styleMap.getElementsByTagName("*")].filter(
+    el => el.localName === "Pair"
+  );
+
+  const normalPair = pairs.find(pair =>
+    [...pair.children].some(
+      child => child.localName === "key" &&
+               child.textContent.trim() === "normal"
+    )
+  );
+
+  const normalUrl = [...(normalPair?.children || [])].find(
+    child => child.localName === "styleUrl"
+  )?.textContent.trim();
+
+  if (!normalUrl) return null;
+
+  const normalId = normalUrl.split("#").pop();
+
+  return elements.find(
+    el => el.localName === "Style" &&
+          el.getAttribute("id") === normalId
+  ) || null;
+}
+
+function kmlColorToCss(value) {
+  if (!value || !/^[0-9a-f]{8}$/i.test(value)) return null;
+
+  const alpha = parseInt(value.slice(0, 2), 16) / 255;
+  const blue = value.slice(2, 4);
+  const green = value.slice(4, 6);
+  const red = value.slice(6, 8);
+
+  return {
+    color: `#${red}${green}${blue}`,
+    opacity: alpha
+  };
+}
+
+function getKmlStyleValues(style) {
+  if (!style) return null;
+
+  const children = [...style.children];
+  const lineStyle = children.find(el => el.localName === "LineStyle");
+  const polyStyle = children.find(el => el.localName === "PolyStyle");
+
+  function readColor(parent) {
+    const el = [...(parent?.children || [])].find(
+      child => child.localName === "color"
+    );
+    return kmlColorToCss(el?.textContent.trim());
+  }
+
+  const widthElement = [...(lineStyle?.children || [])].find(
+    el => el.localName === "width"
+  );
+
+  const width = Number(widthElement?.textContent);
+
+  return {
+    line: readColor(lineStyle),
+    fill: readColor(polyStyle),
+    width: Number.isFinite(width) && width > 0 ? width : 2,
+    fillEnabled: ![...(polyStyle?.children || [])].some(
+      el => el.localName === "fill" &&
+            el.textContent.trim() === "0"
+    ),
+    outlineEnabled: ![...(polyStyle?.children || [])].some(
+      el => el.localName === "outline" &&
+            el.textContent.trim() === "0"
+    )
+  };
+}
+
 async function loadKmzLayer(config) {
   const url = `maps/${encodeURIComponent(config.file)}`;
   const response = await fetch(url);
