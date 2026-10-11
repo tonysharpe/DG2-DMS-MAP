@@ -69,6 +69,16 @@ async function loadKmzLayer(config) {
 
   const geojson = toGeoJSON.kml(xml);
   console.log("KML styles:", [...xml.querySelectorAll("Style, StyleMap")]);
+  console.log(
+    "GeoJSON style properties:",
+    geojson.features.slice(0, 5).map(feature => ({
+      name: feature.properties?.name,
+      styleUrl: feature.properties?.styleUrl,
+      styleHash: feature.properties?.styleHash,
+      style: feature.properties?.style
+    }))
+  );
+  
   const sourceId = `${config.id}-source`;
 
   map.addSource(sourceId, {
