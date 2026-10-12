@@ -189,10 +189,6 @@ dd {
     inset: 0;
 }
 
-.maplibregl-canvas {
-    opacity: 0;
-}
-
 .map-legend {
     position: absolute;
     left: 12px;
