@@ -647,17 +647,22 @@ destinationSelect.addEventListener("change", () => {
   else setMessage("Select a destination to begin.");
 });
 
-map.on("load", () => {
-  // Hide the CARTO background map
-  for (const layer of map.getStyle().layers) {
+map.on("load", async () => {
+  // Hide existing CARTO style layers
+  for (const layer of map.getStyle().layers ?? []) {
     map.setLayoutProperty(layer.id, "visibility", "none");
   }
 
-  // Load your application layers
-  loadDestinations();
-  loadHaulRoads();
-  loadLocalRoads();
-  loadMainRoads();
-  loadPublicRoads();
-  //loadKmzLayers();
+  try {
+    await Promise.all([
+      loadDestinations(),
+      loadHaulRoads(),
+      loadLocalRoads(),
+      loadMainRoads(),
+      loadPublicRoads()
+      // loadKmzLayers()
+    ]);
+  } catch (error) {
+    console.error("Failed to load application layers:", error);
+  }
 });
