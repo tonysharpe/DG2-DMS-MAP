@@ -357,8 +357,8 @@ async function loadMainRoads() {
     type: "line",
     source: "main_roads",
     paint: {
-      "line-color": "#1f78b4",
-      "line-width": 5
+      "line-color": "#D3D3D3",
+      "line-width": 3
     }
   });
 }
