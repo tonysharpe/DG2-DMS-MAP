@@ -5,13 +5,14 @@ const routeButton = document.getElementById("routeButton");
 const messageEl = document.getElementById("message");
 const summaryEl = document.getElementById("routeSummary");
 
-const initialView = {
-  center: [46.603, 24.716],
+const map = new maplibregl.Map({ 
+  container: "map", style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json", 
+  center: [46.603, 24.716], 
   zoom: 14
-};
-
+}); 
+map.addControl(new maplibregl.NavigationControl(), "top-right");
 let startMarker = null;
-let endMarker = null;
+endMarker = null;
 
 const KMZ_LAYERS = [
   {
