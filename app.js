@@ -412,7 +412,7 @@ if (map.getSource("destination-area")) {
     type: "fill",
     source: "destination-area",
     paint: {
-      "fill-color": "#f04438",
+      "fill-color": "#3388ff",
       "fill-opacity": 0.25
     }
   });
@@ -422,10 +422,31 @@ if (map.getSource("destination-area")) {
     type: "line",
     source: "destination-area",
     paint: {
-      "line-color": "#f04438",
+      "line-color": "#3388ff",
       "line-width": 2
     }
   });
+
+  map.addLayer({
+  id: "destination-area-label",
+  type: "symbol",
+  source: "destination-area",
+  layout: {
+  "symbol-placement": "point",
+  "text-field": ["get", "name"],
+  "text-font": ["Open Sans Regular"],
+  "text-size": 13,
+  "text-anchor": "center",
+  "text-allow-overlap": true
+  },
+  paint: {
+  "text-color": "#000000",
+  "text-halo-color": "#ffffff",
+  "text-halo-width": 5,
+  "text-halo-blur": 0
+  }
+  });
+  
 }
 }
 
