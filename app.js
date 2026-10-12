@@ -302,6 +302,37 @@ async function loadKmzLayers() {
   }
 }
 
+
+async function loadLocalRoads() {
+  const response = await fetch("./data/local_roads.geojson");
+
+  if (!response.ok) {
+    throw new Error("Failed to load local_roads.geojson");
+  }
+
+  const geojson = await response.json();
+
+  if (map.getSource("local_roads")) {
+    map.getSource("local_roads").setData(geojson);
+    return;
+  }
+
+  map.addSource("local_roads", {
+    type: "geojson",
+    data: geojson
+  });
+
+  map.addLayer({
+    id: "local_roads-lines",
+    type: "line",
+    source: "local_roads",
+    paint: {
+      "line-color": "#3388ff",
+      "line-width": 2
+    }
+  });
+}
+
 function setMessage(text, type = "") { messageEl.textContent = text; messageEl.className = `message ${type}`.trim(); }
 function setServiceStatus(text, type = "") { statusEl.textContent = text; statusEl.className = `status ${type}`.trim(); }
 function formatDuration(seconds) {
@@ -525,5 +556,5 @@ destinationSelect.addEventListener("change", () => {
 });
 map.on("load", () => {
   loadDestinations();
-  loadKmzLayers();
+  loadLocalRoads();
 });
