@@ -579,7 +579,7 @@ map.on("load", async () => {
     await Promise.all([
       loadDestinations(),
       loadSiteBoundary(),
-      loadCommunitieds(),
+      loadCommunities(),
       loadHaulRoads(),
       loadLocalRoads(),
       loadMainRoads(),
