@@ -327,8 +327,8 @@ async function loadLocalRoads() {
     type: "line",
     source: "local_roads",
     paint: {
-      "line-color": "#3388ff",
-      "line-width": 2
+      "line-color": "#D3D3D3",
+      "line-width": 4
     }
   });
 }
@@ -557,4 +557,5 @@ destinationSelect.addEventListener("change", () => {
 map.on("load", () => {
   loadDestinations();
   loadLocalRoads();
+  loadKmzLayers();
 });
