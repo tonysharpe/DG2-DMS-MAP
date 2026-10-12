@@ -327,7 +327,7 @@ async function loadSiteBoundary() {
     source: "site_boundary",
     paint: {
       "fill-color": "#dfaf7e",
-      "fill-opacity": 0.5
+      "fill-opacity": 0.2
     }
   });
 
