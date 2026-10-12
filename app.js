@@ -35,6 +35,34 @@ const KMZ_LAYERS = [
   }
 ];
 
+function getGeoJSONBounds(geometry) {
+  const bounds = new maplibregl.LngLatBounds();
+
+  function visitCoordinates(value) {
+    if (
+      Array.isArray(value) &&
+      value.length >= 2 &&
+      typeof value[0] === "number" &&
+      typeof value[1] === "number"
+    ) {
+      bounds.extend([value[0], value[1]]);
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach(visitCoordinates);
+    }
+  }
+
+  visitCoordinates(geometry.coordinates);
+
+  return [
+    bounds.getWest(),
+    bounds.getSouth(),
+    bounds.getEast(),
+    bounds.getNorth()
+  ];
+}
 
 function getKmlStyle(xml, styleUrl) {
   if (!styleUrl) return null;
@@ -367,7 +395,7 @@ geometry: data.destination_area
 };
 
 
-const areaBounds = turf.bbox(areaFeature);
+const areaBounds = getGeoJSONBounds(areaFeature.geometry);
 bounds.extend([areaBounds[0], areaBounds[1]]);
 bounds.extend([areaBounds[2], areaBounds[3]]);
 
