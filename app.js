@@ -326,8 +326,8 @@ async function loadSiteBoundary() {
     type: "fill",
     source: "site_boundary",
     paint: {
-      "fill-color": "#3388ff",
-      "fill-opacity": 0.3
+      "fill-color": "#dfaf7e",
+      "fill-opacity": 0.5
     }
   });
 
@@ -336,7 +336,7 @@ async function loadSiteBoundary() {
     type: "line",
     source: "site_boundary",
     paint: {
-      "line-color": "#0055aa",
+      "line-color": "#dfaf7e",
       "line-width": 2
     }
   });
