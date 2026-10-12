@@ -330,16 +330,19 @@ function getAllCoordinates(geojson) {
 function addEndpointMarker(coords, color, label) {
   const container = document.createElement("div");
   Object.assign(container.style, {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px"
+    position: "relative",
+    width: "14px",
+    height: "14px"
   });
 
   const node = document.createElement("div");
   Object.assign(node.style, {
+    position: "absolute",
+    left: "0",
+    top: "0",
     width: "14px",
     height: "14px",
-    flexShrink: "0",
+    boxSizing: "border-box",
     borderRadius: "50%",
     background: color,
     border: "2px solid white",
@@ -349,6 +352,10 @@ function addEndpointMarker(coords, color, label) {
   const text = document.createElement("div");
   text.textContent = label;
   Object.assign(text.style, {
+    position: "absolute",
+    left: "22px",
+    top: "50%",
+    transform: "translateY(-50%)",
     color: "#000000",
     background: "#ffffff",
     border: "1px solid #d0d5dd",
@@ -363,9 +370,10 @@ function addEndpointMarker(coords, color, label) {
   container.appendChild(node);
   container.appendChild(text);
 
-  return new maplibregl.Marker({ element: container })
-    .setLngLat(coords)
-    .addTo(map);
+  return new maplibregl.Marker({
+    element: container,
+    anchor: "center"
+  }).setLngLat(coords).addTo(map);
 }
 
 async function loadDestinations() {
