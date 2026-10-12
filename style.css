@@ -188,7 +188,7 @@ dd {
     position: absolute;
     inset: 0;
     background: transparent;
-    pointer-events: none;
+    //pointer-events: none;
 }
 
 .map-legend {
