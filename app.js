@@ -326,12 +326,48 @@ function getAllCoordinates(geojson) {
   (geojson.features || []).forEach(feature => { if (feature.geometry) visit(feature.geometry.coordinates); });
   return points;
 }
+
 function addEndpointMarker(coords, color, label) {
+  const container = document.createElement("div");
+  Object.assign(container.style, {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
+  });
+
   const node = document.createElement("div");
-  Object.assign(node.style, { width: "14px", height: "14px", borderRadius: "50%", background: color, border: "2px solid white", boxShadow: "0 0 0 1px #344054" });
-  node.title = label;
-  return new maplibregl.Marker({ element: node }).setLngLat(coords).addTo(map);
+  Object.assign(node.style, {
+    width: "14px",
+    height: "14px",
+    flexShrink: "0",
+    borderRadius: "50%",
+    background: color,
+    border: "2px solid white",
+    boxShadow: "0 0 0 1px #344054"
+  });
+
+  const text = document.createElement("div");
+  text.textContent = label;
+  Object.assign(text.style, {
+    color: "#000000",
+    background: "#ffffff",
+    border: "1px solid #d0d5dd",
+    borderRadius: "3px",
+    padding: "3px 6px",
+    fontSize: "12px",
+    fontWeight: "600",
+    whiteSpace: "nowrap",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
+  });
+
+  container.appendChild(node);
+  container.appendChild(text);
+
+  return new maplibregl.Marker({ element: container })
+    .setLngLat(coords)
+    .addTo(map);
 }
+
 async function loadDestinations() {
   try {
     const health = await fetch(`${API_BASE}/health`);
