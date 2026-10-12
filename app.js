@@ -331,15 +331,15 @@ async function loadSiteBoundary() {
     }
   });
 
-  map.addLayer({
-    id: "site_boundary-outline",
-    type: "line",
-    source: "site_boundary",
-    paint: {
-      "line-color": "#dfaf7e",
-      "line-width": 2
-    }
-  });
+//  map.addLayer({
+//    id: "site_boundary-outline",
+//    type: "line",
+//    source: "site_boundary",
+//    paint: {
+//      "line-color": "#dfaf7e",
+//      "line-width": 2
+//    }
+//  });
 }
 
 async function loadLocalRoads() {
@@ -372,6 +372,7 @@ async function loadLocalRoads() {
   });
 }
 
+
 async function loadMainRoads() {
   const response = await fetch("./data/main_roads.geojson");
 
@@ -391,13 +392,35 @@ async function loadMainRoads() {
     data: geojson
   });
 
+  // Outer road outline
+  map.addLayer({
+    id: "main_roads-outline",
+    type: "line",
+    source: "main_roads",
+    layout: {
+      "line-cap": "round",
+      "line-join": "round"
+    },
+    paint: {
+      "line-color": "#7189A8",
+      "line-width": 5,
+      "line-opacity": 1
+    }
+  });
+
+  // Inner road surface
   map.addLayer({
     id: "main_roads-lines",
     type: "line",
     source: "main_roads",
+    layout: {
+      "line-cap": "round",
+      "line-join": "round"
+    },
     paint: {
-      "line-color": "#D3D3D3",
-      "line-width": 3
+      "line-color": "#92A9C6",
+      "line-width": 3.5,
+      "line-opacity": 1
     }
   });
 }
