@@ -74,6 +74,7 @@ async function loadSiteBoundary() {
 }
 
 
+
 async function loadCommunities() {
   const response = await fetch("./data/communities.geojson");
 
@@ -83,83 +84,60 @@ async function loadCommunities() {
 
   const geojson = await response.json();
 
+  // Update existing community source if already loaded
   if (map.getSource("communities")) {
     map.getSource("communities").setData(geojson);
-    return;
-  }
+  } else {
+    map.addSource("communities", {
+      type: "geojson",
+      data: geojson
+    });
 
-  map.addSource("communities", {
-    type: "geojson",
-    data: geojson
-  });
+    // Community fill
+    map.addLayer({
+      id: "communities-fill",
+      type: "fill",
+      source: "communities",
+      paint: {
+        "fill-color": "#B9A5C9",
+        "fill-opacity": 0.05
+      }
+    });
 
-  // Community area fill
-  map.addLayer({
-    id: "communities-fill",
-    type: "fill",
-    source: "communities",
-    paint: {
-      "fill-color": "#B9A5C9",
-      "fill-opacity": 0.1
-    }
-  });
+    // Community outlines
+    map.addLayer({
+      id: "communities-outline",
+      type: "line",
+      source: "communities",
+      paint: {
+        "line-color": "#9B85AF",
+        "line-width": 1.2,
+        "line-opacity": 0.1
+      }
+    });
 
-  // Community boundary outline
-  map.addLayer({
-    id: "communities-outline",
-    type: "line",
-    source: "communities",
-    paint: {
-      "line-color": "#9B85AF",
-      "line-width": 1.5,
-      "line-opacity": 0.2
-    }
-  });
-
-  // Generate one label point per community
-  const labelFeatures = geojson.features.map(feature => {
-    const center = turf.centroid(feature);
-
-    return {
-      type: "Feature",
-      properties: {
-        name: feature.properties?.name ?? ""
+    // Labels at the center of each feature
+    map.addLayer({
+      id: "communities-labels",
+      type: "symbol",
+      source: "communities",
+      layout: {
+        "text-field": ["coalesce", ["get", "name"], ""],
+        "text-size": 12,
+        "text-font": ["Open Sans Regular"],
+        "text-anchor": "center",
+        "text-allow-overlap": false
       },
-      geometry: center.geometry
-    };
-  });
-
-  map.addSource("community-labels", {
-    type: "geojson",
-    data: {
-      type: "FeatureCollection",
-      features: labelFeatures
-    }
-  });
-
-  // Faint community labels
-  map.addLayer({
-    id: "community-labels",
-    type: "symbol",
-    source: "community-labels",
-    layout: {
-      "text-field": ["get", "name"],
-      "text-font": [
-        "Open Sans Regular"
-      ],
-      "text-size": 12,
-      "text-anchor": "center",
-      "text-allow-overlap": false
-    },
-    paint: {
-      "text-color": "#75677F",
-      "text-opacity": 0.55,
-      "text-halo-color": "#F4EFE5",
-      "text-halo-width": 1,
-      "text-halo-blur": 0.5
-    }
-  });
+      paint: {
+        "text-color": "#75677F",
+        "text-opacity": 0.55,
+        "text-halo-color": "#F4EFE5",
+        "text-halo-width": 1
+      }
+    });
+  }
 }
+
   
 async function loadLocalRoads() {
   const response = await fetch("./data/local_roads.geojson");
