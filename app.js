@@ -655,9 +655,9 @@ map.on("load", () => {
 
   // Load your application layers
   loadDestinations();
+  loadHaulRoads();
+  loadLocalRoads();
   loadMainRoads();
   loadPublicRoads();
-  //loadHaulRoads();
-  //loadLocalRoads();
   //loadKmzLayers();
 });
