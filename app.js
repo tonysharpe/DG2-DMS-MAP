@@ -328,6 +328,98 @@ async function loadLocalRoads() {
     source: "local_roads",
     paint: {
       "line-color": "#D3D3D3",
+      "line-width": 3
+    }
+  });
+}
+
+async function loadMainRoads() {
+  const response = await fetch("./data/main_roads.geojson");
+
+  if (!response.ok) {
+    throw new Error("Failed to load main_roads.geojson");
+  }
+
+  const geojson = await response.json();
+
+  if (map.getSource("main_roads")) {
+    map.getSource("main_roads").setData(geojson);
+    return;
+  }
+
+  map.addSource("main_roads", {
+    type: "geojson",
+    data: geojson
+  });
+
+  map.addLayer({
+    id: "main_roads-lines",
+    type: "line",
+    source: "main_roads",
+    paint: {
+      "line-color": "#1f78b4",
+      "line-width": 5
+    }
+  });
+}
+
+
+async function loadPublicRoads() {
+  const response = await fetch("./data/public_roads.geojson");
+
+  if (!response.ok) {
+    throw new Error("Failed to load public_roads.geojson");
+  }
+
+  const geojson = await response.json();
+
+  if (map.getSource("public_roads")) {
+    map.getSource("public_roads").setData(geojson);
+    return;
+  }
+
+  map.addSource("public_roads", {
+    type: "geojson",
+    data: geojson
+  });
+
+  map.addLayer({
+    id: "public_roads-lines",
+    type: "line",
+    source: "public_roads",
+    paint: {
+      "line-color": "#ffdd00",
+      "line-width": 4
+    }
+  });
+}
+
+
+async function loadHaulRoads() {
+  const response = await fetch("./data/haul_roads.geojson");
+
+  if (!response.ok) {
+    throw new Error("Failed to load haul_roads.geojson");
+  }
+
+  const geojson = await response.json();
+
+  if (map.getSource("haul_roads")) {
+    map.getSource("haul_roads").setData(geojson);
+    return;
+  }
+
+  map.addSource("haul_roads", {
+    type: "geojson",
+    data: geojson
+  });
+
+  map.addLayer({
+    id: "haul_roads-lines",
+    type: "line",
+    source: "haul_roads",
+    paint: {
+      "line-color": "#ff0000",
       "line-width": 4
     }
   });
@@ -563,6 +655,9 @@ map.on("load", () => {
 
   // Load your application layers
   loadDestinations();
+  loadMainRoads();
+  loadPublicRoads();
+  loadHaulRoads();
   loadLocalRoads();
-  loadKmzLayers();
+  //loadKmzLayers();
 });
