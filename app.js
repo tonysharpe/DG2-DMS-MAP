@@ -71,6 +71,7 @@ async function loadSiteBoundary() {
       "fill-opacity": 0.2
     }
   });
+}
 
 
 async function loadCommunities() {
@@ -579,7 +580,7 @@ map.on("load", async () => {
     await Promise.all([
       loadDestinations(),
       loadSiteBoundary(),
-      //loadCommunities(),
+      loadCommunities(),
       loadHaulRoads(),
       loadLocalRoads(),
       loadMainRoads(),
