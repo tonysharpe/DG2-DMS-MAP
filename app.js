@@ -554,7 +554,14 @@ destinationSelect.addEventListener("change", () => {
   if (destinationSelect.value) setMessage(`Destination ${destinationSelect.value} selected. Click Calculate route.`);
   else setMessage("Select a destination to begin.");
 });
+
 map.on("load", () => {
+  // Hide the CARTO background map
+  for (const layer of map.getStyle().layers) {
+    map.setLayoutProperty(layer.id, "visibility", "none");
+  }
+
+  // Load your application layers
   loadDestinations();
   loadLocalRoads();
   loadKmzLayers();
