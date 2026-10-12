@@ -346,34 +346,74 @@ async function calculateRoute() {
 
 const coords = getAllCoordinates(data.route);
 if (coords.length) {
-  const bounds = coords.reduce(
-    (b, c) => b.extend(c),
-    new maplibregl.LngLatBounds(coords[0], coords[0])
-  );
+const bounds = coords.reduce(
+(b, c) => b.extend(c),
+new maplibregl.LngLatBounds(coords[0], coords[0])
+);
 
-  if (Array.isArray(data.gate_coordinates) && Array.isArray(data.destination_coordinates)) {
-    bounds.extend(data.gate_coordinates);
-    bounds.extend(data.destination_coordinates);
-  }
+// Include the actual gate in the map bounds.
+if (Array.isArray(data.gate_coordinates)) {
+bounds.extend(data.gate_coordinates);
+}
 
-  map.fitBounds(bounds, {
-    padding: { top: 70, bottom: 80, left: 60, right: 60 },
-    maxZoom: 17,
-    duration: 700
+// Include the destination area in the map bounds.
+if (data.destination_area) {
+const areaFeature = {
+type: "Feature",
+properties: {
+name: data.destination_id
+},
+geometry: data.destination_area
+};
+
+
+const areaBounds = turf.bbox(areaFeature);
+bounds.extend([areaBounds[0], areaBounds[1]]);
+bounds.extend([areaBounds[2], areaBounds[3]]);
+
+if (map.getSource("destination-area")) {
+  map.getSource("destination-area").setData(areaFeature);
+} else {
+  map.addSource("destination-area", {
+    type: "geojson",
+    data: areaFeature
   });
 
-  if (Array.isArray(data.gate_coordinates)) {
-    startMarker = addEndpointMarker(
-      data.gate_coordinates, "#12b76a", `Gate ${data.gate_id}`
-    );
-  }
+  map.addLayer({
+    id: "destination-area-fill",
+    type: "fill",
+    source: "destination-area",
+    paint: {
+      "fill-color": "#f04438",
+      "fill-opacity": 0.25
+    }
+  });
 
-  if (Array.isArray(data.destination_coordinates)) {
-    endMarker = addEndpointMarker(
-      data.destination_coordinates, "#f04438", `Destination ${data.destination_id}`
-    );
-  }
+  map.addLayer({
+    id: "destination-area-outline",
+    type: "line",
+    source: "destination-area",
+    paint: {
+      "line-color": "#f04438",
+      "line-width": 2
+    }
+  });
 }
+}
+
+map.fitBounds(bounds, {
+padding: { top: 70, bottom: 80, left: 60, right: 60 },
+maxZoom: 17,
+duration: 700
+});
+
+if (Array.isArray(data.gate_coordinates)) {
+startMarker = addEndpointMarker(
+data.gate_coordinates, "#12b76a", `Gate ${data.gate_id}`
+);
+}
+}
+
     document.getElementById("gateValue").textContent = data.gate_id ?? "—";
     document.getElementById("startValue").textContent = data.start_junction ?? "—";
     document.getElementById("endValue").textContent = data.end_junction ?? "—";
