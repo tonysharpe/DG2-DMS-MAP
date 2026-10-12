@@ -72,6 +72,94 @@ async function loadSiteBoundary() {
     }
   });
 
+
+async function loadCommunities() {
+  const response = await fetch("./data/communities.geojson");
+
+  if (!response.ok) {
+    throw new Error("Failed to load communities.geojson");
+  }
+
+  const geojson = await response.json();
+
+  if (map.getSource("communities")) {
+    map.getSource("communities").setData(geojson);
+    return;
+  }
+
+  map.addSource("communities", {
+    type: "geojson",
+    data: geojson
+  });
+
+  // Community area fill
+  map.addLayer({
+    id: "communities-fill",
+    type: "fill",
+    source: "communities",
+    paint: {
+      "fill-color": "#B9A5C9",
+      "fill-opacity": 0.18
+    }
+  });
+
+  // Community boundary outline
+  map.addLayer({
+    id: "communities-outline",
+    type: "line",
+    source: "communities",
+    paint: {
+      "line-color": "#9B85AF",
+      "line-width": 1.5,
+      "line-opacity": 0.35
+    }
+  });
+
+  // Generate one label point per community
+  const labelFeatures = geojson.features.map(feature => {
+    const center = turf.centroid(feature);
+
+    return {
+      type: "Feature",
+      properties: {
+        name: feature.properties?.name ?? ""
+      },
+      geometry: center.geometry
+    };
+  });
+
+  map.addSource("community-labels", {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: labelFeatures
+    }
+  });
+
+  // Faint community labels
+  map.addLayer({
+    id: "community-labels",
+    type: "symbol",
+    source: "community-labels",
+    layout: {
+      "text-field": ["get", "name"],
+      "text-font": [
+        "Open Sans Regular"
+      ],
+      "text-size": 12,
+      "text-anchor": "center",
+      "text-allow-overlap": false
+    },
+    paint: {
+      "text-color": "#75677F",
+      "text-opacity": 0.55,
+      "text-halo-color": "#F4EFE5",
+      "text-halo-width": 1,
+      "text-halo-blur": 0.5
+    }
+  });
+}
+  
 async function loadLocalRoads() {
   const response = await fetch("./data/local_roads.geojson");
 
@@ -515,6 +603,7 @@ map.on("load", async () => {
     await Promise.all([
       loadDestinations(),
       loadSiteBoundary(),
+      loadCommunitieds(),
       loadHaulRoads(),
       loadLocalRoads(),
       loadMainRoads(),
