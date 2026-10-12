@@ -342,6 +342,7 @@ async function loadSiteBoundary() {
 //  });
 }
 
+
 async function loadLocalRoads() {
   const response = await fetch("./data/local_roads.geojson");
 
@@ -361,13 +362,35 @@ async function loadLocalRoads() {
     data: geojson
   });
 
+  // Outer road outline
+  map.addLayer({
+    id: "local_roads-outline",
+    type: "line",
+    source: "local_roads",
+    layout: {
+      "line-cap": "round",
+      "line-join": "round"
+    },
+    paint: {
+      "line-color": "#B8C9D8",
+      "line-width": 2.5,
+      "line-opacity": 1
+    }
+  });
+
+  // Inner road surface
   map.addLayer({
     id: "local_roads-lines",
     type: "line",
     source: "local_roads",
+    layout: {
+      "line-cap": "round",
+      "line-join": "round"
+    },
     paint: {
-      "line-color": "#D3D3D3",
-      "line-width": 3
+      "line-color": "#CED8E1",
+      "line-width": 1.5,
+      "line-opacity": 1
     }
   });
 }
@@ -426,6 +449,7 @@ async function loadMainRoads() {
 }
 
 
+
 async function loadPublicRoads() {
   const response = await fetch("./data/public_roads.geojson");
 
@@ -445,16 +469,39 @@ async function loadPublicRoads() {
     data: geojson
   });
 
+  // Outer road outline
+  map.addLayer({
+    id: "public_roads-outline",
+    type: "line",
+    source: "public_roads",
+    layout: {
+      "line-cap": "round",
+      "line-join": "round"
+    },
+    paint: {
+      "line-color": "#B0C2D4",
+      "line-width": 3,
+      "line-opacity": 1
+    }
+  });
+
+  // Inner road surface
   map.addLayer({
     id: "public_roads-lines",
     type: "line",
     source: "public_roads",
+    layout: {
+      "line-cap": "round",
+      "line-join": "round"
+    },
     paint: {
-      "line-color": "#ffdd00",
-      "line-width": 4
+      "line-color": "#D9E1E8",
+      "line-width": 2,
+      "line-opacity": 1
     }
   });
 }
+
 
 
 async function loadHaulRoads() {
@@ -476,13 +523,35 @@ async function loadHaulRoads() {
     data: geojson
   });
 
+  // Outer haul road outline
+  map.addLayer({
+    id: "haul_roads-outline",
+    type: "line",
+    source: "haul_roads",
+    layout: {
+      "line-cap": "round",
+      "line-join": "round"
+    },
+    paint: {
+      "line-color": "#9C4525",
+      "line-width": 6,
+      "line-opacity": 1
+    }
+  });
+
+  // Inner haul road surface
   map.addLayer({
     id: "haul_roads-lines",
     type: "line",
     source: "haul_roads",
+    layout: {
+      "line-cap": "round",
+      "line-join": "round"
+    },
     paint: {
-      "line-color": "#ff0000",
-      "line-width": 4
+      "line-color": "#D96B35",
+      "line-width": 4,
+      "line-opacity": 1
     }
   });
 }
