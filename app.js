@@ -487,8 +487,8 @@ if (map.getSource("destination-area")) {
 }
 
 map.fitBounds(bounds, {
-padding: { top: 70, bottom: 80, left: 60, right: 60 },
-maxZoom: 17,
+padding: { top: 120, bottom: 120, left: 120, right: 120 },
+maxZoom: 15,
 duration: 700
 });
 
