@@ -426,7 +426,7 @@ async function loadMainRoads() {
     },
     paint: {
       "line-color": "#7189A8",
-      "line-width": 5,
+      "line-width": 6,
       "line-opacity": 1
     }
   });
@@ -442,7 +442,7 @@ async function loadMainRoads() {
     },
     paint: {
       "line-color": "#92A9C6",
-      "line-width": 3.5,
+      "line-width": 4,
       "line-opacity": 1
     }
   });
@@ -480,7 +480,7 @@ async function loadPublicRoads() {
     },
     paint: {
       "line-color": "#B0C2D4",
-      "line-width": 3,
+      "line-width": 5,
       "line-opacity": 1
     }
   });
@@ -496,7 +496,7 @@ async function loadPublicRoads() {
     },
     paint: {
       "line-color": "#D9E1E8",
-      "line-width": 2,
+      "line-width": 3.5,
       "line-opacity": 1
     }
   });
@@ -534,7 +534,7 @@ async function loadHaulRoads() {
     },
     paint: {
       "line-color": "#9C4525",
-      "line-width": 6,
+      "line-width": 5,
       "line-opacity": 1
     }
   });
@@ -550,7 +550,7 @@ async function loadHaulRoads() {
     },
     paint: {
       "line-color": "#D96B35",
-      "line-width": 4,
+      "line-width": 3.5,
       "line-opacity": 1
     }
   });
