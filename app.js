@@ -302,6 +302,45 @@ async function loadKmzLayers() {
   }
 }
 
+async function loadSiteBoundary() {
+  const response = await fetch("./data/site_boundary.geojson");
+
+  if (!response.ok) {
+    throw new Error("Failed to load site_boundary.geojson");
+  }
+
+  const geojson = await response.json();
+
+  if (map.getSource("site_boundary")) {
+    map.getSource("site_boundary").setData(geojson);
+    return;
+  }
+
+  map.addSource("site_boundary", {
+    type: "geojson",
+    data: geojson
+  });
+
+  map.addLayer({
+    id: "site_boundary-fill",
+    type: "fill",
+    source: "site_boundary",
+    paint: {
+      "fill-color": "#3388ff",
+      "fill-opacity": 0.3
+    }
+  });
+
+  map.addLayer({
+    id: "site_boundary-outline",
+    type: "line",
+    source: "site_boundary",
+    paint: {
+      "line-color": "#0055aa",
+      "line-width": 2
+    }
+  });
+}
 
 async function loadLocalRoads() {
   const response = await fetch("./data/local_roads.geojson");
@@ -656,6 +695,7 @@ map.on("load", async () => {
   try {
     await Promise.all([
       loadDestinations(),
+      loadSiteBoundary(),
       loadHaulRoads(),
       loadLocalRoads(),
       loadMainRoads(),
