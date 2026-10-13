@@ -1,4 +1,7 @@
-const API_BASE = "https://dg2-dms-mapping.onrender.com";
+const API_BASE = (
+  window.DG2_CONFIG?.API_BASE ||
+  "http://127.0.0.1:8000"
+).replace(/\/+$/, "");
 const statusEl = document.getElementById("serviceStatus");
 const destinationSelect = document.getElementById("destinationSelect");
 const routeButton = document.getElementById("routeButton");
