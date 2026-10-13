@@ -14,6 +14,59 @@ map.addControl(new maplibregl.NavigationControl(), "top-right");
 let startMarker = null;
 endMarker = null;
 
+
+// Places a marker on the map for the users current location.
+let userLocationMarker = null;
+let userLocationWatchId = null;
+
+function enableUserLocation() {
+  if (!("geolocation" in navigator)) {
+    console.error("Geolocation is not supported by this browser.");
+    return;
+  }
+
+  if (userLocationWatchId !== null) {
+    return; // Already tracking
+  }
+
+  userLocationWatchId = navigator.geolocation.watchPosition(
+    (position) => {
+      const lng = position.coords.longitude;
+      const lat = position.coords.latitude;
+
+      if (!userLocationMarker) {
+        // Create a marker for the user's current position
+        const markerElement = document.createElement("div");
+        markerElement.className = "user-location-marker";
+
+        userLocationMarker = new mapboxgl.Marker({
+          element: markerElement,
+          anchor: "center"
+        })
+          .setLngLat([lng, lat])
+          .addTo(map);
+
+        // Center the map on the user's location initially
+        map.flyTo({
+          center: [lng, lat],
+          zoom: Math.max(map.getZoom(), 14)
+        });
+      } else {
+        // Update the marker as the user moves
+        userLocationMarker.setLngLat([lng, lat]);
+      }
+    },
+    (error) => {
+      console.error("Unable to get your location:", error.message);
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 5000,
+      timeout: 15000
+    }
+  );
+}
+
 // Calculates the bounding box that contains all coordinates in a GeoJSON geometry.
 function getGeoJSONBounds(geometry) {
   const bounds = new maplibregl.LngLatBounds();
