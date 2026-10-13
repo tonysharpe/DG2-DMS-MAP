@@ -124,53 +124,53 @@ async function loadCommunities() {
   }
 
   // Create one label point per community feature
-const labelFeatures = {
-  type: "FeatureCollection",
-  features: geojson.features
-    .filter(feature => feature.properties?.name)
-    .map(feature => {
-      const point = turf.pointOnFeature(feature);
-
-      point.properties = {
-        name: feature.properties.name
-      };
-
-      return point;
-    })
-};
-
-// Add or update the label source
-if (map.getSource("community-labels")) {
-  map.getSource("community-labels").setData(labelFeatures);
-} else {
-  map.addSource("community-labels", {
-    type: "geojson",
-    data: labelFeatures
-  });
+  const labelFeatures = {
+    type: "FeatureCollection",
+    features: geojson.features
+      .filter(feature => feature.properties?.name)
+      .map(feature => {
+        const point = turf.pointOnFeature(feature);
+  
+        point.properties = {
+          name: feature.properties.name
+        };
+  
+        return point;
+      })
+  };
+  
+  // Add or update the label source
+  if (map.getSource("community-labels")) {
+    map.getSource("community-labels").setData(labelFeatures);
+  } else {
+    map.addSource("community-labels", {
+      type: "geojson",
+      data: labelFeatures
+    });
+  }
+  
+  // Add the label layer only once
+  if (!map.getLayer("community-labels")) {
+    map.addLayer({
+      id: "community-labels",
+      type: "symbol",
+      source: "community-labels",
+      layout: {
+        "text-field": ["get", "name"],
+        "text-size": 12,
+        "text-anchor": "center",
+        "text-allow-overlap": true,
+        "text-ignore-placement": true
+      },
+      paint: {
+        "text-color": "#75677F",
+        "text-opacity": 0.55,
+        "text-halo-color": "#F4EFE5",
+        "text-halo-width": 1
+      }
+    });
+  }
 }
-
-// Add the label layer only once
-if (!map.getLayer("community-labels")) {
-  map.addLayer({
-    id: "community-labels",
-    type: "symbol",
-    source: "community-labels",
-    layout: {
-      "text-field": ["get", "name"],
-      "text-size": 12,
-      "text-anchor": "center",
-      "text-allow-overlap": true,
-      "text-ignore-placement": true
-    },
-    paint: {
-      "text-color": "#75677F",
-      "text-opacity": 0.55,
-      "text-halo-color": "#F4EFE5",
-      "text-halo-width": 1
-    }
-  });
-}
-
 
 // Loads local road data and adds or updates the road outline and surface layers.
 async function loadLocalRoads() {
