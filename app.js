@@ -86,13 +86,19 @@ async function loadCommunities() {
 
   const geojson = await response.json();
 
-  // Community fill
+  console.log("Community features:", geojson.features?.length);
+  console.log("First community properties:", geojson.features?.[0]?.properties);
+
   if (!map.getSource("communities")) {
     map.addSource("communities", {
       type: "geojson",
       data: geojson
     });
+  } else {
+    map.getSource("communities").setData(geojson);
+  }
 
+  if (!map.getLayer("communities-fill")) {
     map.addLayer({
       id: "communities-fill",
       type: "fill",
@@ -102,7 +108,9 @@ async function loadCommunities() {
         "fill-opacity": 0.05
       }
     });
+  }
 
+  if (!map.getLayer("communities-outline")) {
     map.addLayer({
       id: "communities-outline",
       type: "line",
@@ -113,11 +121,8 @@ async function loadCommunities() {
         "line-opacity": 0.1
       }
     });
-  } else {
-    map.getSource("communities").setData(geojson);
   }
 
-  // Community labels
   if (!map.getLayer("communities-labels")) {
     map.addLayer({
       id: "communities-labels",
@@ -125,12 +130,8 @@ async function loadCommunities() {
       source: "communities",
       layout: {
         "symbol-placement": "point",
-        "text-field": [
-          "to-string",
-          ["coalesce", ["get", "name"], ""]
-        ],
+        "text-field": ["coalesce", ["get", "name"], ""],
         "text-size": 14,
-        "text-font": ["Open Sans Regular"],
         "text-anchor": "center",
         "text-allow-overlap": true,
         "text-ignore-placement": true
@@ -138,37 +139,6 @@ async function loadCommunities() {
       paint: {
         "text-color": "#75677F",
         "text-opacity": 0.8,
-        "text-halo-color": "#F4EFE5",
-        "text-halo-width": 1
-      }
-    });
-  }
-
-  // Add or update label source
-  if (map.getSource("community-labels")) {
-    map.getSource("community-labels").setData(labelFeatures);
-  } else {
-    map.addSource("community-labels", {
-      type: "geojson",
-      data: labelFeatures
-    });
-  }
-
-  // Add labels only once
-  if (!map.getLayer("community-labels")) {
-    map.addLayer({
-      id: "community-labels",
-      type: "symbol",
-      source: "community-labels",
-      layout: {
-        "text-field": ["get", "name"],
-        "text-size": 12,
-        "text-anchor": "center",
-        "text-allow-overlap": true
-      },
-      paint: {
-        "text-color": "#75677F",
-        "text-opacity": 0.55,
         "text-halo-color": "#F4EFE5",
         "text-halo-width": 1
       }
