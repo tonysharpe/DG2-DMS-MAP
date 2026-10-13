@@ -100,7 +100,7 @@ async function loadCommunities() {
       source: "communities",
       paint: {
         "fill-color": "#B9A5C9",
-        "fill-opacity": 0.18
+        "fill-opacity": 0.05
       }
     });
 
@@ -111,7 +111,7 @@ async function loadCommunities() {
       paint: {
         "line-color": "#9B85AF",
         "line-width": 1.2,
-        "line-opacity": 0.35
+        "line-opacity": 0.1
       }
     });
   } else {
