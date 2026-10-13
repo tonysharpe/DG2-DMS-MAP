@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "destinations",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "name": "LAAR-195" }, "geometry": { "type": "Point", "coordinates": [ 46.602090265750938, 24.713239021591914 ] } },
+{ "type": "Feature", "properties": { "name": "LAAR-424" }, "geometry": { "type": "Point", "coordinates": [ 46.603109413328987, 24.71240609464796 ] } },
+{ "type": "Feature", "properties": { "name": "LAAR-483" }, "geometry": { "type": "Point", "coordinates": [ 46.606600367312218, 24.710686835123632 ] } }
+]
+}

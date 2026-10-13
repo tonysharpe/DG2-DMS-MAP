@@ -1,0 +1,13 @@
+{
+  "network_id": "NETWORK-001",
+  "version": 1,
+  "name": "Temporary Network",
+  "distance_units": "meters",
+  "speed_units": "kmh",
+  "routing": {
+    "cost": "time",
+    "distance_units": "meters",
+    "speed_units": "kmh",
+    "default_speed_kmh": 30
+  }
+}
