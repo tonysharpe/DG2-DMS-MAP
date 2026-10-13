@@ -14,9 +14,11 @@ map.addControl(new maplibregl.NavigationControl(), "top-right");
 let startMarker = null;
 endMarker = null;
 
+// Calculates the bounding box that contains all coordinates in a GeoJSON geometry.
 function getGeoJSONBounds(geometry) {
   const bounds = new maplibregl.LngLatBounds();
 
+  // Recursively visits coordinate arrays and expands the bounding box to include each point.
   function visitCoordinates(value) {
     if (
       Array.isArray(value) &&
@@ -43,6 +45,7 @@ function getGeoJSONBounds(geometry) {
   ];
 }
 
+// Loads the site boundary GeoJSON and adds or updates its map source and fill layer.
 async function loadSiteBoundary() {
   const response = await fetch("./data/site_boundary.geojson");
 
@@ -73,8 +76,7 @@ async function loadSiteBoundary() {
   });
 }
 
-
-
+// Loads community boundaries and adds or updates their fill, outline, and label layers.
 async function loadCommunities() {
   const response = await fetch("./data/communities.geojson");
 
@@ -138,7 +140,7 @@ async function loadCommunities() {
   }
 }
 
-  
+// Loads local road data and adds or updates the road outline and surface layers.
 async function loadLocalRoads() {
   const response = await fetch("./data/local_roads.geojson");
 
@@ -191,7 +193,7 @@ async function loadLocalRoads() {
   });
 }
 
-
+// Loads main road data and adds or updates the road outline and surface layers.
 async function loadMainRoads() {
   const response = await fetch("./data/main_roads.geojson");
 
@@ -244,8 +246,7 @@ async function loadMainRoads() {
   });
 }
 
-
-
+// Loads public road data and adds or updates the road outline and surface layers.
 async function loadPublicRoads() {
   const response = await fetch("./data/public_roads.geojson");
 
@@ -298,6 +299,7 @@ async function loadPublicRoads() {
   });
 }
 
+// Loads haul road data and adds or updates the haul road outline and surface layers.
 async function loadHaulRoads() {
   const response = await fetch("./data/haul_roads.geojson");
 
@@ -350,13 +352,20 @@ async function loadHaulRoads() {
   });
 }
 
+// Displays a message and applies the corresponding message style.
 function setMessage(text, type = "") { messageEl.textContent = text; messageEl.className = `message ${type}`.trim(); }
+
+// Displays the routing service status and applies the corresponding status style.
 function setServiceStatus(text, type = "") { statusEl.textContent = text; statusEl.className = `status ${type}`.trim(); }
+
+// Converts a duration in seconds into a readable minutes-and-seconds string.
 function formatDuration(seconds) {
   if (!Number.isFinite(seconds)) return "—";
   const total = Math.round(seconds), mins = Math.floor(total / 60), secs = total % 60;
   return mins ? `${mins} min ${secs} sec` : `${secs} sec`;
 }
+
+// Removes the currently displayed route, endpoint markers, and route summary.
 function clearRoute() {
   if (map.getLayer("route-line")) map.removeLayer("route-line");
   if (map.getSource("route-source")) map.removeSource("route-source");
@@ -364,17 +373,22 @@ function clearRoute() {
   if (endMarker) { endMarker.remove(); endMarker = null; }
   summaryEl.hidden = true;
 }
+
+// Collects every coordinate point from the geometries in a GeoJSON FeatureCollection.
 function getAllCoordinates(geojson) {
   const points = [];
+  // Recursively walks nested coordinate arrays and collects individual coordinate points.
   function visit(coords) {
     if (!Array.isArray(coords)) return;
     if (coords.length >= 2 && typeof coords[0] === "number" && typeof coords[1] === "number") { points.push(coords); return; }
     coords.forEach(visit);
   }
+  // Visits each feature's geometry to collect its coordinates.
   (geojson.features || []).forEach(feature => { if (feature.geometry) visit(feature.geometry.coordinates); });
   return points;
 }
 
+// Creates and adds a labeled map marker at the supplied coordinates.
 function addEndpointMarker(coords, color, label) {
   const container = document.createElement("div");
   Object.assign(container.style, {
@@ -424,6 +438,7 @@ function addEndpointMarker(coords, color, label) {
   }).setLngLat(coords).addTo(map);
 }
 
+// Checks the routing API, retrieves available destinations, and populates the destination selector.
 async function loadDestinations() {
   try {
     const health = await fetch(`${API_BASE}/health`);
@@ -437,6 +452,7 @@ async function loadDestinations() {
     const placeholder = document.createElement("option");
     placeholder.value = ""; placeholder.textContent = "Select a destination…";
     destinationSelect.appendChild(placeholder);
+    // Creates a dropdown option for each destination returned by the API.
     destinations.forEach(id => {
       const option = document.createElement("option");
       option.value = id; option.textContent = id;
@@ -449,6 +465,8 @@ async function loadDestinations() {
     setMessage(`Could not load destinations: ${error.message}. Check the API service and network connection.`, "error");
   }
 }
+
+// Requests a route for the selected destination, draws it on the map, and updates route details.
 async function calculateRoute() {
   const destinationId = destinationSelect.value;
   if (!destinationId) { setMessage("Select a destination first.", "error"); return; }
@@ -466,6 +484,7 @@ async function calculateRoute() {
 
 const coords = getAllCoordinates(data.route);
 if (coords.length) {
+// Builds the route bounding box by extending it to include each coordinate.
 const bounds = coords.reduce(
 (b, c) => b.extend(c),
 new maplibregl.LngLatBounds(coords[0], coords[0])
@@ -538,7 +557,7 @@ if (map.getSource("destination-area")) {
   "text-halo-blur": 0
   }
   });
-  
+
 }
 }
 
@@ -565,6 +584,8 @@ data.gate_coordinates, "#12b76a", `Gate ${data.gate_id}`
   } catch (error) { setMessage(`Route calculation failed: ${error.message}`, "error"); }
   finally { routeButton.disabled = false; routeButton.textContent = "Calculate route"; }
 }
+
+// Clears the current route and updates the message when the selected destination changes.
 routeButton.addEventListener("click", calculateRoute);
 destinationSelect.addEventListener("change", () => {
   clearRoute();
@@ -572,6 +593,7 @@ destinationSelect.addEventListener("change", () => {
   else setMessage("Select a destination to begin.");
 });
 
+// Hides the default basemap layers, then loads the destinations and all map data layers.
 map.on("load", async () => {
   // Hide existing CARTO style layers
   for (const layer of map.getStyle().layers ?? []) {
