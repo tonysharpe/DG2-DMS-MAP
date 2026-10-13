@@ -1,4 +1,4 @@
-const API_BASE = "https://dg2-dms-mapping.onrender.com";
+const API_BASE = "https://dg2-dms-routing.onrender.com";
 const statusEl = document.getElementById("serviceStatus");
 const destinationSelect = document.getElementById("destinationSelect");
 const routeButton = document.getElementById("routeButton");
