@@ -256,3 +256,13 @@ dd {
         white-space: normal;
     }
 }
+
+.user-location-marker {
+  width: 18px;
+  height: 18px;
+  background: #2878F0;
+  border: 3px solid #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 0 0 6px rgba(40, 120, 240, 0.2);
+  cursor: pointer;
+}
