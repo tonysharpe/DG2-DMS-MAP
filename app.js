@@ -77,6 +77,7 @@ async function loadSiteBoundary() {
 }
 
 // Loads community boundaries and adds or updates their fill, outline, and label layers.
+
 async function loadCommunities() {
   const response = await fetch("./data/communities.geojson");
 
@@ -86,41 +87,38 @@ async function loadCommunities() {
 
   const geojson = await response.json();
 
-  if (map.getSource("communities")) {
+  // Community fill
+  if (!map.getSource("communities")) {
+    map.addSource("communities", {
+      type: "geojson",
+      data: geojson
+    });
+
+    map.addLayer({
+      id: "communities-fill",
+      type: "fill",
+      source: "communities",
+      paint: {
+        "fill-color": "#B9A5C9",
+        "fill-opacity": 0.18
+      }
+    });
+
+    map.addLayer({
+      id: "communities-outline",
+      type: "line",
+      source: "communities",
+      paint: {
+        "line-color": "#9B85AF",
+        "line-width": 1.2,
+        "line-opacity": 0.35
+      }
+    });
+  } else {
     map.getSource("communities").setData(geojson);
-    return;
   }
 
-  map.addSource("communities", {
-    type: "geojson",
-    data: geojson
-  });
-
-  // Community area fill
-  map.addLayer({
-    id: "communities-fill",
-    type: "fill",
-    source: "communities",
-    paint: {
-      "fill-color": "#B9A5C9",
-      "fill-opacity": 0.18
-    }
-  });
-
-  // Community boundary outline
-  map.addLayer({
-    id: "communities-outline",
-    type: "line",
-    source: "communities",
-    paint: {
-      "line-color": "#9B85AF",
-      "line-width": 1.5,
-      "line-opacity": 0.35
-    }
-  });
-}
-
-  // Create a point inside each community for label placement
+  // Create label points inside community polygons
   const labelFeatures = {
     type: "FeatureCollection",
     features: geojson.features
@@ -138,6 +136,7 @@ async function loadCommunities() {
       })
   };
 
+  // Add or update label source
   if (map.getSource("community-labels")) {
     map.getSource("community-labels").setData(labelFeatures);
   } else {
@@ -147,6 +146,7 @@ async function loadCommunities() {
     });
   }
 
+  // Add labels only once
   if (!map.getLayer("community-labels")) {
     map.addLayer({
       id: "community-labels",
@@ -160,12 +160,13 @@ async function loadCommunities() {
       },
       paint: {
         "text-color": "#75677F",
-        "text-opacity": 0.65,
+        "text-opacity": 0.55,
         "text-halo-color": "#F4EFE5",
         "text-halo-width": 1
       }
     });
   }
+}
 
 // Loads local road data and adds or updates the road outline and surface layers.
 async function loadLocalRoads() {
