@@ -695,6 +695,10 @@ map.on("load", async () => {
       loadMainRoads(),
       loadPublicRoads()
     ]);
+
+    // Start tracking the user's live location
+    enableUserLocation();
+    
   } catch (error) {
     console.error("Failed to load application layers:", error);
   }
