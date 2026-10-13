@@ -77,7 +77,6 @@ async function loadSiteBoundary() {
 }
 
 // Loads community boundaries and adds or updates their fill, outline, and label layers.
-
 async function loadCommunities() {
   const response = await fetch("./data/communities.geojson");
 
@@ -118,23 +117,32 @@ async function loadCommunities() {
     map.getSource("communities").setData(geojson);
   }
 
-  // Create label points inside community polygons
-  const labelFeatures = {
-    type: "FeatureCollection",
-    features: geojson.features
-      .filter(feature => feature.properties?.name)
-      .map(feature => {
-        const point = turf.pointOnFeature(feature);
-
-        return {
-          type: "Feature",
-          properties: {
-            name: feature.properties.name
-          },
-          geometry: point.geometry
-        };
-      })
-  };
+  // Community labels
+  if (!map.getLayer("communities-labels")) {
+    map.addLayer({
+      id: "communities-labels",
+      type: "symbol",
+      source: "communities",
+      layout: {
+        "symbol-placement": "point",
+        "text-field": [
+          "to-string",
+          ["coalesce", ["get", "name"], ""]
+        ],
+        "text-size": 14,
+        "text-font": ["Open Sans Regular"],
+        "text-anchor": "center",
+        "text-allow-overlap": true,
+        "text-ignore-placement": true
+      },
+      paint: {
+        "text-color": "#75677F",
+        "text-opacity": 0.8,
+        "text-halo-color": "#F4EFE5",
+        "text-halo-width": 1
+      }
+    });
+  }
 
   // Add or update label source
   if (map.getSource("community-labels")) {
