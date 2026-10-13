@@ -20,44 +20,46 @@ let userLocationMarker = null;
 let userLocationWatchId = null;
 
 function enableUserLocation() {
-  if (!("geolocation" in navigator)) {
+  if (!navigator.geolocation) {
     console.error("Geolocation is not supported by this browser.");
     return;
   }
 
-  if (userLocationWatchId !== null) {
-    return; // Already tracking
-  }
+  if (userLocationWatchId !== null) return;
 
   userLocationWatchId = navigator.geolocation.watchPosition(
     (position) => {
       const lng = position.coords.longitude;
       const lat = position.coords.latitude;
 
+      console.log("LIVE LOCATION RECEIVED:", lat, lng);
+
       if (!userLocationMarker) {
-        // Create a marker for the user's current position
         const markerElement = document.createElement("div");
         markerElement.className = "user-location-marker";
 
-        userLocationMarker = new mapboxgl.Marker({
+        userLocationMarker = new maplibregl.Marker({
           element: markerElement,
           anchor: "center"
         })
           .setLngLat([lng, lat])
           .addTo(map);
 
-        // Center the map on the user's location initially
+        // Center on the user's location when first received
         map.flyTo({
           center: [lng, lat],
-          zoom: Math.max(map.getZoom(), 14)
+          zoom: 15
         });
       } else {
-        // Update the marker as the user moves
         userLocationMarker.setLngLat([lng, lat]);
       }
     },
     (error) => {
-      console.error("Unable to get your location:", error.message);
+      console.error(
+        "Geolocation error:",
+        error.code,
+        error.message
+      );
     },
     {
       enableHighAccuracy: true,
