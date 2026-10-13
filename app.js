@@ -118,6 +118,7 @@ async function loadCommunities() {
       "line-opacity": 0.35
     }
   });
+}
 
   // Create a point inside each community for label placement
   const labelFeatures = {
