@@ -1,13 +1,30 @@
-# DG2-DMS-Map
+# Modular routing app JavaScript
 
-Static MapLibre GL JS frontend for the temporary-road routing API.
+The original JavaScript has been split into ES modules:
 
-## Deploy as a Render Static Site
-1. Upload `index.html`, `style.css`, `app.js`, and `README.md` to the `DG2-DMS-Map` GitHub repository (repository root).
-2. In Render choose **New + → Static Site** and connect this repository.
-3. Set **Publish Directory** to `.` (a single dot). There is no build step.
-4. Create the static site.
+- `main.js` — startup and event wiring
+- `map.js` — MapLibre map creation
+- `location.js` — live user location
+- `mapLayers.js` — GeoJSON boundaries, communities, and road layers
+- `routing.js` — routing API and destination selection
+- `routeDisplay.js` — route drawing, bounds, endpoint marker, and clearing
+- `ui.js` — status messages and route summary
 
-The frontend calls `https://dg2-dms-mapping.onrender.com/health`, `/destinations`, and `POST /route`.
+## Integrate into your existing project
 
-Map tiles are loaded from OpenStreetMap and require internet access. The endpoint markers represent the first and last coordinates of the returned road geometries, not necessarily the exact gate and destination locations.
+1. Copy these JavaScript files into the same directory as your current JavaScript entry file (or update the import paths if you place them elsewhere).
+2. Keep your existing `data/` directory and its GeoJSON files in the same relative location.
+3. In your HTML, replace the old script reference with a module script:
+
+   ```html
+   <script type="module" src="./main.js"></script>
+   ```
+
+4. Ensure MapLibre GL JS and Turf are loaded before `main.js`, and that they expose `maplibregl` and `turf` globally. For example, keep their existing CDN script tags before the module script.
+5. Serve the page through a local web server or your normal hosting environment. ES modules generally should not be opened directly using a `file://` URL.
+
+## Notes
+
+- The HTML element IDs and GeoJSON paths used by the original script are preserved.
+- `endMarker` was declared but never used in the original script; the modular version keeps marker state private to the route-display module.
+- This is a structural refactor based on the supplied JavaScript. It has not been integration-tested against the live API, the HTML, or the GeoJSON files because those project files were not supplied.
