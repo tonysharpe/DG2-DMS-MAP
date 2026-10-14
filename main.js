@@ -7,9 +7,9 @@ import {
   loadLocalRoads,
   loadMainRoads,
   loadPublicRoads,
-  loadRiyadhRoadsPrimary,
-  loadRiyadhRoadsSecondary,
-  loadRiyadhRoadsResidential
+  loadRiyadhPrimary,
+  loadRiyadhSecondary,
+  loadRiyadhResidential
   } from "./mapLayers.js";
 import { loadDestinations, calculateRoute } from "./routing.js";
 import { clearRoute } from "./routeDisplay.js";
@@ -44,9 +44,9 @@ map.on("load", async () => {
       loadLocalRoads(map),
       loadMainRoads(map),
       loadPublicRoads(map),
-      loadRiyadhRoadsPrimary(map),
-      loadRiyadhRoadsSecondary(map),
-      loadRiyadhRoadsResidential(map)
+      loadRiyadhPrimary(map),
+      loadRiyadhSecondary(map),
+      loadRiyadhResidential(map)
     ]);
 
     enableUserLocation(map);
