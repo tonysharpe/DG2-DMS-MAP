@@ -56,3 +56,15 @@ map.on("load", async () => {
     console.error("Failed to load application layers:", error);
   }
 });
+
+const loadedIds = new Set(loadedLayers.map(layer => layer.id));
+
+console.log("=== MISSING EXPECTED LAYERS ===");
+console.log(expectedLayers.filter(id => !loadedIds.has(id)));
+
+console.log("=== LOADED CUSTOM LAYERS ===");
+console.log(
+  loadedLayers
+    .filter(layer => expectedLayers.includes(layer.id))
+    .map(layer => layer.id)
+);
