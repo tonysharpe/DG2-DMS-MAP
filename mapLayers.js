@@ -179,3 +179,33 @@ export const loadHaulRoads = map => loadRoadLayer(map, {
   path: "./data/haul_roads.geojson", filename: "haul_roads.geojson", sourceId: "haul_roads",
   outlineColor: "#9C4525", outlineWidth: 5, surfaceColor: "#D96B35", surfaceWidth: 3.5
 });
+
+export function setLayerOrder(map) {
+  const layerOrder = [
+    "site_boundary-fill",
+    "communities-fill",
+    "communities-outline",
+    "community-labels"
+    "local_roads-outline",
+    "local_roads-lines",
+    "riyadh_residential-outline",
+    "riyadh_residential-lines",
+    "riyadh_secondary-outline",
+    "riyadh_secondary-lines",
+    "public_roads-outline",
+    "public_roads-lines",
+    "main_roads-outline",
+    "main_roads-lines",
+    "riyadh_primary-outline",
+    "riyadh_primary-lines",
+    "haul_roads-outline",
+    "haul_roads-lines",
+  ];
+  
+  // Move layers into the specified bottom-to-top order. 
+  for (const layerId of layerOrder) {
+    if (map.getLayer(layerId)) {
+      map.moveLayer(layerId);
+    } 
+  } 
+}
