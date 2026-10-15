@@ -180,12 +180,13 @@ export const loadHaulRoads = map => loadRoadLayer(map, {
   outlineColor: "#9C4525", outlineWidth: 5, surfaceColor: "#D96B35", surfaceWidth: 3.5
 });
 
-export function setLayerOrder(map) {
+export function setLayerOrder(map, timeoutMs = 15000) {
   const layerOrder = [
     "site_boundary-fill",
     "communities-fill",
     "communities-outline",
     "community-labels"
+    
     "local_roads-outline",
     "local_roads-lines",
     "riyadh_residential-outline",
