@@ -152,7 +152,7 @@ export const loadLocalRoads = map => loadRoadLayer(map, {
 
 export const loadRiyadhResidential = map => loadRoadLayer(map, {
   path: "./data/riyadh_residential.geojson", filename: "riyadh_residential.geojson", sourceId: "riyadh_residential",
-  outlineColor: "#B8C9D8", outlineWidth: 2.5, surfaceColor: "#CED8E1", surfaceWidth: 1.5
+  outlineColor: "#B8C9D8", outlineWidth: 1.5, surfaceColor: "#CED8E1", surfaceWidth: 1.0
 });
 
 export const loadRiyadhSecondary = map => loadRoadLayer(map, {
