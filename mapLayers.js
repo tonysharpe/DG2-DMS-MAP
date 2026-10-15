@@ -187,8 +187,8 @@ export function setLayerOrder(map, timeoutMs = 15000) {
     "communities-outline",
     "community-labels"
     
-    "local_roads-outline",
-    "local_roads-lines",
+    //"local_roads-outline",
+    //"local_roads-lines",
     "riyadh_residential-outline",
     "riyadh_residential-lines",
     "riyadh_secondary-outline",
