@@ -49,6 +49,8 @@ map.on("load", async () => {
       loadRiyadhResidential(map)
     ]);
 
+    setLayerOrder(map);
+    
     enableUserLocation(map);
   } catch (error) {
     console.error("Failed to load application layers:", error);
