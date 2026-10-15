@@ -185,10 +185,10 @@ export function setLayerOrder(map, timeoutMs = 15000) {
     "site_boundary-fill",
     "communities-fill",
     "communities-outline",
-    "community-labels"
+    "community-labels",
     
-    //"local_roads-outline",
-    //"local_roads-lines",
+    "local_roads-outline",
+    "local_roads-lines",
     "riyadh_residential-outline",
     "riyadh_residential-lines",
     "riyadh_secondary-outline",
@@ -200,7 +200,7 @@ export function setLayerOrder(map, timeoutMs = 15000) {
     "riyadh_primary-outline",
     "riyadh_primary-lines",
     "haul_roads-outline",
-    "haul_roads-lines",
+    "haul_roads-lines"
   ];
   
   // Move layers into the specified bottom-to-top order. 
