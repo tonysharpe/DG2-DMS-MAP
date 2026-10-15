@@ -202,11 +202,38 @@ export function setLayerOrder(map) {
     "haul_roads-outline",
     "haul_roads-lines"
   ];
+
+  const start = Date.now();
+
+  // Wait for the map style to become available.
+  while (!map.isStyleLoaded()) {
+    if (Date.now() - start >= timeoutMs) {
+    throw new Error("Timed out waiting for map style to load.");
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+
+  // Wait for all requested layers to exist.
+  while (!layerOrder.every(id => map.getLayer(id))) {
+    if (Date.now() - start >= timeoutMs) {
+      const missing = layerOrder.filter(id => !map.getLayer(id));
+      throw new Error(
+      Timed out waiting for layers: ${missing.join(", ")}
+      );
+    }    
+    await new Promise(resolve => setTimeout(resolve, 100));    
+  }
   
-  // Move layers into the specified bottom-to-top order. 
+  // Move layers to the top in bottom-to-top order.
   for (const layerId of layerOrder) {
-    if (map.getLayer(layerId)) {
-      map.moveLayer(layerId);
-    } 
-  } 
+    map.moveLayer(layerId);
+  }
+  
+  // Return the resulting order for verification.
+  return layerOrder.map(id => ({
+    id,
+    index: map.getStyle().layers.findIndex(layer => layer.id === id),
+  }));
 }
+
+
