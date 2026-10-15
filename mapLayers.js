@@ -147,12 +147,12 @@ async function loadRoadLayer(map, config) {
 
 export const loadLocalRoads = map => loadRoadLayer(map, {
   path: "./data/local_roads.geojson", filename: "local_roads.geojson", sourceId: "local_roads",
-  outlineColor: "#B8C9D8", outlineWidth: 2.5, surfaceColor: "#CED8E1", surfaceWidth: 1.5
+  outlineColor: "#B8C9D8", outlineWidth: 1.0, surfaceColor: "#CED8E1", surfaceWidth: 0.7
 });
 
 export const loadRiyadhResidential = map => loadRoadLayer(map, {
   path: "./data/riyadh_residential.geojson", filename: "riyadh_residential.geojson", sourceId: "riyadh_residential",
-  outlineColor: "#B8C9D8", outlineWidth: 1.5, surfaceColor: "#CED8E1", surfaceWidth: 1.0
+  outlineColor: "#B8C9D8", outlineWidth: 1.0, surfaceColor: "#CED8E1", surfaceWidth: 0.7
 });
 
 export const loadRiyadhSecondary = map => loadRoadLayer(map, {
