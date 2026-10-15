@@ -14,6 +14,7 @@ import {
 import { loadDestinations, calculateRoute } from "./routing.js";
 import { clearRoute } from "./routeDisplay.js";
 import { setMessage } from "./ui.js";
+import { setLayerOrder } from "./mapLayers.js";
 
 const destinationSelect = document.getElementById("destinationSelect");
 const routeButton = document.getElementById("routeButton");
