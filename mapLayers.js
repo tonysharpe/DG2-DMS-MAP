@@ -180,7 +180,7 @@ export const loadHaulRoads = map => loadRoadLayer(map, {
   outlineColor: "#9C4525", outlineWidth: 5, surfaceColor: "#D96B35", surfaceWidth: 3.5
 });
 
-export function setLayerOrder(map, timeoutMs = 15000) {
+export async function setLayerOrder(map, timeoutMs = 15000) {
   const layerOrder = [
     "site_boundary-fill",
     "communities-fill",
@@ -218,7 +218,7 @@ export function setLayerOrder(map, timeoutMs = 15000) {
     if (Date.now() - start >= timeoutMs) {
       const missing = layerOrder.filter(id => !map.getLayer(id));
       throw new Error(
-      Timed out waiting for layers: ${missing.join(", ")}
+      'Timed out waiting for layers: ${missing.join(", ")}'
       );
     }    
     await new Promise(resolve => setTimeout(resolve, 100));    
