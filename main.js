@@ -1,5 +1,6 @@
 import { map } from "./map.js";
 import { enableUserLocation } from "./location.js";
+
 import {
   loadSiteBoundary,
   loadCommunities,
@@ -9,34 +10,44 @@ import {
   loadPublicRoads,
   loadRiyadhPrimary,
   loadRiyadhSecondary,
-  loadRiyadhResidential
-  } from "./mapLayers.js";
+  loadRiyadhResidential,
+  setLayerOrder
+} from "./mapLayers.js";
+
 import { loadDestinations, calculateRoute } from "./routing.js";
 import { clearRoute } from "./routeDisplay.js";
 import { setMessage } from "./ui.js";
-import { setLayerOrder } from "./mapLayers.js";
 
 const destinationSelect = document.getElementById("destinationSelect");
 const routeButton = document.getElementById("routeButton");
 
-routeButton.addEventListener("click", () => calculateRoute(map));
+// Calculate a route when the button is clicked.
+routeButton.addEventListener("click", () => {
+  calculateRoute(map);
+});
 
+// Clear the route when the destination changes.
 destinationSelect.addEventListener("change", () => {
   clearRoute(map);
+
   if (destinationSelect.value) {
-    setMessage(`Destination ${destinationSelect.value} selected. Click Calculate route.`);
+    setMessage(
+      `Destination ${destinationSelect.value} selected. Click Calculate route.`
+    );
   } else {
     setMessage("Select a destination to begin.");
   }
 });
 
-// Hides the default basemap layers, then loads destinations and all map data.
+// Load map data and apply the required layer order.
 map.on("load", async () => {
-  for (const layer of map.getStyle().layers ?? []) {
-    map.setLayoutProperty(layer.id, "visibility", "none");
-  }
-
   try {
+    // Hide the default basemap layers.
+    for (const layer of map.getStyle().layers ?? []) {
+      map.setLayoutProperty(layer.id, "visibility", "none");
+    }
+
+    // Load destinations and map layers.
     await Promise.all([
       loadDestinations(),
       loadSiteBoundary(map),
@@ -50,20 +61,13 @@ map.on("load", async () => {
       loadRiyadhResidential(map)
     ]);
 
+    // Apply the intended layer order.
     const result = await setLayerOrder(map);
     console.table(result);
 
-    } catch (error) {
-    console.error("Map loading or layer ordering failed:", error);
-    }
-    
-    setLayerOrder(map)
-      .then(result => console.table(result))
-      .catch(error => console.error(error));
-    
+    // Enable user location.
     enableUserLocation(map);
   } catch (error) {
     console.error("Failed to load application layers:", error);
   }
 });
-
