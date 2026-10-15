@@ -49,7 +49,9 @@ map.on("load", async () => {
       loadRiyadhResidential(map)
     ]);
 
-    setLayerOrder(map);
+    setLayerOrder(map)
+      .then(console.table)
+      .catch(console.error);
     
     enableUserLocation(map);
   } catch (error) {
