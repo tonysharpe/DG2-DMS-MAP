@@ -210,6 +210,3 @@ export function setLayerOrder(map) {
     } 
   } 
 }
-
-
-
