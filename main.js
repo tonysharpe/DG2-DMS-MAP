@@ -48,6 +48,13 @@ map.on("load", async () => {
       loadRiyadhSecondary(map),
       loadRiyadhResidential(map)
     ]);
+
+    const result = await setLayerOrder(map);
+    console.table(result);
+
+    } catch (error) {
+    console.error("Map loading or layer ordering failed:", error);
+    }
     
     setLayerOrder(map)
       .then(result => console.table(result))
