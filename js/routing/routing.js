@@ -1,6 +1,6 @@
 const API_BASE = "https://dg2-dms-routing.onrender.com";
 
-import { setMessage, setServiceStatus, showRouteSummary } from "./ui.js";
+import { setMessage, setServiceStatus, showRouteSummary } from "../menus/ui.js";
 import { clearRoute, displayRoute } from "./routeDisplay.js";
 
 const destinationSelect = document.getElementById("destinationSelect");

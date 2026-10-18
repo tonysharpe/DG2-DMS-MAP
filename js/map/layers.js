@@ -28,7 +28,7 @@ export function getGeoJSONBounds(geometry) {
 }
 
 export async function loadSiteBoundary(map) {
-  const geojson = await fetchGeoJSON("./data/site_boundary.geojson", "site_boundary.geojson");
+  const geojson = await fetchGeoJSON("../../data/site_boundary.geojson", "site_boundary.geojson");
   if (map.getSource("site_boundary")) {
     map.getSource("site_boundary").setData(geojson);
     return;
@@ -43,7 +43,7 @@ export async function loadSiteBoundary(map) {
 }
 
 export async function loadCommunities(map) {
-  const geojson = await fetchGeoJSON("./data/communities.geojson", "communities.geojson");
+  const geojson = await fetchGeoJSON("../../data/communities.geojson", "communities.geojson");
   console.log("Community features:", geojson.features?.length);
   console.log("First community properties:", geojson.features?.[0]?.properties);
 
@@ -146,37 +146,37 @@ async function loadRoadLayer(map, config) {
 }
 
 export const loadLocalRoads = map => loadRoadLayer(map, {
-  path: "./data/local_roads.geojson", filename: "local_roads.geojson", sourceId: "local_roads",
+  path: "../../data/local_roads.geojson", filename: "local_roads.geojson", sourceId: "local_roads",
   outlineColor: "#B8C9D8", outlineWidth: 1.0, surfaceColor: "#CED8E1", surfaceWidth: 0.7
 });
 
 export const loadRiyadhResidential = map => loadRoadLayer(map, {
-  path: "./data/riyadh_residential.geojson", filename: "riyadh_residential.geojson", sourceId: "riyadh_residential",
+  path: "../../data/riyadh_residential.geojson", filename: "riyadh_residential.geojson", sourceId: "riyadh_residential",
   outlineColor: "#B8C9D8", outlineWidth: 1.0, surfaceColor: "#CED8E1", surfaceWidth: 0.7
 });
 
 export const loadRiyadhSecondary = map => loadRoadLayer(map, {
-  path: "./data/riyadh_secondary.geojson", filename: "riyadh_secondary.geojson", sourceId: "riyadh_secondary",
+  path: "../../data/riyadh_secondary.geojson", filename: "riyadh_secondary.geojson", sourceId: "riyadh_secondary",
   outlineColor: "#B8C9D8", outlineWidth: 2.5, surfaceColor: "#CED8E1", surfaceWidth: 1.5
 });
 
 export const loadMainRoads = map => loadRoadLayer(map, {
-  path: "./data/main_roads.geojson", filename: "main_roads.geojson", sourceId: "main_roads",
+  path: "../../data/main_roads.geojson", filename: "main_roads.geojson", sourceId: "main_roads",
   outlineColor: "#7189A8", outlineWidth: 6, surfaceColor: "#92A9C6", surfaceWidth: 4
 });
 
 export const loadRiyadhPrimary = map => loadRoadLayer(map, {
-  path: "./data/riyadh_primary.geojson", filename: "riyadh_primary.geojson", sourceId: "riyadh_primary",
+  path: "../../data/riyadh_primary.geojson", filename: "riyadh_primary.geojson", sourceId: "riyadh_primary",
   outlineColor: "#7189A8", outlineWidth: 6, surfaceColor: "#92A9C6", surfaceWidth: 4
 });
 
 export const loadPublicRoads = map => loadRoadLayer(map, {
-  path: "./data/public_roads.geojson", filename: "public_roads.geojson", sourceId: "public_roads",
+  path: "../../data/public_roads.geojson", filename: "public_roads.geojson", sourceId: "public_roads",
   outlineColor: "#B0C2D4", outlineWidth: 5, surfaceColor: "#D9E1E8", surfaceWidth: 3.5
 });
 
 export const loadHaulRoads = map => loadRoadLayer(map, {
-  path: "./data/haul_roads.geojson", filename: "haul_roads.geojson", sourceId: "haul_roads",
+  path: "../../data/haul_roads.geojson", filename: "haul_roads.geojson", sourceId: "haul_roads",
   outlineColor: "#9C4525", outlineWidth: 5, surfaceColor: "#D96B35", surfaceWidth: 3.5
 });
 

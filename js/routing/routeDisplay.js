@@ -1,5 +1,5 @@
-import { getGeoJSONBounds } from "./mapLayers.js";
-import { hideRouteSummary } from "./ui.js";
+import { getGeoJSONBounds } from "../map/layers.js";
+import { hideRouteSummary } from "../menus/ui.js";
 
 let startMarker = null;
 let endMarker = null;
