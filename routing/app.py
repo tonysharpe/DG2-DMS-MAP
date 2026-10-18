@@ -1,7 +1,15 @@
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from routing_engine import RoutingEngine
+
+# Support both "uvicorn routing.app:app" from the repository root and
+# "uvicorn app:app" when running from the routing directory.
+if __package__:
+    from .routing_engine import RoutingEngine
+else:
+    from routing_engine import RoutingEngine
 
 app = FastAPI(title="Temporary Road Routing API")
 
@@ -14,7 +22,9 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
-engine = RoutingEngine("data")
+# Shared network data lives in the repository's top-level data/ directory.
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+engine = RoutingEngine(DATA_DIR)
 
 
 class RouteRequest(BaseModel):

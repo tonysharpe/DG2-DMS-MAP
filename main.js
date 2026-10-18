@@ -1,5 +1,6 @@
-import { map } from "../map/map.js";
-import { enableUserLocation } from "../location/location.js";
+import { map } from "./map.js";
+import { enableUserLocation } from "./location.js";
+
 import {
   loadSiteBoundary,
   loadCommunities,
@@ -11,31 +12,42 @@ import {
   loadRiyadhSecondary,
   loadRiyadhResidential,
   setLayerOrder
-} from "../map/layers.js";
-import { loadDestinations, calculateRoute } from "../routing/routing.js";
-import { clearRoute } from "../routing/routeDisplay.js";
-import { setMessage } from "../menus/ui.js";
+} from "./mapLayers.js";
+
+import { loadDestinations, calculateRoute } from "./routing.js";
+import { clearRoute } from "./routeDisplay.js";
+import { setMessage } from "./ui.js";
 
 const destinationSelect = document.getElementById("destinationSelect");
 const routeButton = document.getElementById("routeButton");
 
-routeButton.addEventListener("click", () => calculateRoute(map));
-
-destinationSelect.addEventListener("change", () => {
-  clearRoute(map);
-  setMessage(
-    destinationSelect.value
-      ? `Destination ${destinationSelect.value} selected. Click Calculate route.`
-      : "Select a destination to begin."
-  );
+// Calculate a route when the button is clicked.
+routeButton.addEventListener("click", () => {
+  calculateRoute(map);
 });
 
+// Clear the route when the destination changes.
+destinationSelect.addEventListener("change", () => {
+  clearRoute(map);
+
+  if (destinationSelect.value) {
+    setMessage(
+      `Destination ${destinationSelect.value} selected. Click Calculate route.`
+    );
+  } else {
+    setMessage("Select a destination to begin.");
+  }
+});
+
+// Load map data and apply the required layer order.
 map.on("load", async () => {
   try {
+    // Hide the default basemap layers.
     for (const layer of map.getStyle().layers ?? []) {
       map.setLayoutProperty(layer.id, "visibility", "none");
     }
 
+    // Load destinations and map layers.
     await Promise.all([
       loadDestinations(),
       loadSiteBoundary(map),
@@ -49,8 +61,11 @@ map.on("load", async () => {
       loadRiyadhResidential(map)
     ]);
 
+    // Apply the intended layer order.
     const result = await setLayerOrder(map);
     console.table(result);
+
+    // Enable user location.
     enableUserLocation(map);
   } catch (error) {
     console.error("Failed to load application layers:", error);

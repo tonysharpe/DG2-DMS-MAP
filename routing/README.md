@@ -1,83 +1,54 @@
 # Temporary Road Routing Engine
 
-File-based routing engine for a temporary road network.
+File-based routing engine for the temporary road network.
 
 ## Data directory
 
-Place these files in `data/`:
+Routing data is stored in the repository-level `data/` directory, shared with the map application. Required routing files:
 
-- `roads.geojson`
-- `junctions.geojson`
-- `gates.geojson`
-- `destinations.geojson`
-- `destinations_gates_lookup.csv`
+- `data/roads.geojson`
+- `data/junctions.geojson`
+- `data/gates.geojson`
+- `data/destinations.geojson`
+- `data/destination_areas.geojson`
+- `data/destinations_gates_lookup.csv`
 
-Expected fields:
-
-### roads.geojson
-
-`road_id, start_node, end_node, name, direction, length, speed, type`
-
-### junctions.geojson
-
-`name`
-
-### gates.geojson
-
-`name`
-
-### destinations.geojson
-
-`name`
-
-### destinations_gates_lookup.csv
-
-`destination_id, gate_id`
-
-Gate and destination junctions are calculated dynamically by finding the nearest junction.
+The same directory also contains the map layers used by the frontend. Keep these routing files alongside the map data; do not create a separate `routing/data/` directory.
 
 ## Routing
 
-Roads are graph connections.
+Roads are graph connections:
 
-- `both`: start -> end and end -> start
-- `forward`: start -> end
-- `reverse`: end -> start
+- `both`: start to end and end to start
+- `forward`: start to end
+- `reverse`: end to start
 
 Routing cost is travel time:
 
 `length_m / 1000 / speed_kmh * 3600`
 
-The engine uses Dijkstra's algorithm.
+The engine uses Dijkstra's algorithm. Gate and destination junctions are calculated dynamically by finding the nearest junction.
 
-## Run
+## Run from the repository root
 
 ```bash
 python -m venv .venv
 # Windows:
-.venv\Scripts\activate
+.venv\\Scripts\\activate
 # Linux/macOS:
 source .venv/bin/activate
 
-pip install -r requirements.txt
-uvicorn app:app --reload
+pip install -r routing/requirements.txt
+uvicorn routing.app:app --reload
 ```
 
 ## API
 
-Health:
+- `GET /health`
+- `GET /destinations`
+- `POST /route`
 
-`GET /health`
-
-Destinations:
-
-`GET /destinations`
-
-Route:
-
-`POST /route`
-
-Body:
+Example request:
 
 ```json
 {
