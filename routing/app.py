@@ -36,6 +36,12 @@ def health():
     return {"status": "ok"}
 
 
+@app.get("/network-info")
+def network_info():
+    """Identify the exact road dataset loaded by this running API process."""
+    return engine.network_info
+
+
 @app.get("/destinations")
 def destinations():
     return {"destinations": engine.destination_ids()}

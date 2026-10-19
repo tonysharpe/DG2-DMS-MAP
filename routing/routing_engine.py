@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import heapq
 import json
 import math
@@ -17,7 +18,16 @@ class RoutingEngine:
 
     def __init__(self, data_dir: str | Path):
         self.data_dir = Path(data_dir)
+        roads_path = self.data_dir / "roads.geojson"
+        roads_bytes = roads_path.read_bytes() if roads_path.exists() else b""
+        self.network_info = {
+            "file": "roads.geojson",
+            "path": str(roads_path.resolve()),
+            "sha256": hashlib.sha256(roads_bytes).hexdigest(),
+            "file_bytes": len(roads_bytes),
+        }
         self.roads = self._load_geojson("roads.geojson")
+        self.network_info["feature_count"] = len(self.roads.get("features", []))
         self.gates = self._load_geojson("gates.geojson")
         self.destinations = self._load_geojson("destinations.geojson")
         self.destination_areas = self._load_geojson("destination_areas.geojson")
@@ -419,7 +429,7 @@ class RoutingEngine:
             {
                 "stage": "Road network",
                 "status": "ok",
-                "detail": f"roads.geojson: {len(self.roads.get('features', []))} features, {len(self.links)} usable links ({one_way} one-way, {both_way} bidirectional). Default speed: {self.default_speed_kmh:g} km/h."
+                "detail": f"roads.geojson: {len(self.roads.get('features', []))} features, {len(self.links)} usable links ({one_way} one-way, {both_way} bidirectional). Default speed: {self.default_speed_kmh:g} km/h. Dataset SHA-256: {self.network_info['sha256']}."
             },
             {
                 "stage": "Gate snap",
@@ -612,6 +622,7 @@ class RoutingEngine:
         result = self._dijkstra(graph, gate_snap["node"], destination_snap["node"])
         if result is None:
             return {
+                "network_info": self.network_info,
                 "diagnostics": diagnostics,
                 "diagnostic_map": diagnostic_map,
                 "status": "no_route",
@@ -647,6 +658,7 @@ class RoutingEngine:
         area = self.destination_area_by_name.get(destination_id)
         return {
             "status": "ok",
+            "network_info": self.network_info,
             "diagnostics": diagnostics,
             "diagnostic_map": diagnostic_map,
             "destination_id": destination_id,
