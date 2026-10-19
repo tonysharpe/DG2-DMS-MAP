@@ -180,11 +180,6 @@ export const loadMainRoadType = map => loadRoadLayer(map, {
   outlineColor: "#7189A8", outlineWidth: 6, surfaceColor: "#92A9C6", surfaceWidth: 4
 });
 
-export const loadRiyadhPrimary = map => loadRoadLayer(map, {
-  path: "./data/riyadh_primary.geojson", filename: "riyadh_primary.geojson", sourceId: "riyadh_primary",
-  outlineColor: "#7189A8", outlineWidth: 6, surfaceColor: "#92A9C6", surfaceWidth: 4
-});
-
 export const loadPublicRoadType = map => loadRoadLayer(map, {
   path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "roads-type-public", filterType: "public",
   outlineColor: "#B0C2D4", outlineWidth: 5, surfaceColor: "#D9E1E8", surfaceWidth: 3.5
@@ -212,8 +207,6 @@ export async function setLayerOrder(map, timeoutMs = 15000) {
     "roads-type-public-lines",
     "roads-type-main-outline",
     "roads-type-main-lines",
-    "riyadh_primary-outline",
-    "riyadh_primary-lines",
     "roads-type-haul-outline",
     "roads-type-haul-lines"
   ];

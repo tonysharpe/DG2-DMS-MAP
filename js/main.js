@@ -8,7 +8,6 @@ import {
   loadLocalRoads,
   loadMainRoadType,
   loadPublicRoadType,
-  loadRiyadhPrimary,
   loadRiyadhSecondary,
   loadRiyadhResidential,
   setLayerOrder
@@ -56,7 +55,6 @@ map.on("load", async () => {
       loadLocalRoads(map),
       loadMainRoadType(map),
       loadPublicRoadType(map),
-      loadRiyadhPrimary(map),
       loadRiyadhSecondary(map),
       loadRiyadhResidential(map)
     ]);
