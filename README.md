@@ -28,3 +28,10 @@ The original JavaScript has been split into ES modules:
 - The HTML element IDs and GeoJSON paths used by the original script are preserved.
 - `endMarker` was declared but never used in the original script; the modular version keeps marker state private to the route-display module.
 - This is a structural refactor based on the supplied JavaScript. It has not been integration-tested against the live API, the HTML, or the GeoJSON files because those project files were not supplied.
+
+
+## Deploy as a single Render service
+
+The Render Blueprint in `render.yaml` defines one Python web service named `DG2-DMS-MAP`. FastAPI serves both the application frontend (`/`, `/style.css`, `/js/*`, and `/data/*`) and the routing API (`/health`, `/destinations`, `/route`, and `/network-info`). The browser uses same-origin API URLs, so the application no longer depends on cross-origin CORS between separate Render hosts.
+
+After merging, apply the updated Blueprint in Render and verify that the single service deploys successfully. If the old frontend and routing services were created separately in Render, retire those old services manually after confirming the new `DG2-DMS-MAP` service is working; changing `render.yaml` does not guarantee deletion of already-existing services.
