@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Temporary Road Routing</title>
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="style.css?v=route-diagnostics-2">
+  <link rel="stylesheet" href="style.css?v=map-inspection-1">
 </head>
 <body>
   <header class="topbar">
@@ -21,6 +21,15 @@
       <section id="routingDiagnostics" class="diagnostics" aria-live="polite" hidden>
         <h2>Routing diagnostics</h2>
         <ol id="diagnosticSteps" class="diagnostic-steps"></ol>
+      </section>
+      <section id="mapInspection" class="diagnostics" hidden>
+        <h2>Map inspection layers</h2>
+        <p class="hint">Toggle stages and click a road, point, or connector to inspect its metadata.</p>
+        <label class="layer-toggle"><input type="checkbox" data-inspection-stage="selection" checked> Gate and destination</label>
+        <label class="layer-toggle"><input type="checkbox" data-inspection-stage="road_network" checked> Road links</label>
+        <label class="layer-toggle"><input type="checkbox" data-inspection-stage="gate_snap" checked> Gate snap and connector</label>
+        <label class="layer-toggle"><input type="checkbox" data-inspection-stage="destination_snap" checked> Destination snap and connector</label>
+        <label class="layer-toggle"><input type="checkbox" data-inspection-stage="graph_search" checked> Reachable directed arcs</label>
       </section>
       <section id="routeSummary" class="summary" hidden>
         <h2>Route details</h2>
@@ -48,6 +57,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://unpkg.com/@tmcw/togeojson@7.1.2/dist/togeojson.umd.js"></script>
   <script src="https://unpkg.com/@turf/turf@7/turf.min.js"></script>
-  <script type="module" src="./js/main.js?v=route-diagnostics-2"></script>
+  <script type="module" src="./js/main.js?v=map-inspection-1"></script>
 </body>
 </html>

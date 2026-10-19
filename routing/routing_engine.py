@@ -480,6 +480,111 @@ class RoutingEngine:
             raise ValueError(f"Destination {destination_id!r} has multiple gates configured")
         return matches[0]
 
+    def _diagnostic_map(self, destination_id, gate_id, gate_snap, destination_snap, graph):
+        """Return map-ready GeoJSON for inspecting every routing stage."""
+        features = []
+
+        def add_feature(kind, stage, geometry, properties=None):
+            features.append({
+                "type": "Feature",
+                "properties": {"kind": kind, "stage": stage, **(properties or {})},
+                "geometry": geometry,
+            })
+
+        gate_feature = self.gate_by_name[gate_id]
+        destination_feature = self.destination_by_name[destination_id]
+        add_feature(
+            "gate", "selection", gate_feature["geometry"],
+            {"name": gate_id, "object_type": "gate",
+             "source_properties": gate_feature.get("properties", {})},
+        )
+        add_feature(
+            "destination", "selection", destination_feature["geometry"],
+            {"name": destination_id, "object_type": "destination",
+             "source_properties": destination_feature.get("properties", {})},
+        )
+
+        # Include every routable link with the same stable ID used by the graph,
+        # so links remain clickable even when no complete route exists.
+        for link in self.links:
+            coordinates = [
+                list(self._to_geo(x, y))
+                for x, y, *rest in link["line"].coords
+            ]
+            add_feature(
+                "road_link", "road_network",
+                {"type": "LineString", "coordinates": coordinates},
+                {
+                    "name": link["id"], "link_id": link["id"],
+                    "direction": link["direction"], "bidirectional": link["bidirectional"],
+                    "road_type": link["properties"].get("type", "—"),
+                    "speed_kmh": link["speed_kmh"], "length_m": link["length_m"],
+                    "source_properties": link["properties"],
+                },
+            )
+
+        for role, snap, actual_feature in (
+            ("gate", gate_snap, gate_feature),
+            ("destination", destination_snap, destination_feature),
+        ):
+            link = snap["link"]
+            snap_coords = list(self._to_geo(snap["point"].x, snap["point"].y))
+            actual_coords = actual_feature["geometry"]["coordinates"]
+            line_coords = [
+                list(self._to_geo(x, y))
+                for x, y, *rest in link["line"].coords
+            ]
+            add_feature(
+                f"{role}_snap_link", f"{role}_snap",
+                {"type": "LineString", "coordinates": line_coords},
+                {
+                    "name": link["id"], "link_id": link["id"],
+                    "direction": link["direction"],
+                    "road_type": link["properties"].get("type", "—"),
+                    "snap_distance_m": round(snap["snap_distance_m"], 3),
+                    "source_properties": link["properties"],
+                },
+            )
+            add_feature(
+                f"{role}_snap", f"{role}_snap",
+                {"type": "Point", "coordinates": snap_coords},
+                {
+                    "name": f"{role.title()} snap", "link_id": link["id"],
+                    "snap_distance_m": round(snap["snap_distance_m"], 3),
+                    "measure_m": round(snap["measure"], 3),
+                    "node_id": snap["node"],
+                },
+            )
+            add_feature(
+                f"{role}_connector", f"{role}_snap",
+                {"type": "LineString", "coordinates": [actual_coords, snap_coords]},
+                {
+                    "name": f"{role.title()} to road", "link_id": link["id"],
+                    "snap_distance_m": round(snap["snap_distance_m"], 3),
+                },
+            )
+
+        reachable = self._reachable_nodes(graph, gate_snap["node"])
+        for from_node in reachable:
+            for edge in graph.get(from_node, []):
+                if edge["to"] not in reachable:
+                    continue
+                add_feature(
+                    "reachable_arc", "graph_search",
+                    {"type": "LineString", "coordinates": edge["coordinates"]},
+                    {
+                        "name": edge["link"]["id"], "link_id": edge["link"]["id"],
+                        "from_node": from_node, "to_node": edge["to"],
+                        "direction": edge["link"]["direction"],
+                        "traversal": "reverse" if edge["reverse"] else "forward",
+                        "cost_seconds": round(edge["cost"], 3),
+                        "length_m": round(edge["length_m"], 3),
+                        "road_type": edge["link"]["properties"].get("type", "—"),
+                        "source_properties": edge["link"]["properties"],
+                    },
+                )
+        return {"type": "FeatureCollection", "features": features}
+
     def route(self, destination_id: str) -> dict:
         if destination_id not in self.destination_by_name:
             raise ValueError(f"Unknown destination_id: {destination_id!r}")
@@ -501,10 +606,14 @@ class RoutingEngine:
         diagnostics = self._routing_diagnostics(
             gate_id, destination_id, gate_snap, destination_snap, graph
         )
+        diagnostic_map = self._diagnostic_map(
+            destination_id, gate_id, gate_snap, destination_snap, graph
+        )
         result = self._dijkstra(graph, gate_snap["node"], destination_snap["node"])
         if result is None:
             return {
                 "diagnostics": diagnostics,
+                "diagnostic_map": diagnostic_map,
                 "status": "no_route",
                 "message": (
                     "No directionally valid route exists between the selected gate "
@@ -539,6 +648,7 @@ class RoutingEngine:
         return {
             "status": "ok",
             "diagnostics": diagnostics,
+            "diagnostic_map": diagnostic_map,
             "destination_id": destination_id,
             "destination_area": area["geometry"] if area else None,
             "gate_id": gate_id,
