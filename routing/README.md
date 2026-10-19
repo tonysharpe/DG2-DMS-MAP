@@ -57,3 +57,10 @@ Example request:
   "destination_id": "D001"
 }
 ```
+
+
+## Cached routing network and performance
+
+The routing engine builds the directed road graph and its 0.1 m shape-point junctions once when the service starts. Route requests reuse this cached topology and split only the directed edges containing the selected gate and destination's closest-point snaps. Dijkstra then searches that request-specific graph; the shared cached graph is not mutated by individual requests.
+
+The engine fingerprints `data/roads.geojson` with SHA-256. At the start of each route request it checks that fingerprint; if the file has changed in place, it reloads the road data and rebuilds the cached graph. A normal Render deployment also rebuilds the cache when the new service process starts after a roads-file commit.

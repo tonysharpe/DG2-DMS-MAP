@@ -1,6 +1,6 @@
 import unittest
 
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 
 from routing.routing_engine import RoutingEngine
 
@@ -74,6 +74,31 @@ class ShapePointRoutingTests(unittest.TestCase):
 
         self.assertEqual(cuts["road"], [])
         self.assertEqual(cuts["branch"], [])
+
+    def test_cached_graph_splits_only_snapped_link_and_keeps_base_unchanged(self):
+        road = make_link("road", [(0, 0), (10, 0)])
+        self.engine.links = [road]
+        self.engine._base_graph = self.engine._build_graph_with_cuts(
+            None, None, {"road": []}
+        )
+        base_nodes = set(self.engine._base_graph)
+        gate = {
+            "link": road, "measure": 2.5, "node": "snap:road:2.500",
+            "point": road["line"].interpolate(2.5), "snap_distance_m": 0.0,
+        }
+        destination = {
+            "link": road, "measure": 7.5, "node": "snap:road:7.500",
+            "point": road["line"].interpolate(7.5), "snap_distance_m": 0.0,
+        }
+
+        graph = self.engine._build_route_graph(gate, destination)
+
+        self.assertIn(gate["node"], graph)
+        self.assertIn(destination["node"], graph)
+        self.assertEqual(set(self.engine._base_graph), base_nodes)
+        self.assertNotIn(gate["node"], self.engine._base_graph)
+        self.assertNotIn(destination["node"], self.engine._base_graph)
+        self.assertTrue(any(edge["to"] == destination["node"] for edge in graph[gate["node"]]))
 
     def test_reverse_direction_arcs_follow_link_direction(self):
         road = make_link("reverse-road", [(0, 0), (10, 0)], direction="reverse")

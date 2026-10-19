@@ -43,6 +43,13 @@ class RoutingEngine:
         self.links = self._prepare_links()
         self._validate_lookup()
 
+        # Build the road topology once per process from the exact roads.geojson
+        # fingerprint above. A deployment with updated roads rebuilds this graph.
+        self._junction_cuts = self._network_junction_cuts()
+        self._base_graph = self._build_graph_with_cuts(None, None, self._junction_cuts)
+        self.network_info["graph_nodes"] = len(self._base_graph)
+        self.network_info["graph_arcs"] = sum(len(edges) for edges in self._base_graph.values())
+
     def _load_geojson(self, filename: str) -> dict[str, Any]:
         path = self.data_dir / filename
         if not path.exists():
@@ -268,13 +275,15 @@ class RoutingEngine:
 
         for link in self.links:
             line = link["line"]
-            for coordinate in line.coords:
+            coordinates = list(line.coords)
+            measure = 0.0
+            for coordinate_index, coordinate in enumerate(coordinates):
                 point = Point(coordinate[:2])
                 record_index = len(records)
                 records.append({
                     "link": link,
                     "point": point,
-                    "measure": line.project(point),
+                    "measure": measure,
                 })
                 parent.append(record_index)
                 rank.append(0)
@@ -294,6 +303,8 @@ class RoutingEngine:
                                 union(record_index, other_index)
 
                 grid.setdefault((cell_x, cell_y), []).append(record_index)
+                if coordinate_index + 1 < len(coordinates):
+                    measure += math.dist(coordinate[:2], coordinates[coordinate_index + 1][:2])
 
         components = {}
         for index in linked:
@@ -323,10 +334,14 @@ class RoutingEngine:
                 )
         return cuts
 
-    def _build_route_graph(self, gate_snap, destination_snap):
+    def _build_graph_with_cuts(self, gate_snap, destination_snap, junction_cuts):
         graph: dict[str, list[dict[str, Any]]] = {}
         snap_by_link: dict[str, list[tuple[float, str, str]]] = {}
-        snaps = {"gate": gate_snap, "destination": destination_snap}
+        snaps = {
+            label: snap for label, snap in
+            (("gate", gate_snap), ("destination", destination_snap))
+            if snap is not None
+        }
         for label, snap in snaps.items():
             snap_by_link.setdefault(snap["link"]["id"], []).append(
                 (snap["measure"], snap["node"], label)
@@ -352,16 +367,17 @@ class RoutingEngine:
                 "coordinates": [(float(x), float(y)) for x, y in route_coords],
                 "reverse": reverse,
                 "length_m": segment_road_length,
+                "start_measure": start_measure,
+                "end_measure": end_measure,
             }
             graph.setdefault(start_node, []).append(edge)
             graph.setdefault(end_node, [])
 
-        junction_cuts = self._network_junction_cuts()
         for link in self.links:
             line = link["line"]
             start_node = self._node_for_endpoint(Point(line.coords[0]))
             end_node = self._node_for_endpoint(Point(line.coords[-1]))
-            cuts = [(0.0, start_node, "junction"), (line.length, end_node, "junction")]
+            cuts = [(0.0, start_node, "endpoint"), (line.length, end_node, "endpoint")]
             cuts.extend(junction_cuts.get(link["id"], []))
             cuts.extend(
                 (measure, node_id, label)
@@ -377,13 +393,13 @@ class RoutingEngine:
                     if previous_kind != "junction" and kind == "junction":
                         deduped[-1] = (previous_measure, node_id, kind)
                         for label, snap in snaps.items():
-                            if snap["link"]["id"] == link["id"] and abs(snap["measure"] - measure) <= 0.25:
+                            if snap["link"]["id"] == link["id"] and abs(snap["measure"] - measure) <= 0.1:
                                 snap["node"] = node_id
                                 snap["measure"] = measure
                                 snap["point"] = line.interpolate(measure)
                     elif kind != "junction" and previous_kind == "junction":
                         for label, snap in snaps.items():
-                            if label == kind and snap["link"]["id"] == link["id"] and abs(snap["measure"] - previous_measure) <= 0.25:
+                            if label == kind and snap["link"]["id"] == link["id"] and abs(snap["measure"] - previous_measure) <= 0.1:
                                 snap["node"] = previous_node
                                 snap["measure"] = previous_measure
                                 snap["point"] = line.interpolate(previous_measure)
@@ -401,6 +417,94 @@ class RoutingEngine:
 
         return graph
 
+    def _make_split_edge(self, link, start_measure, end_measure, end_node, reverse):
+        low, high = sorted((start_measure, end_measure))
+        coordinates = self._segment_coordinates(link["line"], low, high)
+        if reverse:
+            coordinates.reverse()
+        length_m = link["length_m"] * abs(end_measure - start_measure) / link["geometry_length_m"]
+        cost = (length_m / 1000.0) / link["speed_kmh"] * 3600.0
+        geo_coordinates = [
+            transform(self._to_geo, Point(x, y)).coords[0]
+            for x, y in coordinates
+        ]
+        return {
+            "to": end_node,
+            "link": link,
+            "cost": cost,
+            "coordinates": [(float(x), float(y)) for x, y in geo_coordinates],
+            "reverse": reverse,
+            "length_m": length_m,
+            "start_measure": start_measure,
+            "end_measure": end_measure,
+        }
+
+    def _insert_snap_into_graph(self, graph, snap):
+        link = snap["link"]
+        measure = snap["measure"]
+        tolerance = 0.1
+        boundary = None
+        candidates = []
+
+        for from_node, edges in graph.items():
+            for edge in edges:
+                if edge["link"]["id"] != link["id"]:
+                    continue
+                start_m, end_m = edge["start_measure"], edge["end_measure"]
+                if abs(measure - start_m) <= tolerance:
+                    boundary = (from_node, start_m)
+                    break
+                if abs(measure - end_m) <= tolerance:
+                    boundary = (edge["to"], end_m)
+                    break
+                if min(start_m, end_m) < measure < max(start_m, end_m):
+                    candidates.append((from_node, edge))
+            if boundary is not None:
+                break
+
+        if boundary is not None:
+            snap["node"], snap["measure"] = boundary
+            snap["point"] = link["line"].interpolate(snap["measure"])
+            return
+
+        if not candidates:
+            raise ValueError(f"Snap point could not be inserted into cached link {link['id']}")
+
+        snap_node = snap["node"]
+        replacements = {}
+        from_snap = []
+        for from_node, edge in candidates:
+            start_m, end_m = edge["start_measure"], edge["end_measure"]
+            replacements.setdefault(from_node, {})[id(edge)] = self._make_split_edge(
+                link, start_m, measure, snap_node, edge["reverse"]
+            )
+            from_snap.append(self._make_split_edge(
+                link, measure, end_m, edge["to"], edge["reverse"]
+            ))
+
+        for from_node, edges in list(graph.items()):
+            replace_by_id = replacements.get(from_node)
+            if replace_by_id:
+                graph[from_node] = [replace_by_id.get(id(edge), edge) for edge in edges]
+        graph.setdefault(snap_node, []).extend(from_snap)
+
+    def _build_route_graph(self, gate_snap, destination_snap):
+        # Test fixtures may construct the engine without running __init__.
+        if not hasattr(self, "_base_graph"):
+            return self._build_graph_with_cuts(
+                gate_snap, destination_snap, self._network_junction_cuts()
+            )
+        # Reuse the prebuilt topology; clone its adjacency lists and split only
+        # the one or two links containing the current gate/destination snaps.
+        graph = {
+            node: [edge.copy() for edge in edges]
+            for node, edges in self._base_graph.items()
+        }
+        self._insert_snap_into_graph(graph, gate_snap)
+        if destination_snap["node"] != gate_snap["node"]:
+            self._insert_snap_into_graph(graph, destination_snap)
+        return graph
+
     @staticmethod
     def _reachable_nodes(graph, start: str) -> set[str]:
         visited = set()
@@ -413,189 +517,14 @@ class RoutingEngine:
             stack.extend(edge["to"] for edge in graph.get(node, []) if edge["to"] not in visited)
         return visited
 
-    def _routing_diagnostics(self, gate_id, destination_id, gate_snap, destination_snap, graph):
-        one_way = sum(not link["bidirectional"] for link in self.links)
-        both_way = sum(link["bidirectional"] for link in self.links)
-        reachable = self._reachable_nodes(graph, gate_snap["node"])
-        gate_link = gate_snap["link"]
-        destination_link = destination_snap["link"]
-        destination_reachable = destination_snap["node"] in reachable
-        return [
-            {
-                "stage": "Selection",
-                "status": "ok",
-                "detail": f"Destination {destination_id}; assigned gate {gate_id} resolved from destinations_gates_lookup.csv."
-            },
-            {
-                "stage": "Road network",
-                "status": "ok",
-                "detail": f"roads.geojson: {len(self.roads.get('features', []))} features, {len(self.links)} usable links ({one_way} one-way, {both_way} bidirectional). Default speed: {self.default_speed_kmh:g} km/h. Dataset SHA-256: {self.network_info['sha256']}."
-            },
-            {
-                "stage": "Gate snap",
-                "status": "ok",
-                "detail": f"Snapped to {gate_link['id']} (direction={gate_link['direction']}, type={gate_link['properties'].get('type', '—')}) at {gate_snap['snap_distance_m']:.1f} m from the gate."
-            },
-            {
-                "stage": "Destination snap",
-                "status": "ok",
-                "detail": f"Snapped to {destination_link['id']} (direction={destination_link['direction']}, type={destination_link['properties'].get('type', '—')}) at {destination_snap['snap_distance_m']:.1f} m from the destination."
-            },
-            {
-                "stage": "Directed graph search",
-                "status": "ok" if destination_reachable else "error",
-                "detail": f"Graph has {len(graph)} nodes and {sum(len(edges) for edges in graph.values())} directed arcs. {len(reachable)} nodes are reachable from the gate; destination snap node is {'reachable' if destination_reachable else 'NOT reachable'} following link directions."
-            }
-        ]
-
-    @staticmethod
-    def _dijkstra(graph, start: str, target: str):
-        queue = [(0.0, start)]
-        distances = {start: 0.0}
-        previous = {}
-        while queue:
-            current_cost, node = heapq.heappop(queue)
-            if current_cost > distances.get(node, math.inf):
-                continue
-            if node == target:
-                break
-            for edge in graph.get(node, []):
-                candidate = current_cost + edge["cost"]
-                if candidate < distances.get(edge["to"], math.inf):
-                    distances[edge["to"]] = candidate
-                    previous[edge["to"]] = (node, edge)
-                    heapq.heappush(queue, (candidate, edge["to"]))
-        if target not in distances:
-            return None
-        edges = []
-        node = target
-        while node != start:
-            previous_node, edge = previous[node]
-            edges.append(edge)
-            node = previous_node
-        edges.reverse()
-        return edges, distances[target]
-
-    def destination_ids(self) -> list[str]:
-        return sorted(self.destination_by_name)
-
-    def _gate_for_destination(self, destination_id: str) -> str:
-        matches = [
-            row["gate_id"] for row in self.lookup
-            if row["destination_id"] == destination_id
-        ]
-        if not matches:
-            raise ValueError(f"No gate is configured for destination {destination_id!r}")
-        if len(matches) > 1:
-            raise ValueError(f"Destination {destination_id!r} has multiple gates configured")
-        return matches[0]
-
-    def _diagnostic_map(self, destination_id, gate_id, gate_snap, destination_snap, graph):
-        """Return map-ready GeoJSON for inspecting every routing stage."""
-        features = []
-
-        def add_feature(kind, stage, geometry, properties=None):
-            features.append({
-                "type": "Feature",
-                "properties": {"kind": kind, "stage": stage, **(properties or {})},
-                "geometry": geometry,
-            })
-
-        gate_feature = self.gate_by_name[gate_id]
-        destination_feature = self.destination_by_name[destination_id]
-        add_feature(
-            "gate", "selection", gate_feature["geometry"],
-            {"name": gate_id, "object_type": "gate",
-             "source_properties": gate_feature.get("properties", {})},
-        )
-        add_feature(
-            "destination", "selection", destination_feature["geometry"],
-            {"name": destination_id, "object_type": "destination",
-             "source_properties": destination_feature.get("properties", {})},
-        )
-
-        # Include every routable link with the same stable ID used by the graph,
-        # so links remain clickable even when no complete route exists.
-        for link in self.links:
-            coordinates = [
-                list(self._to_geo(x, y))
-                for x, y, *rest in link["line"].coords
-            ]
-            add_feature(
-                "road_link", "road_network",
-                {"type": "LineString", "coordinates": coordinates},
-                {
-                    "name": link["id"], "link_id": link["id"],
-                    "direction": link["direction"], "bidirectional": link["bidirectional"],
-                    "road_type": link["properties"].get("type", "—"),
-                    "speed_kmh": link["speed_kmh"], "length_m": link["length_m"],
-                    "source_properties": link["properties"],
-                },
-            )
-
-        for role, snap, actual_feature in (
-            ("gate", gate_snap, gate_feature),
-            ("destination", destination_snap, destination_feature),
-        ):
-            link = snap["link"]
-            snap_coords = list(self._to_geo(snap["point"].x, snap["point"].y))
-            actual_coords = actual_feature["geometry"]["coordinates"]
-            line_coords = [
-                list(self._to_geo(x, y))
-                for x, y, *rest in link["line"].coords
-            ]
-            add_feature(
-                f"{role}_snap_link", f"{role}_snap",
-                {"type": "LineString", "coordinates": line_coords},
-                {
-                    "name": link["id"], "link_id": link["id"],
-                    "direction": link["direction"],
-                    "road_type": link["properties"].get("type", "—"),
-                    "snap_distance_m": round(snap["snap_distance_m"], 3),
-                    "source_properties": link["properties"],
-                },
-            )
-            add_feature(
-                f"{role}_snap", f"{role}_snap",
-                {"type": "Point", "coordinates": snap_coords},
-                {
-                    "name": f"{role.title()} snap", "link_id": link["id"],
-                    "snap_distance_m": round(snap["snap_distance_m"], 3),
-                    "measure_m": round(snap["measure"], 3),
-                    "node_id": snap["node"],
-                },
-            )
-            add_feature(
-                f"{role}_connector", f"{role}_snap",
-                {"type": "LineString", "coordinates": [actual_coords, snap_coords]},
-                {
-                    "name": f"{role.title()} to road", "link_id": link["id"],
-                    "snap_distance_m": round(snap["snap_distance_m"], 3),
-                },
-            )
-
-        reachable = self._reachable_nodes(graph, gate_snap["node"])
-        for from_node in reachable:
-            for edge in graph.get(from_node, []):
-                if edge["to"] not in reachable:
-                    continue
-                add_feature(
-                    "reachable_arc", "graph_search",
-                    {"type": "LineString", "coordinates": edge["coordinates"]},
-                    {
-                        "name": edge["link"]["id"], "link_id": edge["link"]["id"],
-                        "from_node": from_node, "to_node": edge["to"],
-                        "direction": edge["link"]["direction"],
-                        "traversal": "reverse" if edge["reverse"] else "forward",
-                        "cost_seconds": round(edge["cost"], 3),
-                        "length_m": round(edge["length_m"], 3),
-                        "road_type": edge["link"]["properties"].get("type", "—"),
-                        "source_properties": edge["link"]["properties"],
-                    },
-                )
-        return {"type": "FeatureCollection", "features": features}
-
     def route(self, destination_id: str) -> dict:
+        # Also detect in-place data updates; normal Render deployments rebuild
+        # the graph on process start, while this covers mounted/replaced files.
+        roads_path = self.data_dir / "roads.geojson"
+        current_hash = hashlib.sha256(roads_path.read_bytes()).hexdigest()
+        if current_hash != self.network_info["sha256"]:
+            self.__init__(self.data_dir)
+
         if destination_id not in self.destination_by_name:
             raise ValueError(f"Unknown destination_id: {destination_id!r}")
         gate_id = self._gate_for_destination(destination_id)
@@ -613,18 +542,10 @@ class RoutingEngine:
             destination_snap["measure"] = gate_snap["measure"]
             destination_snap["point"] = gate_snap["point"]
         graph = self._build_route_graph(gate_snap, destination_snap)
-        diagnostics = self._routing_diagnostics(
-            gate_id, destination_id, gate_snap, destination_snap, graph
-        )
-        diagnostic_map = self._diagnostic_map(
-            destination_id, gate_id, gate_snap, destination_snap, graph
-        )
         result = self._dijkstra(graph, gate_snap["node"], destination_snap["node"])
         if result is None:
             return {
                 "network_info": self.network_info,
-                "diagnostics": diagnostics,
-                "diagnostic_map": diagnostic_map,
                 "status": "no_route",
                 "message": (
                     "No directionally valid route exists between the selected gate "
@@ -659,8 +580,6 @@ class RoutingEngine:
         return {
             "status": "ok",
             "network_info": self.network_info,
-            "diagnostics": diagnostics,
-            "diagnostic_map": diagnostic_map,
             "destination_id": destination_id,
             "destination_area": area["geometry"] if area else None,
             "gate_id": gate_id,
