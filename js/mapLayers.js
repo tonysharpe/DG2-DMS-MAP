@@ -175,8 +175,8 @@ export const loadRiyadhSecondary = map => loadRoadLayer(map, {
   outlineColor: "#B8C9D8", outlineWidth: 2.5, surfaceColor: "#CED8E1", surfaceWidth: 1.5
 });
 
-export const loadMainRoads = map => loadRoadLayer(map, {
-  path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "main_roads", filterType: "main",
+export const loadMainRoadType = map => loadRoadLayer(map, {
+  path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "roads-type-main", filterType: "main",
   outlineColor: "#7189A8", outlineWidth: 6, surfaceColor: "#92A9C6", surfaceWidth: 4
 });
 
@@ -185,13 +185,13 @@ export const loadRiyadhPrimary = map => loadRoadLayer(map, {
   outlineColor: "#7189A8", outlineWidth: 6, surfaceColor: "#92A9C6", surfaceWidth: 4
 });
 
-export const loadPublicRoads = map => loadRoadLayer(map, {
-  path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "public_roads", filterType: "public",
+export const loadPublicRoadType = map => loadRoadLayer(map, {
+  path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "roads-type-public", filterType: "public",
   outlineColor: "#B0C2D4", outlineWidth: 5, surfaceColor: "#D9E1E8", surfaceWidth: 3.5
 });
 
-export const loadHaulRoads = map => loadRoadLayer(map, {
-  path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "haul_roads", filterType: "haul",
+export const loadHaulRoadType = map => loadRoadLayer(map, {
+  path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "roads-type-haul", filterType: "haul",
   outlineColor: "#9C4525", outlineWidth: 5, surfaceColor: "#D96B35", surfaceWidth: 3.5
 });
 
@@ -208,14 +208,14 @@ export async function setLayerOrder(map, timeoutMs = 15000) {
     "riyadh_residential-lines",
     "riyadh_secondary-outline",
     "riyadh_secondary-lines",
-    "public_roads-outline",
-    "public_roads-lines",
-    "main_roads-outline",
-    "main_roads-lines",
+    "roads-type-public-outline",
+    "roads-type-public-lines",
+    "roads-type-main-outline",
+    "roads-type-main-lines",
     "riyadh_primary-outline",
     "riyadh_primary-lines",
-    "haul_roads-outline",
-    "haul_roads-lines"
+    "roads-type-haul-outline",
+    "roads-type-haul-lines"
   ];
 
   const start = Date.now();
