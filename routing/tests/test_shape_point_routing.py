@@ -40,7 +40,10 @@ class ShapePointRoutingTests(unittest.TestCase):
         }
         graph = self.engine._build_route_graph(gate, destination)
 
-        junction = "n:5:0"
+        junction_nodes = {
+            node for _, node, _ in self.engine._network_junction_cuts()["road"]
+        }
+        junction = next(iter(junction_nodes))
         outgoing_links = {edge["link"]["id"] for edge in graph[junction]}
         self.assertEqual(outgoing_links, {"road", "branch"})
 
@@ -84,9 +87,11 @@ class ShapePointRoutingTests(unittest.TestCase):
             "node": "n:10:0", "point": road["line"].interpolate(road["line"].length),
         }
         graph = self.engine._build_route_graph(gate, destination)
-        self.assertEqual(graph["n:10:0"][0]["to"], "n:0:0")
-        self.assertTrue(graph["n:10:0"][0]["reverse"])
-        self.assertEqual(graph["n:0:0"], [])
+        start_node = self.engine._node_for_endpoint(Point(10, 0))
+        end_node = self.engine._node_for_endpoint(Point(0, 0))
+        self.assertEqual(graph[start_node][0]["to"], end_node)
+        self.assertTrue(graph[start_node][0]["reverse"])
+        self.assertEqual(graph[end_node], [])
 
 
 if __name__ == "__main__":
