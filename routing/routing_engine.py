@@ -222,10 +222,57 @@ class RoutingEngine:
                 clean.append(coord)
         return clean if len(clean) >= 2 else [result[0], result[0]]
 
+    @staticmethod
+    def _intersection_points(geometry):
+        """Return points that should split both links at a geometric intersection.
+
+        Overlapping linework contributes its overlap endpoints. This intentionally
+        works with Shapely 1.x and 2.x geometry types without relying on STRtree.
+        """
+        if geometry.is_empty:
+            return []
+        if geometry.geom_type == "Point":
+            return [geometry]
+        if geometry.geom_type in ("LineString", "LinearRing"):
+            coords = list(geometry.coords)
+            return [Point(coords[0]), Point(coords[-1])] if len(coords) >= 2 else []
+        if hasattr(geometry, "geoms"):
+            points = []
+            for part in geometry.geoms:
+                points.extend(RoutingEngine._intersection_points(part))
+            return points
+        return []
+
+    def _network_junction_cuts(self):
+        """Build shared graph nodes for link intersections, including shape points."""
+        ordered = sorted(self.links, key=lambda link: link["line"].bounds[0])
+        cuts = {link["id"]: [] for link in self.links}
+        active = []
+        for link in ordered:
+            line = link["line"]
+            minx, miny, maxx, maxy = line.bounds
+            active = [other for other in active if other["line"].bounds[2] >= minx]
+            for other in active:
+                ominx, ominy, omaxx, omaxy = other["line"].bounds
+                if maxy < ominy or omaxy < miny:
+                    continue
+                intersection = line.intersection(other["line"])
+                for point in self._intersection_points(intersection):
+                    # Projection makes the measure robust to tiny floating-point
+                    # differences at a vertex or intersection.
+                    for target in (link, other):
+                        target_line = target["line"]
+                        measure = target_line.project(point)
+                        node = self._node_for_endpoint(point)
+                        cuts[target["id"]].append((measure, node, "junction"))
+            active.append(link)
+        return cuts
+
     def _build_route_graph(self, gate_snap, destination_snap):
         graph: dict[str, list[dict[str, Any]]] = {}
         snap_by_link: dict[str, list[tuple[float, str, str]]] = {}
-        for label, snap in (("gate", gate_snap), ("destination", destination_snap)):
+        snaps = {"gate": gate_snap, "destination": destination_snap}
+        for label, snap in snaps.items():
             snap_by_link.setdefault(snap["link"]["id"], []).append(
                 (snap["measure"], snap["node"], label)
             )
@@ -254,25 +301,45 @@ class RoutingEngine:
             graph.setdefault(start_node, []).append(edge)
             graph.setdefault(end_node, [])
 
+        junction_cuts = self._network_junction_cuts()
         for link in self.links:
             line = link["line"]
             start_node = self._node_for_endpoint(Point(line.coords[0]))
             end_node = self._node_for_endpoint(Point(line.coords[-1]))
-            cuts = [(0.0, start_node), (line.length, end_node)]
-            for measure, node_id, _label in snap_by_link.get(link["id"], []):
-                cuts.append((measure, node_id))
+            cuts = [(0.0, start_node, "junction"), (line.length, end_node, "junction")]
+            cuts.extend(junction_cuts.get(link["id"], []))
+            cuts.extend(
+                (measure, node_id, label)
+                for measure, node_id, label in snap_by_link.get(link["id"], [])
+            )
             cuts.sort(key=lambda item: item[0])
             deduped = []
-            for measure, node_id in cuts:
+            for measure, node_id, kind in cuts:
                 if deduped and abs(measure - deduped[-1][0]) <= 0.25:
-                    # Keep a snapped node where the snap is effectively at an endpoint.
-                    if node_id.startswith("snap:"):
-                        deduped[-1] = (deduped[-1][0], node_id)
+                    previous_measure, previous_node, previous_kind = deduped[-1]
+                    # Prefer the shared network node over a gate/destination's
+                    # private snap node when they land within the snap tolerance.
+                    if previous_kind != "junction" and kind == "junction":
+                        deduped[-1] = (previous_measure, node_id, kind)
+                        for label, snap in snaps.items():
+                            if snap["link"]["id"] == link["id"] and abs(snap["measure"] - measure) <= 0.25:
+                                snap["node"] = node_id
+                                snap["measure"] = measure
+                                snap["point"] = line.interpolate(measure)
+                    elif kind != "junction" and previous_kind == "junction":
+                        for label, snap in snaps.items():
+                            if label == kind and snap["link"]["id"] == link["id"] and abs(snap["measure"] - previous_measure) <= 0.25:
+                                snap["node"] = previous_node
+                                snap["measure"] = previous_measure
+                                snap["point"] = line.interpolate(previous_measure)
                     continue
-                deduped.append((measure, node_id))
-            for (m0, n0), (m1, n1) in zip(deduped, deduped[1:]):
-                if link["direction"].strip().lower() == "both":
+                deduped.append((measure, node_id, kind))
+            for (m0, n0, _), (m1, n1, _) in zip(deduped, deduped[1:]):
+                direction = link["direction"].strip().lower()
+                if direction == "both":
                     add_arc(n0, n1, link, m0, m1)
+                    add_arc(n1, n0, link, m1, m0, reverse=True)
+                elif direction == "reverse":
                     add_arc(n1, n0, link, m1, m0, reverse=True)
                 else:
                     add_arc(n0, n1, link, m0, m1)
