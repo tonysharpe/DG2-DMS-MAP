@@ -52,6 +52,7 @@ export function addEndpointMarker(map, coords, color, label) {
 }
 
 export function clearRoute(map) {
+  clearDiagnosticMap(map);
   if (map.getLayer("route-line")) map.removeLayer("route-line");
   if (map.getSource("route-source")) map.removeSource("route-source");
   if (startMarker) { startMarker.remove(); startMarker = null; }
@@ -63,6 +64,57 @@ export function clearRoute(map) {
   if (diagnosticsList) diagnosticsList.replaceChildren();
 }
 
+export function displayDiagnosticMap(map, data) {
+  const geojson = data.diagnostic_map;
+  if (!geojson || !Array.isArray(geojson.features)) return;
+  clearDiagnosticMap(map);
+  map.addSource("routing-diagnostic-source", { type: "geojson", data: geojson });
+  map.addLayer({ id: "inspection-lines", type: "line", source: "routing-diagnostic-source",
+    filter: ["==", ["geometry-type"], "LineString"],
+    paint: { "line-color": ["match", ["get", "kind"], "reachable_arc", "#175cd3", "gate_snap_link", "#12b76a", "destination_snap_link", "#f04438", "gate_connector", "#12b76a", "destination_connector", "#f04438", "#667085"], "line-width": ["match", ["get", "kind"], "reachable_arc", 4, "road_link", 1.5, 3], "line-opacity": ["match", ["get", "kind"], "road_link", 0.4, 0.9] }
+  });
+  map.addLayer({ id: "inspection-points", type: "circle", source: "routing-diagnostic-source", filter: ["==", ["geometry-type"], "Point"],
+    paint: { "circle-radius": 7, "circle-color": ["match", ["get", "kind"], "gate", "#12b76a", "gate_snap", "#12b76a", "destination", "#f04438", "destination_snap", "#f79009", "#175cd3"], "circle-stroke-color": "#fff", "circle-stroke-width": 2 }
+  });
+  const popupContent = properties => {
+    const box = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = properties.name || properties.link_id || properties.kind || "Map feature";
+    box.appendChild(title);
+    const pre = document.createElement("pre");
+    pre.style.cssText = "max-width:300px;max-height:260px;overflow:auto;white-space:pre-wrap;font-size:11px";
+    pre.textContent = JSON.stringify(properties, null, 2);
+    box.appendChild(pre);
+    return box;
+  };
+  for (const layer of ["inspection-lines", "inspection-points"]) {
+    map.on("click", layer, event => {
+      const feature = event.features && event.features[0];
+      if (!feature) return;
+      if (map.__inspectionPopup) map.__inspectionPopup.remove();
+      map.__inspectionPopup = new maplibregl.Popup({ maxWidth: "340px" }).setLngLat(event.lngLat).setDOMContent(popupContent(feature.properties || {})).addTo(map);
+    });
+    map.on("mouseenter", layer, () => { map.getCanvas().style.cursor = "pointer"; });
+    map.on("mouseleave", layer, () => { map.getCanvas().style.cursor = ""; });
+  }
+  const update = () => {
+    const stages = [...document.querySelectorAll("[data-inspection-stage]:checked")].map(el => el.dataset.inspectionStage);
+    for (const layer of ["inspection-lines", "inspection-points"]) {
+      map.setFilter(layer, ["all", ["==", ["geometry-type"], layer === "inspection-lines" ? "LineString" : "Point"], ["in", ["get", "stage"], ["literal", stages]]]);
+    }
+  };
+  document.querySelectorAll("[data-inspection-stage]").forEach(el => { el.onchange = update; });
+  update();
+  document.getElementById("mapInspection").hidden = false;
+}
+
+export function clearDiagnosticMap(map) {
+  if (map.__inspectionPopup) { map.__inspectionPopup.remove(); delete map.__inspectionPopup; }
+  for (const layer of ["inspection-lines", "inspection-points"]) if (map.getLayer(layer)) map.removeLayer(layer);
+  if (map.getSource("routing-diagnostic-source")) map.removeSource("routing-diagnostic-source");
+  const panel = document.getElementById("mapInspection");
+  if (panel) panel.hidden = true;
+}
 export function displayRoute(map, data) {
   map.addSource("route-source", { type: "geojson", data: data.route });
   map.addLayer({
