@@ -57,10 +57,6 @@ export function clearRoute(map) {
   if (startMarker) { startMarker.remove(); startMarker = null; }
   if (endMarker) { endMarker.remove(); endMarker = null; }
   hideRouteSummary();
-  const diagnosticsPanel = document.getElementById("routingDiagnostics");
-  const diagnosticsList = document.getElementById("diagnosticSteps");
-  if (diagnosticsPanel) diagnosticsPanel.hidden = true;
-  if (diagnosticsList) diagnosticsList.replaceChildren();
 }
 
 export function displayRoute(map, data) {
