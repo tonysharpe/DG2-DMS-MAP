@@ -485,6 +485,11 @@ class RoutingEngine:
         graph.setdefault(snap_node, []).extend(from_snap)
 
     def _build_route_graph(self, gate_snap, destination_snap):
+        # Test fixtures may construct the engine without running __init__.
+        if not hasattr(self, "_base_graph"):
+            return self._build_graph_with_cuts(
+                gate_snap, destination_snap, self._network_junction_cuts()
+            )
         # Reuse the prebuilt topology; clone its adjacency lists and split only
         # the one or two links containing the current gate/destination snaps.
         graph = {
@@ -509,6 +514,13 @@ class RoutingEngine:
         return visited
 
     def route(self, destination_id: str) -> dict:
+        # Also detect in-place data updates; normal Render deployments rebuild
+        # the graph on process start, while this covers mounted/replaced files.
+        roads_path = self.data_dir / "roads.geojson"
+        current_hash = hashlib.sha256(roads_path.read_bytes()).hexdigest()
+        if current_hash != self.network_info["sha256"]:
+            self.__init__(self.data_dir)
+
         if destination_id not in self.destination_by_name:
             raise ValueError(f"Unknown destination_id: {destination_id!r}")
         gate_id = self._gate_for_destination(destination_id)
