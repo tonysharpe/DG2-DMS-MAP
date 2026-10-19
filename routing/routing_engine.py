@@ -7,419 +7,376 @@ import math
 from pathlib import Path
 from typing import Any
 
-from shapely.geometry import shape, Point, LineString, MultiLineString
-from shapely.ops import transform
 from pyproj import CRS, Transformer
+from shapely.geometry import LineString, MultiLineString, Point, shape
+from shapely.ops import transform
 
 
 class RoutingEngine:
-    """
-    File-based routing engine.
-
-    Permanent network:
-      - junctions.geojson: point features with property `name`
-      - roads.geojson: MultiLineString features with
-        road_id, start_node, end_node, name, direction, length, speed, type
-      - gates.geojson: point features with property `name`
-      - destinations.geojson: point features with property `name`
-      - destinations_gates_lookup.csv:
-        destination_id,gate_id
-
-    Gate and destination junctions are NOT stored in the files.
-    They are calculated dynamically as the nearest junction.
-    """
+    """Route over directed links from the shared roads.geojson network."""
 
     def __init__(self, data_dir: str | Path):
         self.data_dir = Path(data_dir)
-
         self.roads = self._load_geojson("roads.geojson")
-        self.junctions = self._load_geojson("junctions.geojson")
         self.gates = self._load_geojson("gates.geojson")
         self.destinations = self._load_geojson("destinations.geojson")
         self.destination_areas = self._load_geojson("destination_areas.geojson")
         self.lookup = self._load_lookup()
-
-        self._validate()
-        self._prepare_junctions()
-        self._prepare_graph()
-
-    # ---------- loading ----------
-
-    def _load_geojson(self, filename: str) -> dict[str, Any]:
-        path = self.data_dir / filename
-        if not path.exists():
-            raise FileNotFoundError(f"Missing required file: {path}")
-
-        with path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        if data.get("type") != "FeatureCollection":
-            raise ValueError(f"{filename} must be a GeoJSON FeatureCollection")
-
-        return data
-
-    def _load_lookup(self) -> list[dict[str, str]]:
-        path = self.data_dir / "destinations_gates_lookup.csv"
-        if not path.exists():
-            raise FileNotFoundError(f"Missing required file: {path}")
-
-        with path.open("r", encoding="utf-8-sig", newline="") as f:
-            rows = list(csv.DictReader(f))
-
-        required = {"destination_id", "gate_id"}
-        if not required.issubset(rows[0].keys() if rows else set()):
-            raise ValueError(
-                "destinations_gates_lookup.csv must contain "
-                "destination_id, gate_id"
-            )
-        return rows
-
-    # ---------- validation ----------
-
-    @staticmethod
-    def _features_by_name(data: dict[str, Any], filename: str) -> dict[str, dict]:
-        result = {}
-        for feature in data["features"]:
-            name = feature.get("properties", {}).get("name")
-            if name is None or str(name).strip() == "":
-                raise ValueError(f"{filename} contains a feature without `name`")
-            name = str(name)
-            if name in result:
-                raise ValueError(f"{filename} contains duplicate name: {name}")
-            result[name] = feature
-        return result
-
-    def _validate(self):
-        self.junction_by_name = self._features_by_name(
-            self.junctions, "junctions.geojson"
-        )
-        self.gate_by_name = self._features_by_name(
-            self.gates, "gates.geojson"
-        )
+        self.gate_by_name = self._features_by_name(self.gates, "gates.geojson")
         self.destination_by_name = self._features_by_name(
             self.destinations, "destinations.geojson"
         )
         self.destination_area_by_name = self._features_by_name(
             self.destination_areas, "destination_areas.geojson"
         )
-        required_road_fields = {
-            "road_id", "start_node", "end_node", "name",
-            "direction", "length", "speed", "type"
-        }
+        self._prepare_projection()
+        self.links = self._prepare_links()
+        self._validate_lookup()
 
-        road_ids = set()
-        for feature in self.roads["features"]:
-            p = feature.get("properties", {})
-            missing = required_road_fields - set(p)
-            if missing:
-                raise ValueError(
-                    f"Road is missing fields: {sorted(missing)}"
-                )
+    def _load_geojson(self, filename: str) -> dict[str, Any]:
+        path = self.data_dir / filename
+        if not path.exists():
+            raise FileNotFoundError(f"Missing required file: {path}")
+        with path.open("r", encoding="utf-8") as source:
+            data = json.load(source)
+        if data.get("type") != "FeatureCollection":
+            raise ValueError(f"{filename} must be a GeoJSON FeatureCollection")
+        return data
 
-            road_id = str(p["road_id"])
-            if road_id in road_ids:
-                raise ValueError(f"Duplicate road_id: {road_id}")
-            road_ids.add(road_id)
-
-            start = p["start_node"]
-            end = p["end_node"]
-            if start not in self.junction_by_name:
-                raise ValueError(
-                    f"Road {road_id}: start_node {start!r} is not a junction"
-                )
-            if end not in self.junction_by_name:
-                raise ValueError(
-                    f"Road {road_id}: end_node {end!r} is not a junction"
-                )
-
-            try:
-                length = float(p["length"])
-                speed = float(p["speed"])
-            except (TypeError, ValueError):
-                raise ValueError(
-                    f"Road {road_id}: length and speed must be numeric"
-                )
-
-            if length < 0:
-                raise ValueError(f"Road {road_id}: length cannot be negative")
-            if speed <= 0:
-                raise ValueError(f"Road {road_id}: speed must be > 0")
-
-        self.road_by_id = {
-            str(f["properties"]["road_id"]): f
-            for f in self.roads["features"]
-        }
-
-        for row in self.lookup:
-            d = row["destination_id"]
-            g = row["gate_id"]
-            if d not in self.destination_by_name:
-                raise ValueError(
-                    f"Lookup destination_id {d!r} not found in destinations.geojson"
-                )
-            if g not in self.gate_by_name:
-                raise ValueError(
-                    f"Lookup gate_id {g!r} not found in gates.geojson"
-                )
-
-    # ---------- geometry / nearest junction ----------
-
-    def _prepare_junctions(self):
-        self.junction_points = {}
-        for name, feature in self.junction_by_name.items():
-            self.junction_points[name] = shape(feature["geometry"])
-
-        self._network_crs = self._geojson_crs(self.junctions)
-        if self._network_crs is None:
-            self._network_crs = self._geojson_crs(self.roads)
-
-        # Nearest-junction calculation requires a projected CRS in metres.
-        # The supplied example is EPSG:32638.
-        if self._network_crs is None:
+    def _load_lookup(self) -> list[dict[str, str]]:
+        path = self.data_dir / "destinations_gates_lookup.csv"
+        if not path.exists():
+            raise FileNotFoundError(f"Missing required file: {path}")
+        with path.open("r", encoding="utf-8-sig", newline="") as source:
+            rows = list(csv.DictReader(source))
+        if not {"destination_id", "gate_id"}.issubset(
+            rows[0].keys() if rows else set()
+        ):
             raise ValueError(
-                "GeoJSON CRS is required for nearest-junction calculation."
+                "destinations_gates_lookup.csv must contain destination_id, gate_id"
             )
+        return rows
 
-        crs = CRS.from_user_input(self._network_crs)
-        if crs.is_geographic:
-            # Use Web Mercator only as a fallback for geographic source data.
-            # For production accuracy, provide a suitable projected CRS.
-            metric_crs = CRS.from_epsg(3857)
-        else:
-            metric_crs = crs
+    @staticmethod
+    def _features_by_name(data: dict[str, Any], filename: str) -> dict[str, dict]:
+        result = {}
+        for feature in data.get("features", []):
+            name = feature.get("properties", {}).get("name")
+            if name is None or not str(name).strip():
+                raise ValueError(f"{filename} contains a feature without 'name'")
+            name = str(name)
+            if name in result:
+                raise ValueError(f"{filename} contains duplicate name: {name}")
+            result[name] = feature
+        return result
 
+    def _prepare_projection(self):
+        # roads.geojson uses CRS84 longitude/latitude coordinates in Riyadh.
+        # UTM zone 38N provides metric distances for snapping and travel costs.
         self._to_metric = Transformer.from_crs(
-            crs, metric_crs, always_xy=True
+            CRS.from_epsg(4326), CRS.from_epsg(32638), always_xy=True
         ).transform
+        self._to_geo = Transformer.from_crs(
+            CRS.from_epsg(32638), CRS.from_epsg(4326), always_xy=True
+        ).transform
+        meta_path = self.data_dir / "meta.json"
+        default_speed = 30.0
+        if meta_path.exists():
+            with meta_path.open("r", encoding="utf-8") as source:
+                meta = json.load(source)
+            default_speed = float(
+                meta.get("routing", {}).get("default_speed_kmh", default_speed)
+            )
+        self.default_speed_kmh = default_speed
 
-        self._junction_points_metric = {
-            name: transform(self._to_metric, point)
-            for name, point in self.junction_points.items()
-        }
+    def _prepare_links(self) -> list[dict[str, Any]]:
+        links = []
+        for feature_index, feature in enumerate(self.roads.get("features", [])):
+            properties = feature.get("properties", {})
+            geometry = shape(feature.get("geometry"))
+            if isinstance(geometry, LineString):
+                parts = [geometry]
+            elif isinstance(geometry, MultiLineString):
+                parts = list(geometry.geoms)
+            else:
+                continue
+
+            direction = str(properties.get("direction", "one")).strip().lower()
+            bidirectional = direction == "both"
+            speed_value = properties.get("speed")
+            try:
+                speed_kmh = float(speed_value) if speed_value not in (None, "") else self.default_speed_kmh
+            except (TypeError, ValueError):
+                speed_kmh = self.default_speed_kmh
+            if speed_kmh <= 0:
+                raise ValueError(f"Road feature {feature_index} has a non-positive speed")
+
+            for part_index, part in enumerate(parts):
+                if len(part.coords) < 2 or part.length == 0:
+                    continue
+                metric_line = transform(self._to_metric, part)
+                if metric_line.length == 0:
+                    continue
+                try:
+                    road_length_m = float(properties.get("length", metric_line.length))
+                except (TypeError, ValueError):
+                    road_length_m = metric_line.length
+                if road_length_m <= 0:
+                    road_length_m = metric_line.length
+                links.append({
+                    "id": f"road_{feature_index + 1:05d}_{part_index + 1:02d}",
+                    "feature_index": feature_index,
+                    "part_index": part_index,
+                    "properties": properties,
+                    "line": metric_line,
+                    "direction": str(properties.get("direction", "one")),
+                    "bidirectional": bidirectional,
+                    "speed_kmh": speed_kmh,
+                    "length_m": road_length_m,
+                    "geometry_length_m": metric_line.length,
+                })
+        if not links:
+            raise ValueError("roads.geojson contains no usable LineString links")
+        return links
+
+    def _validate_lookup(self):
+        for row in self.lookup:
+            destination_id, gate_id = row["destination_id"], row["gate_id"]
+            if destination_id not in self.destination_by_name:
+                raise ValueError(
+                    f"Lookup destination_id {destination_id!r} not found in destinations.geojson"
+                )
+            if gate_id not in self.gate_by_name:
+                raise ValueError(
+                    f"Lookup gate_id {gate_id!r} not found in gates.geojson"
+                )
 
     @staticmethod
-    def _geojson_crs(data: dict[str, Any]):
-        crs = data.get("crs")
-        if not crs:
-            return None
+    def _node_for_endpoint(point: Point) -> str:
+        # Endpoints that differ by less than roughly a metre share a graph node.
+        return f"n:{round(point.x)}:{round(point.y)}"
 
-        props = crs.get("properties", {})
-        name = props.get("name") or props.get("href")
-        if not name:
-            return None
-
-        # Common GeoJSON form:
-        # urn:ogc:def:crs:EPSG::32638
-        if "EPSG::" in name:
-            return "EPSG:" + name.split("EPSG::", 1)[1]
-        if name.startswith("EPSG:"):
-            return name
-        return name
-
-    def _nearest_junction(self, feature: dict) -> tuple[str, float]:
-        point = shape(feature["geometry"])
-        metric_point = transform(self._to_metric, point)
-
-        nearest_name = None
+    def _snap_to_link(self, feature: dict) -> dict[str, Any]:
+        point = transform(self._to_metric, shape(feature["geometry"]))
+        nearest = None
         nearest_distance = math.inf
-
-        for name, junction_point in self._junction_points_metric.items():
-            distance = metric_point.distance(junction_point)
+        for link in self.links:
+            distance = link["line"].distance(point)
             if distance < nearest_distance:
-                nearest_name = name
-                nearest_distance = distance
-
-        return nearest_name, nearest_distance
-
-    # ---------- graph ----------
-
-    @staticmethod
-    def _normalise_direction(value: Any) -> str:
-        if value is None:
-            return "both"
-
-        s = str(value).strip().lower().replace("_", "-").replace(" ", "-")
-
-        aliases = {
-            "both": "both",
-            "two-way": "both",
-            "twoway": "both",
-            "bidirectional": "both",
-            "bi-directional": "both",
-
-            "forward": "forward",
-            "one-way": "forward",
-            "oneway": "forward",
-            "start-to-end": "forward",
-            "start-end": "forward",
-
-            "reverse": "reverse",
-            "backward": "reverse",
-            "end-to-start": "reverse",
-            "reverse-one-way": "reverse",
+                nearest, nearest_distance = link, distance
+        if nearest is None:
+            raise ValueError("No usable road links are available for snapping")
+        line = nearest["line"]
+        measure = line.project(point)
+        snapped_point = line.interpolate(measure)
+        endpoint_epsilon = 1.0
+        if measure <= endpoint_epsilon:
+            node_id = self._node_for_endpoint(Point(line.coords[0]))
+            measure = 0.0
+        elif line.length - measure <= endpoint_epsilon:
+            node_id = self._node_for_endpoint(Point(line.coords[-1]))
+            measure = line.length
+        else:
+            node_id = f"snap:{nearest['id']}:{measure:.3f}"
+        return {
+            "link": nearest,
+            "measure": measure,
+            "point": snapped_point,
+            "node": node_id,
+            "snap_distance_m": nearest_distance,
         }
 
-        if s not in aliases:
-            raise ValueError(
-                f"Unsupported road direction {value!r}. "
-                f"Use both, forward, or reverse."
+    @staticmethod
+    def _coordinate_at_distance(line: LineString, distance: float) -> tuple[float, float]:
+        distance = max(0.0, min(float(distance), line.length))
+        coords = list(line.coords)
+        walked = 0.0
+        for start, end in zip(coords, coords[1:]):
+            segment_length = math.dist(start[:2], end[:2])
+            if walked + segment_length >= distance:
+                if segment_length == 0:
+                    return (float(start[0]), float(start[1]))
+                ratio = (distance - walked) / segment_length
+                return (
+                    float(start[0] + (end[0] - start[0]) * ratio),
+                    float(start[1] + (end[1] - start[1]) * ratio),
+                )
+            walked += segment_length
+        return (float(coords[-1][0]), float(coords[-1][1]))
+
+    def _segment_coordinates(self, line: LineString, start: float, end: float):
+        coords = list(line.coords)
+        if end < start:
+            return list(reversed(self._segment_coordinates(line, end, start)))
+        result = [self._coordinate_at_distance(line, start)]
+        walked = 0.0
+        for coord_a, coord_b in zip(coords, coords[1:]):
+            walked += math.dist(coord_a[:2], coord_b[:2])
+            if start < walked < end:
+                result.append((float(coord_b[0]), float(coord_b[1])))
+        result.append(self._coordinate_at_distance(line, end))
+        # Avoid duplicate consecutive coordinates that can create invalid lines.
+        clean = []
+        for coord in result:
+            if not clean or math.dist(coord, clean[-1]) > 1e-6:
+                clean.append(coord)
+        return clean if len(clean) >= 2 else [result[0], result[0]]
+
+    def _build_route_graph(self, gate_snap, destination_snap):
+        graph: dict[str, list[dict[str, Any]]] = {}
+        snap_by_link: dict[str, list[tuple[float, str, str]]] = {}
+        for label, snap in (("gate", gate_snap), ("destination", destination_snap)):
+            snap_by_link.setdefault(snap["link"]["id"], []).append(
+                (snap["measure"], snap["node"], label)
             )
 
-        return aliases[s]
+        def add_arc(start_node, end_node, link, start_measure, end_measure, reverse=False):
+            if start_node == end_node or abs(end_measure - start_measure) < 1e-6:
+                return
+            low, high = sorted((start_measure, end_measure))
+            coords = self._segment_coordinates(link["line"], low, high)
+            if reverse:
+                coords.reverse()
+            segment_geom_length = high - low
+            segment_road_length = (
+                link["length_m"] * segment_geom_length / link["geometry_length_m"]
+            )
+            cost = (segment_road_length / 1000.0) / link["speed_kmh"] * 3600.0
+            route_coords = [transform(self._to_geo, Point(x, y)).coords[0] for x, y in coords]
+            edge = {
+                "to": end_node,
+                "link": link,
+                "cost": cost,
+                "coordinates": [(float(x), float(y)) for x, y in route_coords],
+                "reverse": reverse,
+                "length_m": segment_road_length,
+            }
+            graph.setdefault(start_node, []).append(edge)
+            graph.setdefault(end_node, [])
+
+        for link in self.links:
+            line = link["line"]
+            start_node = self._node_for_endpoint(Point(line.coords[0]))
+            end_node = self._node_for_endpoint(Point(line.coords[-1]))
+            cuts = [(0.0, start_node), (line.length, end_node)]
+            for measure, node_id, _label in snap_by_link.get(link["id"], []):
+                cuts.append((measure, node_id))
+            cuts.sort(key=lambda item: item[0])
+            deduped = []
+            for measure, node_id in cuts:
+                if deduped and abs(measure - deduped[-1][0]) <= 0.25:
+                    # Keep a snapped node where the snap is effectively at an endpoint.
+                    if node_id.startswith("snap:"):
+                        deduped[-1] = (deduped[-1][0], node_id)
+                    continue
+                deduped.append((measure, node_id))
+            for (m0, n0), (m1, n1) in zip(deduped, deduped[1:]):
+                if link["direction"].strip().lower() == "both":
+                    add_arc(n0, n1, link, m0, m1)
+                    add_arc(n1, n0, link, m1, m0, reverse=True)
+                else:
+                    add_arc(n0, n1, link, m0, m1)
+
+        return graph
 
     @staticmethod
-    def _travel_time_seconds(length: Any, speed: Any) -> float:
-        length_m = float(length)
-        speed_kmh = float(speed)
-        return (length_m / 1000.0) / speed_kmh * 3600.0
-
-    def _prepare_graph(self):
-        # adjacency[node] = list of traversable road records
-        self.graph = {name: [] for name in self.junction_by_name}
-
-        for feature in self.roads["features"]:
-            p = feature["properties"]
-            road_id = str(p["road_id"])
-            start = str(p["start_node"])
-            end = str(p["end_node"])
-            direction = self._normalise_direction(p["direction"])
-            cost = self._travel_time_seconds(p["length"], p["speed"])
-
-            if direction in ("both", "forward"):
-                self.graph[start].append({
-                    "to": end,
-                    "road_id": road_id,
-                    "cost": cost,
-                })
-
-            if direction in ("both", "reverse"):
-                self.graph[end].append({
-                    "to": start,
-                    "road_id": road_id,
-                    "cost": cost,
-                })
-
-    # ---------- route ----------
+    def _dijkstra(graph, start: str, target: str):
+        queue = [(0.0, start)]
+        distances = {start: 0.0}
+        previous = {}
+        while queue:
+            current_cost, node = heapq.heappop(queue)
+            if current_cost > distances.get(node, math.inf):
+                continue
+            if node == target:
+                break
+            for edge in graph.get(node, []):
+                candidate = current_cost + edge["cost"]
+                if candidate < distances.get(edge["to"], math.inf):
+                    distances[edge["to"]] = candidate
+                    previous[edge["to"]] = (node, edge)
+                    heapq.heappush(queue, (candidate, edge["to"]))
+        if target not in distances:
+            return None
+        edges = []
+        node = target
+        while node != start:
+            previous_node, edge = previous[node]
+            edges.append(edge)
+            node = previous_node
+        edges.reverse()
+        return edges, distances[target]
 
     def destination_ids(self) -> list[str]:
-        return sorted(self.destination_by_name.keys())
+        return sorted(self.destination_by_name)
 
     def _gate_for_destination(self, destination_id: str) -> str:
         matches = [
-            row["gate_id"]
-            for row in self.lookup
+            row["gate_id"] for row in self.lookup
             if row["destination_id"] == destination_id
         ]
-
         if not matches:
-            raise ValueError(
-                f"No gate is configured for destination {destination_id!r}"
-            )
+            raise ValueError(f"No gate is configured for destination {destination_id!r}")
         if len(matches) > 1:
-            raise ValueError(
-                f"Destination {destination_id!r} has multiple gates configured"
-            )
+            raise ValueError(f"Destination {destination_id!r} has multiple gates configured")
         return matches[0]
-
-    def _dijkstra(self, start: str, target: str):
-        queue = [(0.0, start)]
-        distance = {start: 0.0}
-        previous: dict[str, tuple[str, str]] = {}
-
-        while queue:
-            current_cost, node = heapq.heappop(queue)
-
-            if current_cost != distance.get(node):
-                continue
-
-            if node == target:
-                break
-
-            for connection in self.graph[node]:
-                next_node = connection["to"]
-                new_cost = current_cost + connection["cost"]
-
-                if new_cost < distance.get(next_node, math.inf):
-                    distance[next_node] = new_cost
-                    previous[next_node] = (node, connection["road_id"])
-                    heapq.heappush(queue, (new_cost, next_node))
-
-        if target not in distance:
-            return None
-
-        nodes = []
-        roads = []
-        node = target
-
-        while node != start:
-            previous_node, road_id = previous[node]
-            nodes.append(node)
-            roads.append(road_id)
-            node = previous_node
-
-        nodes.append(start)
-        nodes.reverse()
-        roads.reverse()
-
-        return {
-            "nodes": nodes,
-            "road_ids": roads,
-            "travel_time_seconds": distance[target],
-        }
 
     def route(self, destination_id: str) -> dict:
         if destination_id not in self.destination_by_name:
-            raise ValueError(
-                f"Unknown destination_id: {destination_id!r}"
-            )
-
+            raise ValueError(f"Unknown destination_id: {destination_id!r}")
         gate_id = self._gate_for_destination(destination_id)
-
         gate_feature = self.gate_by_name[gate_id]
         destination_feature = self.destination_by_name[destination_id]
-        destination_area_feature = self.destination_area_by_name.get(destination_id)
-
-        start_junction, gate_distance = self._nearest_junction(gate_feature)
-        end_junction, destination_distance = self._nearest_junction(
-            destination_feature
-        )
-
-        result = self._dijkstra(start_junction, end_junction)
-
+        gate_snap = self._snap_to_link(gate_feature)
+        destination_snap = self._snap_to_link(destination_feature)
+        graph = self._build_route_graph(gate_snap, destination_snap)
+        result = self._dijkstra(graph, gate_snap["node"], destination_snap["node"])
         if result is None:
             return {
                 "status": "no_route",
                 "message": (
-                    "No route is available between the selected gate "
-                    "and destination."
+                    "No directionally valid route exists between the selected gate "
+                    "and destination on roads.geojson."
                 ),
                 "destination_id": destination_id,
                 "gate_id": gate_id,
-                "start_junction": start_junction,
-                "end_junction": end_junction,
+                "gate_snap_distance_m": gate_snap["snap_distance_m"],
+                "destination_snap_distance_m": destination_snap["snap_distance_m"],
             }
 
-        route_features = [
-            self.road_by_id[road_id]
-            for road_id in result["road_ids"]
-        ]
+        route_edges, travel_time_seconds = result
+        route_features = []
+        road_ids = []
+        for edge in route_edges:
+            link = edge["link"]
+            road_ids.append(link["id"])
+            route_features.append({
+                "type": "Feature",
+                "properties": {
+                    **link["properties"],
+                    "road_id": link["id"],
+                    "route_direction": "reverse" if edge["reverse"] else "forward",
+                },
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": edge["coordinates"],
+                },
+            })
 
+        area = self.destination_area_by_name.get(destination_id)
         return {
             "status": "ok",
             "destination_id": destination_id,
-            "destination_area": destination_area_feature["geometry"] if destination_area_feature else None,
+            "destination_area": area["geometry"] if area else None,
             "gate_id": gate_id,
             "gate_coordinates": gate_feature["geometry"]["coordinates"],
-            "destination_coordinates": destination_feature["geometry"]["coordinates"],            
-            "start_junction": start_junction,
-            "end_junction": end_junction,
-            "gate_to_junction_distance_m": gate_distance,
-            "destination_to_junction_distance_m": destination_distance,
-            "travel_time_seconds": result["travel_time_seconds"],
-            "road_ids": result["road_ids"],
-            "junction_ids": result["nodes"],
-            "route": {
-                "type": "FeatureCollection",
-                "features": route_features,
-            },
+            "destination_coordinates": destination_feature["geometry"]["coordinates"],
+            "gate_snap_coordinates": list(transform(self._to_geo, gate_snap["point"]).coords[0]),
+            "destination_snap_coordinates": list(transform(self._to_geo, destination_snap["point"]).coords[0]),
+            "gate_snap_distance_m": gate_snap["snap_distance_m"],
+            "destination_snap_distance_m": destination_snap["snap_distance_m"],
+            "travel_time_seconds": travel_time_seconds,
+            "road_ids": road_ids,
+            "junction_ids": [gate_snap["node"], destination_snap["node"]],
+            "route": {"type": "FeatureCollection", "features": route_features},
         }
