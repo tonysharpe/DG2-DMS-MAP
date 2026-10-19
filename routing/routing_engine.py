@@ -43,6 +43,13 @@ class RoutingEngine:
         self.links = self._prepare_links()
         self._validate_lookup()
 
+        # Build the road topology once per process from the exact roads.geojson
+        # fingerprint above. A deployment with updated roads rebuilds this graph.
+        self._junction_cuts = self._network_junction_cuts()
+        self._base_graph = self._build_graph_with_cuts(None, None, self._junction_cuts)
+        self.network_info["graph_nodes"] = len(self._base_graph)
+        self.network_info["graph_arcs"] = sum(len(edges) for edges in self._base_graph.values())
+
     def _load_geojson(self, filename: str) -> dict[str, Any]:
         path = self.data_dir / filename
         if not path.exists():
@@ -323,10 +330,14 @@ class RoutingEngine:
                 )
         return cuts
 
-    def _build_route_graph(self, gate_snap, destination_snap):
+    def _build_graph_with_cuts(self, gate_snap, destination_snap, junction_cuts):
         graph: dict[str, list[dict[str, Any]]] = {}
         snap_by_link: dict[str, list[tuple[float, str, str]]] = {}
-        snaps = {"gate": gate_snap, "destination": destination_snap}
+        snaps = {
+            label: snap for label, snap in
+            (("gate", gate_snap), ("destination", destination_snap))
+            if snap is not None
+        }
         for label, snap in snaps.items():
             snap_by_link.setdefault(snap["link"]["id"], []).append(
                 (snap["measure"], snap["node"], label)
@@ -352,11 +363,12 @@ class RoutingEngine:
                 "coordinates": [(float(x), float(y)) for x, y in route_coords],
                 "reverse": reverse,
                 "length_m": segment_road_length,
+                "start_measure": start_measure,
+                "end_measure": end_measure,
             }
             graph.setdefault(start_node, []).append(edge)
             graph.setdefault(end_node, [])
 
-        junction_cuts = self._network_junction_cuts()
         for link in self.links:
             line = link["line"]
             start_node = self._node_for_endpoint(Point(line.coords[0]))
