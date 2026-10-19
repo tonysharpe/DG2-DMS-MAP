@@ -153,8 +153,8 @@ class RoutingEngine:
 
     @staticmethod
     def _node_for_endpoint(point: Point) -> str:
-        # Endpoints that differ by less than roughly a metre share a graph node.
-        return f"n:{round(point.x)}:{round(point.y)}"
+        # Keep node identity finer than the 0.1 m connectivity tolerance.
+        return f"n:{point.x:.3f}:{point.y:.3f}"
 
     def _snap_to_link(self, feature: dict) -> dict[str, Any]:
         point = transform(self._to_metric, shape(feature["geometry"]))
@@ -169,7 +169,9 @@ class RoutingEngine:
         line = nearest["line"]
         measure = line.project(point)
         snapped_point = line.interpolate(measure)
-        endpoint_epsilon = 1.0
+        # Use the actual closest point on the link. Only exact (or numerical
+        # precision-level) endpoint projections reuse an endpoint graph node.
+        endpoint_epsilon = 1e-6
         if measure <= endpoint_epsilon:
             node_id = self._node_for_endpoint(Point(line.coords[0]))
             measure = 0.0
@@ -222,49 +224,40 @@ class RoutingEngine:
                 clean.append(coord)
         return clean if len(clean) >= 2 else [result[0], result[0]]
 
-    @staticmethod
-    def _intersection_points(geometry):
-        """Return points that should split both links at a geometric intersection.
-
-        Overlapping linework contributes its overlap endpoints. This intentionally
-        works with Shapely 1.x and 2.x geometry types without relying on STRtree.
-        """
-        if geometry.is_empty:
-            return []
-        if geometry.geom_type == "Point":
-            return [geometry]
-        if geometry.geom_type in ("LineString", "LinearRing"):
-            coords = list(geometry.coords)
-            return [Point(coords[0]), Point(coords[-1])] if len(coords) >= 2 else []
-        if hasattr(geometry, "geoms"):
-            points = []
-            for part in geometry.geoms:
-                points.extend(RoutingEngine._intersection_points(part))
-            return points
-        return []
-
     def _network_junction_cuts(self):
-        """Build shared graph nodes for link intersections, including shape points."""
+        """Connect link shape points only when their separation is <= 0.1 m."""
+        tolerance_m = 0.1
         ordered = sorted(self.links, key=lambda link: link["line"].bounds[0])
         cuts = {link["id"]: [] for link in self.links}
         active = []
         for link in ordered:
             line = link["line"]
             minx, miny, maxx, maxy = line.bounds
-            active = [other for other in active if other["line"].bounds[2] >= minx]
+            active = [
+                other for other in active
+                if other["line"].bounds[2] >= minx - tolerance_m
+            ]
             for other in active:
-                ominx, ominy, omaxx, omaxy = other["line"].bounds
-                if maxy < ominy or omaxy < miny:
+                other_line = other["line"]
+                ominx, ominy, omaxx, omaxy = other_line.bounds
+                if maxy + tolerance_m < ominy or omaxy + tolerance_m < miny:
                     continue
-                intersection = line.intersection(other["line"])
-                for point in self._intersection_points(intersection):
-                    # Projection makes the measure robust to tiny floating-point
-                    # differences at a vertex or intersection.
-                    for target in (link, other):
-                        target_line = target["line"]
-                        measure = target_line.project(point)
-                        node = self._node_for_endpoint(point)
-                        cuts[target["id"]].append((measure, node, "junction"))
+
+                # Connect vertex-to-vertex only; do not connect a nearby vertex
+                # to the middle of a segment or connect segment-interior crossings.
+                for coord_a in line.coords:
+                    point_a = Point(coord_a[:2])
+                    for coord_b in other_line.coords:
+                        point_b = Point(coord_b[:2])
+                        if point_a.distance(point_b) > tolerance_m:
+                            continue
+                        node = self._node_for_endpoint(point_a)
+                        cuts[link["id"]].append(
+                            (line.project(point_a), node, "junction")
+                        )
+                        cuts[other["id"]].append(
+                            (other_line.project(point_b), node, "junction")
+                        )
             active.append(link)
         return cuts
 
@@ -315,7 +308,7 @@ class RoutingEngine:
             cuts.sort(key=lambda item: item[0])
             deduped = []
             for measure, node_id, kind in cuts:
-                if deduped and abs(measure - deduped[-1][0]) <= 0.25:
+                if deduped and abs(measure - deduped[-1][0]) <= 0.1:
                     previous_measure, previous_node, previous_kind = deduped[-1]
                     # Prefer the shared network node over a gate/destination's
                     # private snap node when they land within the snap tolerance.

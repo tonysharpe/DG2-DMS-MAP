@@ -44,16 +44,33 @@ class ShapePointRoutingTests(unittest.TestCase):
         outgoing_links = {edge["link"]["id"] for edge in graph[junction]}
         self.assertEqual(outgoing_links, {"road", "branch"})
 
-    def test_geometric_intersection_splits_both_links(self):
+    def test_segment_interiors_crossing_does_not_connect(self):
         road = make_link("road", [(0, 0), (10, 0)])
         crossing = make_link("crossing", [(5, -5), (5, 5)])
         self.engine.links = [road, crossing]
         cuts = self.engine._network_junction_cuts()
 
+        self.assertEqual(cuts["road"], [])
+        self.assertEqual(cuts["crossing"], [])
+
+    def test_shape_points_within_point_one_metre_connect(self):
+        road = make_link("road", [(0, 0), (5, 0), (10, 0)])
+        branch = make_link("branch", [(5.05, 0.02), (5, 5)])
+        self.engine.links = [road, branch]
+        cuts = self.engine._network_junction_cuts()
+
         road_nodes = {node for _, node, _ in cuts["road"]}
-        crossing_nodes = {node for _, node, _ in cuts["crossing"]}
-        self.assertIn("n:5:0", road_nodes)
-        self.assertIn("n:5:0", crossing_nodes)
+        branch_nodes = {node for _, node, _ in cuts["branch"]}
+        self.assertTrue(road_nodes & branch_nodes)
+
+    def test_shape_points_beyond_point_one_metre_do_not_connect(self):
+        road = make_link("road", [(0, 0), (5, 0), (10, 0)])
+        branch = make_link("branch", [(5.5, 0), (5, 5)])
+        self.engine.links = [road, branch]
+        cuts = self.engine._network_junction_cuts()
+
+        self.assertEqual(cuts["road"], [])
+        self.assertEqual(cuts["branch"], [])
 
     def test_reverse_direction_arcs_follow_link_direction(self):
         road = make_link("reverse-road", [(0, 0), (10, 0)], direction="reverse")
