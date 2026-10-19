@@ -1,9 +1,16 @@
 // Loads GeoJSON datasets and creates the corresponding map sources and layers.
 
+const geoJSONRequests = new Map();
+
 async function fetchGeoJSON(path, filename) {
-  const response = await fetch(path);
-  if (!response.ok) throw new Error(`Failed to load ${filename}`);
-  return response.json();
+  if (!geoJSONRequests.has(path)) {
+    const request = fetch(path).then(response => {
+      if (!response.ok) throw new Error(`Failed to load ${filename}`);
+      return response.json();
+    });
+    geoJSONRequests.set(path, request);
+  }
+  return geoJSONRequests.get(path);
 }
 
 // Calculates the bounding box containing every coordinate in a GeoJSON geometry.
@@ -112,7 +119,15 @@ export async function loadCommunities(map) {
 }
 
 async function loadRoadLayer(map, config) {
-  const geojson = await fetchGeoJSON(config.path, config.filename);
+  const sourceGeoJSON = await fetchGeoJSON(config.path, config.filename);
+  const geojson = config.filterType
+    ? {
+        ...sourceGeoJSON,
+        features: (sourceGeoJSON.features ?? []).filter(
+          feature => feature.properties?.type === config.filterType
+        )
+      }
+    : sourceGeoJSON;
   if (map.getSource(config.sourceId)) {
     map.getSource(config.sourceId).setData(geojson);
     return;
@@ -161,7 +176,7 @@ export const loadRiyadhSecondary = map => loadRoadLayer(map, {
 });
 
 export const loadMainRoads = map => loadRoadLayer(map, {
-  path: "./data/main_roads.geojson", filename: "main_roads.geojson", sourceId: "main_roads",
+  path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "main_roads", filterType: "main",
   outlineColor: "#7189A8", outlineWidth: 6, surfaceColor: "#92A9C6", surfaceWidth: 4
 });
 
@@ -171,12 +186,12 @@ export const loadRiyadhPrimary = map => loadRoadLayer(map, {
 });
 
 export const loadPublicRoads = map => loadRoadLayer(map, {
-  path: "./data/public_roads.geojson", filename: "public_roads.geojson", sourceId: "public_roads",
+  path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "public_roads", filterType: "public",
   outlineColor: "#B0C2D4", outlineWidth: 5, surfaceColor: "#D9E1E8", surfaceWidth: 3.5
 });
 
 export const loadHaulRoads = map => loadRoadLayer(map, {
-  path: "./data/haul_roads.geojson", filename: "haul_roads.geojson", sourceId: "haul_roads",
+  path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "haul_roads", filterType: "haul",
   outlineColor: "#9C4525", outlineWidth: 5, surfaceColor: "#D96B35", surfaceWidth: 3.5
 });
 
