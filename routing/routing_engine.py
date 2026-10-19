@@ -280,6 +280,53 @@ class RoutingEngine:
         return graph
 
     @staticmethod
+    def _reachable_nodes(graph, start: str) -> set[str]:
+        visited = set()
+        stack = [start]
+        while stack:
+            node = stack.pop()
+            if node in visited:
+                continue
+            visited.add(node)
+            stack.extend(edge["to"] for edge in graph.get(node, []) if edge["to"] not in visited)
+        return visited
+
+    def _routing_diagnostics(self, gate_id, destination_id, gate_snap, destination_snap, graph):
+        one_way = sum(not link["bidirectional"] for link in self.links)
+        both_way = sum(link["bidirectional"] for link in self.links)
+        reachable = self._reachable_nodes(graph, gate_snap["node"])
+        gate_link = gate_snap["link"]
+        destination_link = destination_snap["link"]
+        destination_reachable = destination_snap["node"] in reachable
+        return [
+            {
+                "stage": "Selection",
+                "status": "ok",
+                "detail": f"Destination {destination_id}; assigned gate {gate_id} resolved from destinations_gates_lookup.csv."
+            },
+            {
+                "stage": "Road network",
+                "status": "ok",
+                "detail": f"roads.geojson: {len(self.roads.get('features', []))} features, {len(self.links)} usable links ({one_way} one-way, {both_way} bidirectional). Default speed: {self.default_speed_kmh:g} km/h."
+            },
+            {
+                "stage": "Gate snap",
+                "status": "ok",
+                "detail": f"Snapped to {gate_link['id']} (direction={gate_link['direction']}, type={gate_link['properties'].get('type', '—')}) at {gate_snap['snap_distance_m']:.1f} m from the gate."
+            },
+            {
+                "stage": "Destination snap",
+                "status": "ok",
+                "detail": f"Snapped to {destination_link['id']} (direction={destination_link['direction']}, type={destination_link['properties'].get('type', '—')}) at {destination_snap['snap_distance_m']:.1f} m from the destination."
+            },
+            {
+                "stage": "Directed graph search",
+                "status": "ok" if destination_reachable else "error",
+                "detail": f"Graph has {len(graph)} nodes and {sum(len(edges) for edges in graph.values())} directed arcs. {len(reachable)} nodes are reachable from the gate; destination snap node is {'reachable' if destination_reachable else 'NOT reachable'} following link directions."
+            }
+        ]
+
+    @staticmethod
     def _dijkstra(graph, start: str, target: str):
         queue = [(0.0, start)]
         distances = {start: 0.0}
@@ -339,9 +386,13 @@ class RoutingEngine:
             destination_snap["measure"] = gate_snap["measure"]
             destination_snap["point"] = gate_snap["point"]
         graph = self._build_route_graph(gate_snap, destination_snap)
+        diagnostics = self._routing_diagnostics(
+            gate_id, destination_id, gate_snap, destination_snap, graph
+        )
         result = self._dijkstra(graph, gate_snap["node"], destination_snap["node"])
         if result is None:
             return {
+                "diagnostics": diagnostics,
                 "status": "no_route",
                 "message": (
                     "No directionally valid route exists between the selected gate "
@@ -375,6 +426,7 @@ class RoutingEngine:
         area = self.destination_area_by_name.get(destination_id)
         return {
             "status": "ok",
+            "diagnostics": diagnostics,
             "destination_id": destination_id,
             "destination_area": area["geometry"] if area else None,
             "gate_id": gate_id,
