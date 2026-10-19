@@ -17,7 +17,7 @@ The same directory also contains the map layers used by the frontend. Keep these
 
 ## Routing
 
-Road links are split into graph edges at shared endpoints, geometric intersections, and gate/destination snap positions. This allows the router to enter or leave a link at an intermediate shape point rather than requiring every connection to be a feature endpoint. The source GeoJSON geometry is not rewritten; the graph uses virtual cuts and route output contains only the traversed sections.
+Road links are split into graph edges at shape points that are within 0.1 metres of another link's shape point, plus gate/destination snap positions. Only vertex-to-vertex proximity creates road-to-road connections: segment-interior crossings and a vertex near the middle of another segment do not connect roads. The source GeoJSON geometry is not rewritten; the graph uses virtual cuts and route output contains only the traversed sections. Gates and destinations snap to the closest point (projection/intercept) on the nearest road geometry, rather than snapping only to a road vertex.
 
 Supported link directions:
 
@@ -29,7 +29,7 @@ Routing cost is proportional to the traversed section's length and uses travel t
 
 `section_length_m / 1000 / speed_kmh * 3600`
 
-The engine uses Dijkstra's algorithm. Gate and destination positions are snapped to the nearest link, and all link intersections are used as graph junctions. Shapely performs planar x/y geometry analysis and ignores Z values; grade-separated crossings therefore need explicit network metadata or preprocessing if they must not connect.
+The engine uses Dijkstra's algorithm. Gate and destination positions are snapped to the closest point on the nearest link. Road connectivity uses a 0.1 m shape-point tolerance in the projected metric CRS. Shapely performs planar x/y geometry analysis and ignores Z values; grade-separated links whose shape points fall within tolerance need explicit network metadata or preprocessing if they must not connect.
 
 ## Run from the repository root
 
