@@ -60,7 +60,14 @@ export async function calculateRoute(map) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ destination_id: destinationId })
     });
-    const data = await response.json();
+    const responseText = await response.text();
+    let data;
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      const summary = responseText.trim().slice(0, 200) || "Empty response body";
+      throw new Error(`Routing API returned non-JSON response (HTTP ${response.status}): ${summary}`);
+    }
     if (!response.ok) throw new Error(data.detail || `Request failed with HTTP ${response.status}`);
     if (data.status === "no_route") throw new Error(data.message || "No route is available for this destination.");
     if (data.status !== "ok" || !data.route || !Array.isArray(data.route.features)) {
