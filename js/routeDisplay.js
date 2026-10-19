@@ -106,6 +106,17 @@ export function displayDiagnosticMap(map, data) {
   document.querySelectorAll("[data-inspection-stage]").forEach(el => { el.onchange = update; });
   update();
   document.getElementById("mapInspection").hidden = false;
+  const bounds = new maplibregl.LngLatBounds();
+  let hasBounds = false;
+  const include = coordinate => {
+    if (Array.isArray(coordinate) && typeof coordinate[0] === "number" && typeof coordinate[1] === "number") {
+      bounds.extend(coordinate); hasBounds = true;
+    } else if (Array.isArray(coordinate)) coordinate.forEach(include);
+  };
+  for (const feature of geojson.features) {
+    if (["gate", "destination", "gate_snap", "destination_snap", "reachable_arc"].includes(feature.properties?.kind)) include(feature.geometry?.coordinates);
+  }
+  if (hasBounds) map.fitBounds(bounds, { padding: { top: 100, bottom: 100, left: 100, right: 100 }, maxZoom: 16, duration: 500 });
 }
 
 export function clearDiagnosticMap(map) {
