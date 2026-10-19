@@ -55,6 +55,19 @@ class ShapePointRoutingTests(unittest.TestCase):
         self.assertIn("n:5:0", road_nodes)
         self.assertIn("n:5:0", crossing_nodes)
 
+    def test_nearby_vertex_splits_target_link_with_shared_node(self):
+        # The branch endpoint is within the 1 m topology-repair tolerance of
+        # the middle of the main road, but does not exactly intersect it.
+        road = make_link("road", [(0, 0), (10, 0)])
+        branch = make_link("branch", [(5, 0.5), (5, 5)])
+        self.engine.links = [road, branch]
+
+        cuts = self.engine._network_junction_cuts()
+        road_nodes = {node for _, node, _ in cuts["road"]}
+        branch_nodes = {node for _, node, _ in cuts["branch"]}
+        self.assertIn("n:5:0", road_nodes)
+        self.assertIn("n:5:0", branch_nodes)
+
     def test_reverse_direction_arcs_follow_link_direction(self):
         road = make_link("reverse-road", [(0, 0), (10, 0)], direction="reverse")
         self.engine.links = [road]
