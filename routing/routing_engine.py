@@ -377,7 +377,7 @@ class RoutingEngine:
             line = link["line"]
             start_node = self._node_for_endpoint(Point(line.coords[0]))
             end_node = self._node_for_endpoint(Point(line.coords[-1]))
-            cuts = [(0.0, start_node, "junction"), (line.length, end_node, "junction")]
+            cuts = [(0.0, start_node, "endpoint"), (line.length, end_node, "endpoint")]
             cuts.extend(junction_cuts.get(link["id"], []))
             cuts.extend(
                 (measure, node_id, label)
@@ -393,13 +393,13 @@ class RoutingEngine:
                     if previous_kind != "junction" and kind == "junction":
                         deduped[-1] = (previous_measure, node_id, kind)
                         for label, snap in snaps.items():
-                            if snap["link"]["id"] == link["id"] and abs(snap["measure"] - measure) <= 0.25:
+                            if snap["link"]["id"] == link["id"] and abs(snap["measure"] - measure) <= 0.1:
                                 snap["node"] = node_id
                                 snap["measure"] = measure
                                 snap["point"] = line.interpolate(measure)
                     elif kind != "junction" and previous_kind == "junction":
                         for label, snap in snaps.items():
-                            if label == kind and snap["link"]["id"] == link["id"] and abs(snap["measure"] - previous_measure) <= 0.25:
+                            if label == kind and snap["link"]["id"] == link["id"] and abs(snap["measure"] - previous_measure) <= 0.1:
                                 snap["node"] = previous_node
                                 snap["measure"] = previous_measure
                                 snap["point"] = line.interpolate(previous_measure)
