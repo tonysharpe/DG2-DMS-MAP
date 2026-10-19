@@ -169,7 +169,9 @@ class RoutingEngine:
         line = nearest["line"]
         measure = line.project(point)
         snapped_point = line.interpolate(measure)
-        endpoint_epsilon = 1.0
+        # Use the actual closest point on the link. Only exact (or numerical
+        # precision-level) endpoint projections reuse an endpoint graph node.
+        endpoint_epsilon = 1e-6
         if measure <= endpoint_epsilon:
             node_id = self._node_for_endpoint(Point(line.coords[0]))
             measure = 0.0
@@ -306,7 +308,7 @@ class RoutingEngine:
             cuts.sort(key=lambda item: item[0])
             deduped = []
             for measure, node_id, kind in cuts:
-                if deduped and abs(measure - deduped[-1][0]) <= 0.25:
+                if deduped and abs(measure - deduped[-1][0]) <= 0.1:
                     previous_measure, previous_node, previous_kind = deduped[-1]
                     # Prefer the shared network node over a gate/destination's
                     # private snap node when they land within the snap tolerance.
