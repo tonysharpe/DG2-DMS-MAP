@@ -22,6 +22,15 @@
         <h2>Routing diagnostics</h2>
         <ol id="diagnosticSteps" class="diagnostic-steps"></ol>
       </section>
+      <section id="mapInspection" class="diagnostics" hidden>
+        <h2>Map inspection layers</h2>
+        <p class="hint">Toggle stages and click a road, point, or connector to inspect its metadata.</p>
+        <label class="layer-toggle"><input type="checkbox" data-inspection-stage="selection" checked> Gate and destination</label>
+        <label class="layer-toggle"><input type="checkbox" data-inspection-stage="road_network" checked> Road links</label>
+        <label class="layer-toggle"><input type="checkbox" data-inspection-stage="gate_snap" checked> Gate snap and connector</label>
+        <label class="layer-toggle"><input type="checkbox" data-inspection-stage="destination_snap" checked> Destination snap and connector</label>
+        <label class="layer-toggle"><input type="checkbox" data-inspection-stage="graph_search" checked> Reachable directed arcs</label>
+      </section>
       <section id="routeSummary" class="summary" hidden>
         <h2>Route details</h2>
         <dl>
