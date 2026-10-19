@@ -17,17 +17,19 @@ The same directory also contains the map layers used by the frontend. Keep these
 
 ## Routing
 
-Roads are graph connections:
+Road links are split into graph edges at shared endpoints, geometric intersections, and gate/destination snap positions. This allows the router to enter or leave a link at an intermediate shape point rather than requiring every connection to be a feature endpoint. The source GeoJSON geometry is not rewritten; the graph uses virtual cuts and route output contains only the traversed sections.
+
+Supported link directions:
 
 - `both`: start to end and end to start
-- `forward`: start to end
+- `forward` (and other non-reverse, non-bidirectional values): start to end
 - `reverse`: end to start
 
-Routing cost is travel time:
+Routing cost is proportional to the traversed section's length and uses travel time:
 
-`length_m / 1000 / speed_kmh * 3600`
+`section_length_m / 1000 / speed_kmh * 3600`
 
-The engine uses Dijkstra's algorithm. Gate and destination junctions are calculated dynamically by finding the nearest junction.
+The engine uses Dijkstra's algorithm. Gate and destination positions are snapped to the nearest link, and all link intersections are used as graph junctions. Shapely performs planar x/y geometry analysis and ignores Z values; grade-separated crossings therefore need explicit network metadata or preprocessing if they must not connect.
 
 ## Run from the repository root
 
