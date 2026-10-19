@@ -156,6 +156,13 @@ class RoutingEngine:
             raise ValueError("roads.geojson contains no usable LineString links")
         return links
 
+    def _gate_for_destination(self, destination_id: str) -> str:
+        """Return the gate mapped to a destination by the lookup CSV."""
+        for row in self.lookup:
+            if row["destination_id"] == destination_id:
+                return row["gate_id"]
+        raise ValueError(f"No gate mapping found for destination_id {destination_id!r}")
+
     def _validate_lookup(self):
         for row in self.lookup:
             destination_id, gate_id = row["destination_id"], row["gate_id"]
