@@ -36,7 +36,7 @@ def network_info():
 
 @app.get("/destinations")
 def destinations():
-    return {"destinations": engine.destination_ids()}
+    return {"destinations": sorted(engine.destination_by_name.keys())}
 
 
 @app.post("/route")
