@@ -244,27 +244,48 @@ class RoutingEngine:
         return []
 
     def _network_junction_cuts(self):
-        """Build shared graph nodes for link intersections, including shape points."""
+        """Build shared graph nodes at intersections and near-coincident shape points.
+
+        Coordinates are in the projected metric CRS. The small tolerance repairs
+        digitizing gaps where a link vertex lies very close to another link, while
+        splitting the target link so the shared node is actually traversable.
+        """
+        tolerance_m = 1.0
         ordered = sorted(self.links, key=lambda link: link["line"].bounds[0])
         cuts = {link["id"]: [] for link in self.links}
         active = []
         for link in ordered:
             line = link["line"]
             minx, miny, maxx, maxy = line.bounds
-            active = [other for other in active if other["line"].bounds[2] >= minx]
+            active = [other for other in active if other["line"].bounds[2] >= minx - tolerance_m]
             for other in active:
-                ominx, ominy, omaxx, omaxy = other["line"].bounds
-                if maxy < ominy or omaxy < miny:
+                other_line = other["line"]
+                ominx, ominy, omaxx, omaxy = other_line.bounds
+                if maxy + tolerance_m < ominy or omaxy + tolerance_m < miny:
                     continue
-                intersection = line.intersection(other["line"])
+
+                intersection = line.intersection(other_line)
                 for point in self._intersection_points(intersection):
-                    # Projection makes the measure robust to tiny floating-point
-                    # differences at a vertex or intersection.
+                    node = self._node_for_endpoint(point)
                     for target in (link, other):
-                        target_line = target["line"]
-                        measure = target_line.project(point)
-                        node = self._node_for_endpoint(point)
+                        measure = target["line"].project(point)
                         cuts[target["id"]].append((measure, node, "junction"))
+
+                # Repair small digitizing gaps at vertices. Every candidate vertex
+                # becomes a cut on the other line, otherwise a shared node ID alone
+                # would not connect the graph to the middle of that line.
+                for source, target in ((link, other), (other, link)):
+                    source_line, target_line = source["line"], target["line"]
+                    for coordinate in source_line.coords:
+                        vertex = Point(coordinate[:2])
+                        measure_on_target = target_line.project(vertex)
+                        projected = target_line.interpolate(measure_on_target)
+                        if vertex.distance(projected) > tolerance_m:
+                            continue
+                        node = self._node_for_endpoint(vertex)
+                        measure_on_source = source_line.project(vertex)
+                        cuts[source["id"]].append((measure_on_source, node, "junction"))
+                        cuts[target["id"]].append((measure_on_target, node, "junction"))
             active.append(link)
         return cuts
 
