@@ -13,9 +13,9 @@ import {
   setLayerOrder
 } from "./mapLayers.js";
 
-import { loadDestinations, calculateRoute } from "./routing.js";
-import { clearRoute } from "./routeDisplay.js";
-import { setMessage } from "./ui.js";
+import { loadDestinations, calculateRoute } from "./routing.js?v=route-diagnostics-2";
+import { clearRoute } from "./routeDisplay.js?v=route-diagnostics-2";
+import { setMessage } from "./ui.js?v=route-diagnostics-2";
 
 const destinationSelect = document.getElementById("destinationSelect");
 const routeButton = document.getElementById("routeButton");
