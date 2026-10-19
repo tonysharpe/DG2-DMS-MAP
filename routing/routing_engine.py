@@ -329,6 +329,15 @@ class RoutingEngine:
         destination_feature = self.destination_by_name[destination_id]
         gate_snap = self._snap_to_link(gate_feature)
         destination_snap = self._snap_to_link(destination_feature)
+        # If both points snap to effectively the same position on one link,
+        # share a graph node so duplicate cut points cannot disconnect the route.
+        if (
+            gate_snap["link"]["id"] == destination_snap["link"]["id"]
+            and abs(gate_snap["measure"] - destination_snap["measure"]) <= 0.25
+        ):
+            destination_snap["node"] = gate_snap["node"]
+            destination_snap["measure"] = gate_snap["measure"]
+            destination_snap["point"] = gate_snap["point"]
         graph = self._build_route_graph(gate_snap, destination_snap)
         result = self._dijkstra(graph, gate_snap["node"], destination_snap["node"])
         if result is None:
