@@ -1,7 +1,7 @@
 const API_BASE = "https://dg2-dms-routing.onrender.com";
 
 import { setMessage, setServiceStatus, showRouteSummary } from "./ui.js";
-import { clearRoute, displayRoute, displayDiagnosticMap } from "./routeDisplay.js";
+import { clearRoute, displayRoute, displayDiagnosticMap } from "./routeDisplay.js?v=map-inspection-1";
 
 const destinationSelect = document.getElementById("destinationSelect");
 const routeButton = document.getElementById("routeButton");
