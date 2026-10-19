@@ -300,6 +300,8 @@ function clearRoute() {
   if (startMarker) { startMarker.remove(); startMarker = null; }
   if (endMarker) { endMarker.remove(); endMarker = null; }
   summaryEl.hidden = true;
+  document.getElementById("routingDiagnostics").hidden = true;
+  document.getElementById("diagnosticSteps").replaceChildren();
 }
 
 // Collects every coordinate point from the geometries in a GeoJSON FeatureCollection.
@@ -394,6 +396,26 @@ async function loadDestinations() {
   }
 }
 
+// Shows backend diagnostics for each routing stage without injecting server text as HTML.
+function showDiagnostics(steps) {
+  const panel = document.getElementById("routingDiagnostics");
+  const list = document.getElementById("diagnosticSteps");
+  list.replaceChildren();
+  (steps || []).forEach(step => {
+    const item = document.createElement("li");
+    item.className = step.status === "error" ? "error" : "ok";
+    const stage = document.createElement("span");
+    stage.className = "diagnostic-stage";
+    stage.textContent = step.stage || "Routing step";
+    const detail = document.createElement("span");
+    detail.className = "diagnostic-detail";
+    detail.textContent = step.detail || "No details returned.";
+    item.append(stage, detail);
+    list.appendChild(item);
+  });
+  panel.hidden = !(steps || []).length;
+}
+
 // Requests a route for the selected destination, draws it on the map, and updates route details.
 async function calculateRoute() {
   const destinationId = destinationSelect.value;
@@ -403,6 +425,7 @@ async function calculateRoute() {
   try {
     const response = await fetch(`${API_BASE}/route`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ destination_id: destinationId }) });
     const data = await response.json();
+    if (data.diagnostics) showDiagnostics(data.diagnostics);
     if (!response.ok) throw new Error(data.detail || `Request failed with HTTP ${response.status}`);
     if (data.status === "no_route") throw new Error(data.message || "No route is available for this destination.");
     if (data.status !== "ok" || !data.route || !Array.isArray(data.route.features)) throw new Error("API response did not contain route geometry in the expected format.");
