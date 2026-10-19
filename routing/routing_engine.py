@@ -275,13 +275,15 @@ class RoutingEngine:
 
         for link in self.links:
             line = link["line"]
-            for coordinate in line.coords:
+            coordinates = list(line.coords)
+            measure = 0.0
+            for coordinate_index, coordinate in enumerate(coordinates):
                 point = Point(coordinate[:2])
                 record_index = len(records)
                 records.append({
                     "link": link,
                     "point": point,
-                    "measure": line.project(point),
+                    "measure": measure,
                 })
                 parent.append(record_index)
                 rank.append(0)
@@ -301,6 +303,8 @@ class RoutingEngine:
                                 union(record_index, other_index)
 
                 grid.setdefault((cell_x, cell_y), []).append(record_index)
+                if coordinate_index + 1 < len(coordinates):
+                    measure += math.dist(coordinate[:2], coordinates[coordinate_index + 1][:2])
 
         components = {}
         for index in linked:
