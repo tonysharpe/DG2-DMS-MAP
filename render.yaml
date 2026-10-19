@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: temporary-road-routing
+    name: DG2-DMS-MAP
     runtime: python
     buildCommand: pip install -r routing/requirements.txt
     startCommand: uvicorn routing.app:app --host 0.0.0.0 --port $PORT
