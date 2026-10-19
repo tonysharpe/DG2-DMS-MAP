@@ -1,4 +1,4 @@
-const API_BASE = "https://dg2-dms-routing.onrender.com";
+const API_BASE = "";
 
 import { setMessage, setServiceStatus, showRouteSummary } from "./ui.js?v=route-cache-2";
 import { clearRoute, displayRoute } from "./routeDisplay.js?v=route-cache-2";
