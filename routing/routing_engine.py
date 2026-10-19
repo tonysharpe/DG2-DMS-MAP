@@ -526,6 +526,44 @@ class RoutingEngine:
             stack.extend(edge["to"] for edge in graph.get(node, []) if edge["to"] not in visited)
         return visited
 
+    @staticmethod
+    def _dijkstra(graph: dict[str, list[dict[str, Any]]], start: str, target: str):
+        """Return the shortest-time route edges and total travel time, or None."""
+        if start not in graph or target not in graph:
+            return None
+        distances = {start: 0.0}
+        previous: dict[str, tuple[str, dict[str, Any]]] = {}
+        queue = [(0.0, start)]
+
+        while queue:
+            distance, node = heapq.heappop(queue)
+            if distance != distances.get(node):
+                continue
+            if node == target:
+                break
+            for edge in graph.get(node, []):
+                next_node = edge["to"]
+                candidate = distance + float(edge["cost"])
+                if candidate < distances.get(next_node, math.inf):
+                    distances[next_node] = candidate
+                    previous[next_node] = (node, edge)
+                    heapq.heappush(queue, (candidate, next_node))
+
+        if target not in distances:
+            return None
+
+        route_edges = []
+        node = target
+        while node != start:
+            step = previous.get(node)
+            if step is None:
+                return None
+            previous_node, edge = step
+            route_edges.append(edge)
+            node = previous_node
+        route_edges.reverse()
+        return route_edges, distances[target]
+
     def route(self, destination_id: str) -> dict:
         # Also detect in-place data updates; normal Render deployments rebuild
         # the graph on process start, while this covers mounted/replaced files.
