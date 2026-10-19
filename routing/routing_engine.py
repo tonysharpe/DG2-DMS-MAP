@@ -263,8 +263,7 @@ class RoutingEngine:
                     for target in (link, other):
                         target_line = target["line"]
                         measure = target_line.project(point)
-                        snapped = target_line.interpolate(measure)
-                        node = self._node_for_endpoint(snapped)
+                        node = self._node_for_endpoint(point)
                         cuts[target["id"]].append((measure, node, "junction"))
             active.append(link)
         return cuts
