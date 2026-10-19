@@ -1,7 +1,7 @@
 const API_BASE = "https://dg2-dms-routing.onrender.com";
 
 import { setMessage, setServiceStatus, showRouteSummary } from "./ui.js";
-import { clearRoute, displayRoute } from "./routeDisplay.js";
+import { clearRoute, displayRoute, displayDiagnosticMap } from "./routeDisplay.js";
 
 const destinationSelect = document.getElementById("destinationSelect");
 const routeButton = document.getElementById("routeButton");
@@ -103,6 +103,7 @@ export async function calculateRoute(map) {
     }
 
     if (!response.ok) throw new Error(data.detail || `Request failed with HTTP ${response.status}`);
+    if (data.diagnostic_map) displayDiagnosticMap(map, data);
     if (data.status === "no_route") throw new Error(data.message || "No route is available for this destination.");
     if (data.status !== "ok" || !data.route || !Array.isArray(data.route.features)) {
       throw new Error("API response did not contain route geometry in the expected format.");
