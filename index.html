@@ -18,6 +18,10 @@
       <select id="destinationSelect" disabled><option value="">Loading destinations…</option></select>
       <button id="routeButton" disabled>Calculate route</button>
       <div id="message" class="message" role="status">Connecting to routing service…</div>
+      <section id="routingDiagnostics" class="diagnostics" aria-live="polite" hidden>
+        <h2>Routing diagnostics</h2>
+        <ol id="diagnosticSteps" class="diagnostic-steps"></ol>
+      </section>
       <section id="routeSummary" class="summary" hidden>
         <h2>Route details</h2>
         <dl>
