@@ -225,40 +225,92 @@ class RoutingEngine:
         return clean if len(clean) >= 2 else [result[0], result[0]]
 
     def _network_junction_cuts(self):
-        """Connect link shape points only when their separation is <= 0.1 m."""
-        tolerance_m = 0.1
-        ordered = sorted(self.links, key=lambda link: link["line"].bounds[0])
-        cuts = {link["id"]: [] for link in self.links}
-        active = []
-        for link in ordered:
-            line = link["line"]
-            minx, miny, maxx, maxy = line.bounds
-            active = [
-                other for other in active
-                if other["line"].bounds[2] >= minx - tolerance_m
-            ]
-            for other in active:
-                other_line = other["line"]
-                ominx, ominy, omaxx, omaxy = other_line.bounds
-                if maxy + tolerance_m < ominy or omaxy + tolerance_m < miny:
-                    continue
+        """Connect shape points within 0.1 m using a spatial grid.
 
-                # Connect vertex-to-vertex only; do not connect a nearby vertex
-                # to the middle of a segment or connect segment-interior crossings.
-                for coord_a in line.coords:
-                    point_a = Point(coord_a[:2])
-                    for coord_b in other_line.coords:
-                        point_b = Point(coord_b[:2])
-                        if point_a.distance(point_b) > tolerance_m:
-                            continue
-                        node = self._node_for_endpoint(point_a)
-                        cuts[link["id"]].append(
-                            (line.project(point_a), node, "junction")
-                        )
-                        cuts[other["id"]].append(
-                            (other_line.project(point_b), node, "junction")
-                        )
-            active.append(link)
+        The grid avoids comparing every vertex against every vertex on nearby
+        links. Only points in the same or adjacent 0.1 m cells are candidates.
+        """
+        tolerance_m = 0.1
+        cell_size = tolerance_m
+        records = []
+        grid = {}
+        parent = []
+        rank = []
+        linked = set()
+
+        def find(index):
+            while parent[index] != index:
+                parent[index] = parent[parent[index]]
+                index = parent[index]
+            return index
+
+        def union(left, right):
+            root_left, root_right = find(left), find(right)
+            if root_left == root_right:
+                return
+            if rank[root_left] < rank[root_right]:
+                root_left, root_right = root_right, root_left
+            parent[root_right] = root_left
+            if rank[root_left] == rank[root_right]:
+                rank[root_left] += 1
+            linked.add(left)
+            linked.add(right)
+
+        for link in self.links:
+            line = link["line"]
+            for coordinate in line.coords:
+                point = Point(coordinate[:2])
+                record_index = len(records)
+                records.append({
+                    "link": link,
+                    "point": point,
+                    "measure": line.project(point),
+                })
+                parent.append(record_index)
+                rank.append(0)
+                cell_x = math.floor(point.x / cell_size)
+                cell_y = math.floor(point.y / cell_size)
+
+                # Compare only with previously inserted points in the 3x3
+                # neighborhood. Requiring different links prevents a link from
+                # creating a junction with itself.
+                for dx in (-1, 0, 1):
+                    for dy in (-1, 0, 1):
+                        for other_index in grid.get((cell_x + dx, cell_y + dy), ()):
+                            other = records[other_index]
+                            if other["link"]["id"] == link["id"]:
+                                continue
+                            if point.distance(other["point"]) <= tolerance_m:
+                                union(record_index, other_index)
+
+                grid.setdefault((cell_x, cell_y), []).append(record_index)
+
+        components = {}
+        for index in linked:
+            components.setdefault(find(index), []).append(index)
+
+        cuts = {link["id"]: [] for link in self.links}
+        for members in components.values():
+            link_ids = {records[index]["link"]["id"] for index in members}
+            if len(link_ids) < 2:
+                continue
+            # Stable representative gives every connected shape point the same
+            # graph node, even when several links meet within the tolerance.
+            representative = min(
+                members,
+                key=lambda index: (
+                    records[index]["link"]["id"],
+                    records[index]["measure"],
+                    records[index]["point"].x,
+                    records[index]["point"].y,
+                ),
+            )
+            node = self._node_for_endpoint(records[representative]["point"])
+            for index in members:
+                record = records[index]
+                cuts[record["link"]["id"]].append(
+                    (record["measure"], node, "junction")
+                )
         return cuts
 
     def _build_route_graph(self, gate_snap, destination_snap):
