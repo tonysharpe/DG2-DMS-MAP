@@ -442,7 +442,9 @@ class RoutingEngine:
     def _insert_snap_into_graph(self, graph, snap):
         link = snap["link"]
         measure = snap["measure"]
-        tolerance = 0.1
+        # Do not move a closest-point projection along the road just because
+        # it is near a graph node; reuse a boundary only for numeric precision.
+        tolerance = 1e-6
         boundary = None
         candidates = []
 
