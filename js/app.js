@@ -1682,8 +1682,8 @@ function calculate(collapseMobilePanelOnSuccess = false) {
       status(
         "Routing error: " + error.message +
         (highlightedCount
-          ? "\\nDebug: highlighted " + highlightedCount + " road links examined during the search in red."
-          : "\\nDebug: no road links were recorded as examined.")
+          ? "\nDebug: highlighted " + highlightedCount + " road links examined during the search in red."
+          : "\nDebug: no road links were recorded as examined.")
       );
     } else {
       status("Routing error: " + error.message);
