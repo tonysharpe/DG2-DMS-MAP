@@ -651,12 +651,85 @@ function prepareRoutingStart() {
       .trim().toLowerCase() === "yes";
 
   /*
-   * Keep map-click selection responsive: chooseMapClickRoad() has already
-   * attached the click to the nearest permitted road. Do not run a full
-   * network search for every nearby road here; repeated searches blocked the
-   * browser UI on larger networks. The main route calculation below performs
-   * the authoritative route search and reports if the selected road is disconnected.
+   * Optional routeability/40% override for map-click origins.
+   * Consider at most 10 road-by-road route searches, and only roads whose
+   * GeoJSON local field explicitly says "no". Keep the browser responsive
+   * by bounding the number of full graph searches per click.
    */
+  if (startMode === "map" && !originalRoadIsLocalYes) {
+    const destination = typeof selectedDestination === "function"
+      ? selectedDestination()
+      : null;
+    const initialDistance = destination
+      ? routeDistanceFromRoadProjection(
+          originalNearestRoad, originalNearestProjection, destination.node
+        )
+      : Infinity;
+    let override = null;
+    let routeSearches = 0;
+    const MAX_MAP_CLICK_ROUTE_SEARCHES = 10;
+
+    if (Number.isFinite(initialDistance) && initialDistance > 0 && destination) {
+      for (const candidateRoad of roads) {
+        if (routeSearches >= MAX_MAP_CLICK_ROUTE_SEARCHES) break;
+        const candidateLocal = String(
+          roadField(candidateRoad.properties || {}, "local") ?? ""
+        ).trim().toLowerCase();
+        if (candidateRoad.id === originalNearestRoad.id ||
+            candidateRoad.type !== "main" ||
+            candidateLocal !== "no") continue;
+
+        const originalSnapPoint = mapClickOrigin.originalSnapPoint || mapClickOrigin.snapPoint;
+        const candidateProjection = nearest(originalSnapPoint, candidateRoad.pts);
+        if (!Number.isFinite(candidateProjection.offset) ||
+            candidateProjection.offset > MAIN_ROAD_40_PERCENT_BUFFER_METRES) continue;
+
+        // Count only actual route searches, not roads rejected by proximity/metadata.
+        routeSearches += 1;
+        const candidateDistance = routeDistanceFromRoadProjection(
+          candidateRoad, candidateProjection, destination.node
+        );
+        if (!Number.isFinite(candidateDistance) ||
+            candidateDistance > initialDistance * 0.60) continue;
+
+        if (!override || candidateDistance < override.routeDistance) {
+          override = {
+            road: candidateRoad,
+            projection: candidateProjection,
+            routeDistance: candidateDistance
+          };
+        }
+      }
+    }
+
+    if (override) {
+      selectedRoad = override.road;
+      nearestMappedRoad = {
+        candidate: selectedRoad,
+        ...override.projection,
+        offset: dist(snapshot.point, override.projection.q)
+      };
+      mapClickOrigin = {
+        ...mapClickOrigin,
+        snapPoint: [...override.projection.q],
+        offset: nearestMappedRoad.offset,
+        measure: override.projection.m,
+        attachedRoadId: selectedRoad.id,
+        roadName: selectedRoad.name
+      };
+      if (mapClickOriginMarker) {
+        mapClickOriginMarker.bindTooltip(
+          "Map origin — 40% rule selected " + selectedRoad.name,
+          { direction: "top" }
+        );
+      }
+      locationStatus(
+        "40% rule selected main road " + selectedRoad.name +
+        " (route " + Math.round(override.routeDistance) +
+        " m versus " + Math.round(initialDistance) + " m initially)."
+      );
+    }
+  }
 
   // The graph starts at the road projection. Live GPS displays that snapped
   // point; map-click mode preserves the exact clicked coordinate as origin.
