@@ -284,6 +284,37 @@ let siteBounds;
 let routeLayer = null;
 let routeOutlineLayer = null;
 let startConnectorLayer = null;
+let routeDebugLayer = null;
+let routeDebugRoadIds = new Set();
+
+function clearRouteDebugHighlight() {
+  if (routeDebugLayer && map) map.removeLayer(routeDebugLayer);
+  routeDebugLayer = null;
+  routeDebugRoadIds = new Set();
+}
+
+function highlightRouteSearchLinks() {
+  if (!map || !routeDebugRoadIds.size) return 0;
+  const layers = [];
+  for (const road of roads) {
+    if (!routeDebugRoadIds.has(road.id) ||
+        !Array.isArray(road.pts) || road.pts.length < 2) continue;
+    const line = L.polyline(road.pts.map(ll), {
+      color: "#ff2d55",
+      weight: 7,
+      opacity: 0.95,
+      lineCap: "round",
+      lineJoin: "round",
+      pane: "routePane",
+      interactive: true
+    });
+    line.bindTooltip("Route search examined: " + (road.name || road.id));
+    layers.push(line);
+  }
+  if (!layers.length) return 0;
+  routeDebugLayer = L.layerGroup(layers).addTo(map);
+  return layers.length;
+}
 let selectedAreaLayer = null;
 
 let locations = [];
@@ -1419,6 +1450,7 @@ function loadDestinationFromUrl() {
 
 function calculate(collapseMobilePanelOnSuccess = false) {
   clearRoute();
+  clearRouteDebugHighlight();
   $("start").selectedIndex = -1;
 
   const baseGraph = adjacency;
@@ -1496,6 +1528,9 @@ function calculate(collapseMobilePanelOnSuccess = false) {
       visited.add(current);
 
       for (const edge of adjacency.get(current) || []) {
+        if (edge.roadId !== undefined && edge.roadId !== null) {
+          routeDebugRoadIds.add(edge.roadId);
+        }
         if (visited.has(edge.to)) continue;
 
         // Dijkstra minimizes travel time using the speed of each road link.
@@ -1639,9 +1674,20 @@ function calculate(collapseMobilePanelOnSuccess = false) {
     }
 
   } catch (error) {
-    status("Routing error: " + error.message);
     console.error(error);
     if (!liveNavigationActive) fitSelectedResult();
+    const routeFailure = /No connected road route|No connected route|No valid gate|Cannot reconstruct route|Starting point unavailable|Cannot attach|Cannot identify the road segment/i.test(error.message || "");
+    if (routeFailure) {
+      const highlightedCount = highlightRouteSearchLinks();
+      status(
+        "Routing error: " + error.message +
+        (highlightedCount
+          ? "\\nDebug: highlighted " + highlightedCount + " road links examined during the search in red."
+          : "\\nDebug: no road links were recorded as examined.")
+      );
+    } else {
+      status("Routing error: " + error.message);
+    }
     liveNavigationActive = false;
 
   } finally {
