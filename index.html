@@ -83,130 +83,68 @@
 
 
     <!-- VEHICLE -->
-
-    <section
-      class="control-section"
-      aria-labelledby="vehicleHeading"
-    >
-      <h2 id="vehicleHeading">
-        Vehicle
-      </h2>
-
-      <label for="vehicleType">
-        Vehicle
-      </label>
-
-      <select id="vehicleType" disabled>
-        <option value="car">Car</option>
+    <section class="control-section" aria-labelledby="vehicleHeading">
+      <h2 id="vehicleHeading">Vehicle Type</h2>
+      <select id="vehicleType" hidden disabled aria-hidden="true" tabindex="-1">
         <option value="truck" selected>Truck</option>
+        <option value="bus">Bus</option>
+        <option value="minibus">Mini Bus</option>
+        <option value="pickup">Pick-up</option>
+        <option value="suv">SUV</option>
+        <option value="car">Car</option>
       </select>
-
+      <fieldset class="radio-options vehicle-options" aria-label="Vehicle type">
+        <legend class="visually-hidden">Vehicle type</legend>
+        <label><input type="radio" name="vehicleTypeChoice" value="truck" checked disabled> Truck</label>
+        <label><input type="radio" name="vehicleTypeChoice" value="bus" disabled> Bus</label>
+        <label><input type="radio" name="vehicleTypeChoice" value="minibus" disabled> Mini Bus</label>
+        <label><input type="radio" name="vehicleTypeChoice" value="pickup" disabled> Pick-up</label>
+        <label><input type="radio" name="vehicleTypeChoice" value="suv" disabled> SUV</label>
+        <label><input type="radio" name="vehicleTypeChoice" value="car" disabled> Car</label>
+      </fieldset>
     </section>
 
-
-    <!-- START -->
-
-    <section
-      class="control-section"
-      aria-labelledby="startingHeading"
-    >
-      <h2 id="startingHeading">
-        Start
-      </h2>
-
-      <label for="startMode">
-        Start from
-      </label>
-
-      <select id="startMode" disabled>
-        <option value="gate">
-          Best gate
-        </option>
-
-        <option value="live">
-          My location
-        </option>
-        <option value="map">
-          Click map
-        </option>
+    <!-- START LOCATION -->
+    <section class="control-section" aria-labelledby="startingHeading">
+      <h2 id="startingHeading">Start Location</h2>
+      <fieldset class="radio-options start-options" aria-label="Start location">
+        <legend class="visually-hidden">Start location</legend>
+        <label><input type="radio" name="startModeChoice" value="gate" checked disabled> Access Gate</label>
+        <label><input type="radio" name="startModeChoice" value="live" disabled> Current Location</label>
+        <label><input type="radio" name="startModeChoice" value="map" disabled> Set on Map</label>
+      </fieldset>
+      <select id="startMode" hidden disabled aria-hidden="true" tabindex="-1">
+        <option value="gate" selected>Access Gate</option>
+        <option value="live">Current Location</option>
+        <option value="map">Set on Map</option>
       </select>
-
-      <label for="start">
-        Selected gate
-      </label>
-
+      <label for="start">Selected gate</label>
       <select id="start" disabled></select>
-
       <div class="button-row">
-        <button
-          id="locate"
-          type="button"
-          disabled
-        >
-          Locate me
-        </button>
-
-        <button
-          id="stopLocation"
-          type="button"
-          disabled
-        >
-          Stop
-        </button>
+        <button id="locate" type="button" disabled>Locate me</button>
+        <button id="stopLocation" type="button" disabled>Stop</button>
       </div>
-
-      <p
-        id="locationStatus"
-        class="location-status"
-        role="status"
-        aria-live="polite"
-      >
-        Location off.
-      </p>
+      <p id="locationStatus" class="location-status" role="status" aria-live="polite">Location off.</p>
     </section>
-
-
 
     <!-- DESTINATION -->
-
-    <section
-      class="control-section"
-      aria-labelledby="destinationHeading"
-    >
-      <h2 id="destinationHeading">
-        Destination
-      </h2>
-
-      <label for="destinationSearch">
-        Search
-      </label>
-
-      <input
-        id="destinationSearch"
-        type="search"
-        placeholder="Search LAAR…"
-        autocomplete="off"
-        aria-describedby="searchStatus"
-        disabled
-      >
-
-      <p
-        id="searchStatus"
-        class="field-help"
-        aria-live="polite"
-      ></p>
-
-      <label for="end">
-        LAAR
-      </label>
-
+    <section class="control-section" aria-labelledby="destinationHeading">
+      <h2 id="destinationHeading">Destination</h2>
+      <fieldset class="radio-options destination-type-options" aria-label="Destination type">
+        <legend class="visually-hidden">Destination type</legend>
+        <label><input type="radio" name="destinationType" value="WAN" disabled> WAN</label>
+        <label><input type="radio" name="destinationType" value="LAAR" checked disabled> LAAR</label>
+        <label><input type="radio" name="destinationType" value="Office" disabled> Office</label>
+      </fieldset>
+      <label for="destinationSearch">Find destination</label>
+      <input id="destinationSearch" type="search" placeholder="Type to search…" autocomplete="off"
+        aria-describedby="searchStatus" disabled>
+      <p id="searchStatus" class="field-help" aria-live="polite"></p>
+      <label for="end">Available destinations</label>
       <select id="end" disabled>
-        <option value="" selected>
-          Select LAAR…
-        </option>
+        <option value="" selected>Select destination…</option>
       </select>
     </section>
-
 
     <!-- ROUTE BUTTON -->
 
