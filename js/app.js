@@ -75,11 +75,13 @@ function roadAccess(properties, vehicle = vehicleMode) {
   const truck = roadField(properties, "truck");
   const supportedTypes = ["major", "minor", "local", "public", "haul", "main"];
   if (!supportedTypes.includes(type)) return false;
-  if (vehicle === "car") {
+  if (vehicle === "truck") return truck === "yes";
+  // The road data currently provides truck/car access flags, not separate
+  // flags for bus, mini bus, pick-up or SUV. Use car access for those classes.
+  if (["bus", "minibus", "pickup", "suv", "car"].includes(vehicle)) {
     if (type === "haul") return false;
     return car ? car === "yes" : ["minor", "local", "public", "main"].includes(type);
   }
-  if (vehicle === "truck") return truck === "yes";
   return false;
 }
 
