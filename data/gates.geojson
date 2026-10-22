@@ -3,8 +3,12 @@
 "name": "gates",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
-{ "type": "Feature", "properties": { "name": "2P" }, "geometry": { "type": "Point", "coordinates": [ 46.60936232930289, 24.711108354923624 ] } },
-{ "type": "Feature", "properties": { "name": "2R" }, "geometry": { "type": "Point", "coordinates": [ 46.612300084119866, 24.715052512842611 ] } },
-{ "type": "Feature", "properties": { "name": "2Q" }, "geometry": { "type": "Point", "coordinates": [ 46.599934756708222, 24.724684910095291 ] } }
+{ "type": "Feature", "properties": { "Name": "GATE 2M", "ShortName": "2M", "District": "BOULEVARD" }, "geometry": { "type": "Point", "coordinates": [ 46.593676583578905, 24.727682785824118 ] } },
+{ "type": "Feature", "properties": { "Name": "GATE 2D", "ShortName": "2D", "District": "MEDIA" }, "geometry": { "type": "Point", "coordinates": [ 46.581960606979983, 24.713095936721455 ] } },
+{ "type": "Feature", "properties": { "Name": "GATE 2A", "ShortName": "2A", "District": "SOUTHERN" }, "geometry": { "type": "Point", "coordinates": [ 46.591523727668083, 24.716705916502921 ] } },
+{ "type": "Feature", "properties": { "Name": "GATE 2P", "ShortName": "2P", "District": null }, "geometry": { "type": "Point", "coordinates": [ 46.60943435127016, 24.712331599208582 ] } },
+{ "type": "Feature", "properties": { "Name": "GATE 2R", "ShortName": "2R", "District": null }, "geometry": { "type": "Point", "coordinates": [ 46.612068013376444, 24.715202045579439 ] } },
+{ "type": "Feature", "properties": { "Name": "GATE 2N", "ShortName": "2N", "District": "NORTHERN" }, "geometry": { "type": "Point", "coordinates": [ 46.590422771278369, 24.731319225893358 ] } },
+{ "type": "Feature", "properties": { "Name": "GATE 2Q", "ShortName": "2Q", "District": null }, "geometry": { "type": "Point", "coordinates": [ 46.601716959261545, 24.72286067002063 ] } }
 ]
 }

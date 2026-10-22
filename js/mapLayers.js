@@ -1,247 +1,374 @@
-// Loads GeoJSON datasets and creates the corresponding map sources and layers.
+"use strict";
 
-const geoJSONRequests = new Map();
-
-async function fetchGeoJSON(path, filename) {
-  if (!geoJSONRequests.has(path)) {
-    const request = fetch(path).then(response => {
-      if (!response.ok) throw new Error(`Failed to load ${filename}`);
-      return response.json();
-    });
-    geoJSONRequests.set(path, request);
-  }
-  return geoJSONRequests.get(path);
+function themeColor(property) {
+  return getComputedStyle(document.documentElement).getPropertyValue(property).trim();
 }
 
-// Calculates the bounding box containing every coordinate in a GeoJSON geometry.
-export function getGeoJSONBounds(geometry) {
-  const bounds = new maplibregl.LngLatBounds();
+(async function initialiseBackgroundLayers() {
+  const definitions = [
+    {
+      label: "Residential roads",
+      file: "data/parcels.geojson",
+      pane: "siteBackground",
+      smoothFactor: 2,
+      visible: true,
+      interactive: false,
+      style: {
+        color: themeColor("--map-residential-outline"),
+        weight: 1,
+        opacity: 0.55
+      }
+    },
+    {
+      label: "Masterplan",
+      file: "data/masterplan.geojson",
+      pane: "siteBackground",
+      visible: true,
+      boundary: true,
+      style: {
+        color: themeColor("--map-residential-outline"),
+        weight: 0.7,
+        fillColor: themeColor("--map-masterplan-fill"),
+        fillOpacity: 0.22
+      }
+    },
 
-  function visitCoordinates(value) {
-    if (
-      Array.isArray(value) &&
-      value.length >= 2 &&
-      typeof value[0] === "number" &&
-      typeof value[1] === "number"
-    ) {
-      bounds.extend([value[0], value[1]]);
-      return;
-    }
-    if (Array.isArray(value)) value.forEach(visitCoordinates);
-  }
-
-  visitCoordinates(geometry.coordinates);
-  return [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
-}
-
-export async function loadSiteBoundary(map) {
-  const geojson = await fetchGeoJSON("./data/site_boundary.geojson", "site_boundary.geojson");
-  if (map.getSource("site_boundary")) {
-    map.getSource("site_boundary").setData(geojson);
-    return;
-  }
-  map.addSource("site_boundary", { type: "geojson", data: geojson });
-  map.addLayer({
-    id: "site_boundary-fill",
-    type: "fill",
-    source: "site_boundary",
-    paint: { "fill-color": "#dfaf7e", "fill-opacity": 0.2 }
-  });
-}
-
-export async function loadCommunities(map) {
-  const geojson = await fetchGeoJSON("./data/communities.geojson", "communities.geojson");
-  console.log("Community features:", geojson.features?.length);
-  console.log("First community properties:", geojson.features?.[0]?.properties);
-
-  if (!map.getSource("communities")) {
-    map.addSource("communities", { type: "geojson", data: geojson });
-  } else {
-    map.getSource("communities").setData(geojson);
-  }
-
-  if (!map.getLayer("communities-fill")) {
-    map.addLayer({
-      id: "communities-fill",
-      type: "fill",
-      source: "communities",
-      paint: { "fill-color": "#B9A5C9", "fill-opacity": 0.05 }
-    });
-  }
-
-  if (!map.getLayer("communities-outline")) {
-    map.addLayer({
-      id: "communities-outline",
-      type: "line",
-      source: "communities",
-      paint: { "line-color": "#9B85AF", "line-width": 1.2, "line-opacity": 0.1 }
-    });
-  }
-
-  // Create one label point per community feature.
-  const labelFeatures = {
-    type: "FeatureCollection",
-    features: geojson.features
-      .filter(feature => feature.properties?.name)
-      .map(feature => {
-        const point = turf.pointOnFeature(feature);
-        point.properties = { name: feature.properties.name };
-        return point;
-      })
-  };
-
-  if (map.getSource("community-labels")) {
-    map.getSource("community-labels").setData(labelFeatures);
-  } else {
-    map.addSource("community-labels", { type: "geojson", data: labelFeatures });
-  }
-
-  if (!map.getLayer("community-labels")) {
-    map.addLayer({
-      id: "community-labels",
-      type: "symbol",
-      source: "community-labels",
-      layout: {
-        "text-field": ["get", "name"],
-        "text-size": 12,
-        "text-anchor": "center",
-        "text-allow-overlap": true,
-        "text-ignore-placement": true
+    {
+      label: "Local roads — current",
+      file: "data/Local_Roads_Current.geojson",
+      pane: "siteReferenceRoads",
+      visible: true,
+      style: {
+        color: themeColor("--map-local-road"),
+        weight: 1.6,
+        opacity: 0.72,
+        fillColor: themeColor("--map-local-road"),
+        fillOpacity: 0.25
+      }
+    },
+    {
+      label: "Riyadh secondary roads",
+      file: "data/riyadh_secondary.geojson",
+      pane: "siteReferenceRoads",
+      visible: true,
+      casingStyle: {
+        color: themeColor("--map-secondary-road-outline"),
+        weight: 2.5,
+        opacity: 1,
+        lineCap: "round",
+        lineJoin: "round"
       },
-      paint: {
-        "text-color": "#75677F",
-        "text-opacity": 0.55,
-        "text-halo-color": "#F4EFE5",
-        "text-halo-width": 1
+      style: {
+        color: themeColor("--map-secondary-road"),
+        weight: 1.5,
+        opacity: 1,
+        lineCap: "round",
+        lineJoin: "round"
       }
-    });
-  }
-}
+    },
 
-async function loadRoadLayer(map, config) {
-  const sourceGeoJSON = await fetchGeoJSON(config.path, config.filename);
-  const geojson = config.filterType
-    ? {
-        ...sourceGeoJSON,
-        features: (sourceGeoJSON.features ?? []).filter(
-          feature => feature.properties?.type === config.filterType
-        )
-      }
-    : sourceGeoJSON;
-  if (map.getSource(config.sourceId)) {
-    map.getSource(config.sourceId).setData(geojson);
-    return;
-  }
 
-  map.addSource(config.sourceId, { type: "geojson", data: geojson });
-  const sharedLayout = { "line-cap": "round", "line-join": "round" };
 
-  map.addLayer({
-    id: `${config.sourceId}-outline`,
-    type: "line",
-    source: config.sourceId,
-    layout: sharedLayout,
-    paint: {
-      "line-color": config.outlineColor,
-      "line-width": config.outlineWidth,
-      "line-opacity": 1
-    }
-  });
-  map.addLayer({
-    id: `${config.sourceId}-lines`,
-    type: "line",
-    source: config.sourceId,
-    layout: sharedLayout,
-    paint: {
-      "line-color": config.surfaceColor,
-      "line-width": config.surfaceWidth,
-      "line-opacity": 1
-    }
-  });
-}
-
-export const loadLocalRoads = map => loadRoadLayer(map, {
-  path: "./data/local_roads.geojson", filename: "local_roads.geojson", sourceId: "local_roads",
-  outlineColor: "#B8C9D8", outlineWidth: 1.0, surfaceColor: "#CED8E1", surfaceWidth: 0.7
-});
-
-export const loadRiyadhResidential = map => loadRoadLayer(map, {
-  path: "./data/riyadh_residential.geojson", filename: "riyadh_residential.geojson", sourceId: "riyadh_residential",
-  outlineColor: "#B8C9D8", outlineWidth: 1.0, surfaceColor: "#CED8E1", surfaceWidth: 0.7
-});
-
-export const loadRiyadhSecondary = map => loadRoadLayer(map, {
-  path: "./data/riyadh_secondary.geojson", filename: "riyadh_secondary.geojson", sourceId: "riyadh_secondary",
-  outlineColor: "#B8C9D8", outlineWidth: 2.5, surfaceColor: "#CED8E1", surfaceWidth: 1.5
-});
-
-export const loadMainRoadType = map => loadRoadLayer(map, {
-  path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "roads-type-main", filterType: "main",
-  outlineColor: "#7189A8", outlineWidth: 6, surfaceColor: "#92A9C6", surfaceWidth: 4
-});
-
-export const loadPublicRoadType = map => loadRoadLayer(map, {
-  path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "roads-type-public", filterType: "public",
-  outlineColor: "#B0C2D4", outlineWidth: 5, surfaceColor: "#D9E1E8", surfaceWidth: 3.5
-});
-
-export const loadHaulRoadType = map => loadRoadLayer(map, {
-  path: "./data/roads.geojson", filename: "roads.geojson", sourceId: "roads-type-haul", filterType: "haul",
-  outlineColor: "#9C4525", outlineWidth: 5, surfaceColor: "#D96B35", surfaceWidth: 3.5
-});
-
-export async function setLayerOrder(map, timeoutMs = 15000) {
-  const layerOrder = [
-    "site_boundary-fill",
-    "communities-fill",
-    "communities-outline",
-    "community-labels",
-    
-    "local_roads-outline",
-    "local_roads-lines",
-    "riyadh_residential-outline",
-    "riyadh_residential-lines",
-    "riyadh_secondary-outline",
-    "riyadh_secondary-lines",
-    "roads-type-public-outline",
-    "roads-type-public-lines",
-    "roads-type-main-outline",
-    "roads-type-main-lines",
-    "roads-type-haul-outline",
-    "roads-type-haul-lines"
   ];
 
-  const start = Date.now();
+  const wait = milliseconds => {
+    return new Promise(resolve => {
+      setTimeout(resolve, milliseconds);
+    });
+  };
 
-  // Wait for the map style to become available.
-  while (!map.isStyleLoaded()) {
-    if (Date.now() - start >= timeoutMs) {
-    throw new Error("Timed out waiting for map style to load.");
+  function warning(message) {
+    console.warn(message);
+
+    const element = document.getElementById("status");
+
+    if (element) {
+      element.textContent += "\n" + message;
     }
-    await new Promise(resolve => setTimeout(resolve, 100));
   }
 
-  // Wait for all requested layers to exist.
-  while (!layerOrder.every(id => map.getLayer(id))) {
-    if (Date.now() - start >= timeoutMs) {
-      const missing = layerOrder.filter(id => !map.getLayer(id));
-      throw new Error(
-      'Timed out waiting for layers: ${missing.join(", ")}'
-      );
-    }    
-    await new Promise(resolve => setTimeout(resolve, 100));    
+  function pane(name, zIndex) {
+    if (!map.getPane(name)) {
+      map.createPane(name);
+    }
+
+    map.getPane(name).style.zIndex = String(zIndex);
   }
-  
-  // Move layers to the top in bottom-to-top order.
-  for (const layerId of layerOrder) {
-    map.moveLayer(layerId);
+
+  function findLabel(properties) {
+    const candidates = [
+      "name", "Name", "NAME",
+      "Road_Name", "ROAD_NAME", "RoadName", "road_name",
+      "ShortName",
+      "Label", "LABEL", "label",
+      "Text", "TEXT", "text",
+      "Plot_No", "ID", "id"
+    ];
+
+    for (const field of candidates) {
+      const value = properties[field];
+
+      if (
+        value !== undefined &&
+        value !== null &&
+        String(value).trim() !== "" &&
+        String(value) !== "<Null>"
+      ) {
+        return String(value);
+      }
+    }
+
+    return "";
   }
-  
-  // Return the resulting order for verification.
-  return layerOrder.map(id => ({
-    id,
-    index: map.getStyle().layers.findIndex(layer => layer.id === id),
+
+  function addPopup(feature, layer, definition) {
+    const container = document.createElement("div");
+
+    const heading = document.createElement("strong");
+    heading.textContent = definition.label;
+    container.appendChild(heading);
+
+    let count = 0;
+
+    for (
+      const [key, value]
+      of Object.entries(feature.properties || {})
+    ) {
+      if (
+        value === null ||
+        value === undefined ||
+        value === "" ||
+        key.toLowerCase() === "description" ||
+        typeof value === "object"
+      ) {
+        continue;
+      }
+
+      const row = document.createElement("div");
+      const text = String(value);
+
+      row.textContent =
+        key + ": " +
+        (text.length > 300 ? text.slice(0, 300) + "…" : text);
+
+      container.appendChild(row);
+
+      count += 1;
+
+      if (count >= 15) {
+        break;
+      }
+    }
+
+    if (!count) {
+      const row = document.createElement("div");
+      row.textContent = "No descriptive attributes.";
+      container.appendChild(row);
+    }
+
+    layer.bindPopup(container);
+
+    // In map-origin mode, a background road click selects the origin rather
+    // than showing its metadata popup. Outside that mode, popups still work.
+    layer.off("click", layer._openPopup, layer);
+    layer.on("click", event => {
+      if (document.getElementById("startMode")?.value === "map") {
+        // Let the map-level handler receive the click and set the origin.
+        map.closePopup();
+        return;
+      }
+      layer.openPopup(event.latlng);
+    });
+  }
+
+  async function fetchLayerData(definition) {
+    const response = await fetch(definition.file, {
+      cache: "default"
+    });
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+
+    const data = await response.json();
+
+    if (
+      data.type !== "FeatureCollection" &&
+      data.type !== "Feature"
+    ) {
+      throw new Error("Expected GeoJSON features");
+    }
+
+    return data;
+  }
+
+  function loadLayer(definition, control, data) {
+
+    const interactive = definition.interactive !== false;
+
+    const layerOptions = (style, isCasing = false) => ({
+      pane: isCasing ? "siteReferenceRoadCasings" : definition.pane,
+      interactive,
+      smoothFactor: 1.5,
+      style,
+
+      pointToLayer: function (feature, latlng) {
+        return L.circleMarker(latlng, {
+          ...style,
+          pane: definition.pane,
+          radius: definition.showLabels ? 3 : 6,
+          interactive
+        });
+      },
+
+      onEachFeature: function (feature, featureLayer) {
+        if (interactive) {
+          addPopup(feature, featureLayer, definition);
+        }
+
+        if (definition.showLabels) {
+          const label = findLabel(feature.properties || {});
+
+          if (label) {
+            const element = document.createElement("span");
+            element.textContent = label;
+
+            featureLayer.bindTooltip(element, {
+              permanent: true,
+              direction: "center",
+              className: "site-road-label"
+            });
+          }
+        }
+      }
+    });
+
+    // Draw a wider casing beneath the road surface where a layer defines one.
+    const casingLayer = definition.casingStyle
+      ? L.geoJSON(data, layerOptions(definition.casingStyle, true))
+      : null;
+    const layer = L.geoJSON(data, layerOptions(definition.style));
+
+    if (casingLayer) {
+      layer.on("add", () => casingLayer.addTo(map));
+      layer.on("remove", () => map.removeLayer(casingLayer));
+    }
+
+    control.addOverlay(layer, definition.label);
+
+    if (definition.visible) {
+      if (casingLayer) casingLayer.addTo(map);
+      layer.addTo(map);
+    }
+
+    if (definition.boundary) {
+      const bounds = layer.getBounds();
+
+      if (bounds.isValid()) {
+        siteBounds.extend(bounds);
+
+        map.setMaxBounds(siteBounds.pad(1.5));
+
+        map.setMinZoom(
+          Math.max(
+            0,
+            map.getBoundsZoom(siteBounds.pad(1.5)) - 1
+          )
+        );
+
+        /*
+         * Do not interrupt a selected LAAR route if the
+         * backgrounds finish loading after user selection.
+         */
+        if (
+          typeof selectedAreaLayer === "undefined" ||
+          !selectedAreaLayer
+        ) {
+          const initialCenter = typeof roadNetworkCenter === "function" ? roadNetworkCenter() : siteBounds.getCenter();
+          const initialZoom = Math.log2(
+            156543.03392804097 * Math.cos(initialCenter.lat * Math.PI / 180) *
+            100 / 800
+          );
+          map.setView(initialCenter, initialZoom, { animate: false });
+          const sidebarWidth = document.querySelector("body > aside")?.getBoundingClientRect().width || 0;
+          const horizontalOffset = window.matchMedia("(max-width: 760px)").matches
+            ? 0
+            : sidebarWidth / 2;
+          if (horizontalOffset) map.panBy([horizontalOffset, 0], { animate: false });
+        }
+      }
+    }
+  }
+
+  let ready = false;
+
+  for (let attempt = 0; attempt < 600; attempt++) {
+    const routeButton = document.getElementById("route");
+
+    if (
+      typeof map !== "undefined" &&
+      map &&
+      typeof locations !== "undefined" &&
+      locations.length &&
+      routeButton &&
+      !routeButton.disabled
+    ) {
+      ready = true;
+      break;
+    }
+
+    await wait(100);
+  }
+
+  if (!ready) {
+    warning(
+      "Background layers did not load because routing " +
+      "initialisation did not complete."
+    );
+    return;
+  }
+
+  pane("siteBackground", 250);
+  pane("siteReferenceRoadCasings", 290);
+  pane("siteReferenceRoads", 300);
+  pane("siteFacilities", 320);
+  pane("siteReferenceLabels", 350);
+
+  const control = L.control.layers(
+    null,
+    {},
+    { collapsed: true }
+  ).addTo(map);
+
+  const errors = [];
+
+  // Download and parse background GeoJSON concurrently, then add layers
+  // in their declared order so the layer-control ordering remains stable.
+  const loadedData = await Promise.all(definitions.map(async definition => {
+    try {
+      return { definition, data: await fetchLayerData(definition) };
+    } catch (error) {
+      errors.push(definition.label + ": " + error.message);
+      console.error("Could not load " + definition.file, error);
+      return { definition, error };
+    }
   }));
-}
 
+  for (const item of loadedData) {
+    if (item.error) continue;
 
+    try {
+      loadLayer(item.definition, control, item.data);
+    } catch (error) {
+      errors.push(item.definition.label + ": " + error.message);
+      console.error("Could not render " + item.definition.file, error);
+    }
+  }
+
+  if (errors.length) {
+    warning(
+      "Background warnings:\n" +
+      errors.join("\n")
+    );
+  }
+})();

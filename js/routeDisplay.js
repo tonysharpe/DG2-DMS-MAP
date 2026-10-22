@@ -1,142 +1,144 @@
-import { getGeoJSONBounds } from "./mapLayers.js";
-import { hideRouteSummary } from "./ui.js";
+function themeColor(property) {
+  return getComputedStyle(document.documentElement).getPropertyValue(property).trim();
+}
 
-let startMarker = null;
-let endMarker = null;
+function showDestinationArea(destination) {
+  const matching = destinationAreas.get(destination.name);
 
-// Collects all coordinate points from a GeoJSON FeatureCollection.
-export function getAllCoordinates(geojson) {
-  const points = [];
-
-  function visit(coords) {
-    if (!Array.isArray(coords)) return;
-    if (coords.length >= 2 && typeof coords[0] === "number" && typeof coords[1] === "number") {
-      points.push(coords);
-      return;
-    }
-    coords.forEach(visit);
+  if (!matching?.length) {
+    throw new Error(
+      "No polygon matches '" + destination.name +
+      "'. Check the exact Name values."
+    );
   }
 
-  (geojson.features || []).forEach(feature => {
-    if (feature.geometry) visit(feature.geometry.coordinates);
-  });
-  return points;
+  selectedAreaLayer = L.geoJSON(
+    { type: "FeatureCollection", features: matching },
+    {
+      pane: "selectedLaarPane",
+
+      style: {
+        color: themeColor("--map-area-outline"),
+        weight: 2.5,
+        opacity: 1,
+        fillColor: themeColor("--map-area-fill"),
+        fillOpacity: 0.30,
+        lineCap: "round",
+        lineJoin: "round"
+      },
+
+      onEachFeature: (feature, layer) => {
+        const label = document.createElement("span");
+        label.textContent = destination.name;
+
+        layer.bindTooltip(label, {
+          direction: "top",
+          className: "selected-laar-tooltip"
+        });
+      }
+    }
+  ).addTo(map);
 }
 
-// Creates a labeled endpoint marker.
-export function addEndpointMarker(map, coords, color, label) {
-  const container = document.createElement("div");
-  Object.assign(container.style, { position: "relative", width: "14px", height: "14px" });
+function fitSelectedResult() {
+  let bounds = null;
 
-  const node = document.createElement("div");
-  Object.assign(node.style, {
-    position: "absolute", left: "0", top: "0", width: "14px", height: "14px",
-    boxSizing: "border-box", borderRadius: "50%", background: color,
-    border: "2px solid white", boxShadow: "0 0 0 1px #344054"
-  });
+  for (const layer of [selectedAreaLayer, routeLayer]) {
+    if (!layer) continue;
 
-  const text = document.createElement("div");
-  text.textContent = label;
-  Object.assign(text.style, {
-    position: "absolute", left: "22px", top: "50%", transform: "translateY(-50%)",
-    color: "#000000", background: "#ffffff", border: "1px solid #d0d5dd",
-    borderRadius: "3px", padding: "3px 6px", fontSize: "12px", fontWeight: "600",
-    whiteSpace: "nowrap", boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
-  });
+    const layerBounds = layer.getBounds();
 
-  container.appendChild(node);
-  container.appendChild(text);
-  return new maplibregl.Marker({ element: container, anchor: "center" })
-    .setLngLat(coords)
-    .addTo(map);
-}
+    if (!layerBounds.isValid()) continue;
 
-export function clearRoute(map) {
-  if (map.getLayer("route-line")) map.removeLayer("route-line");
-  if (map.getSource("route-source")) map.removeSource("route-source");
-  if (startMarker) { startMarker.remove(); startMarker = null; }
-  if (endMarker) { endMarker.remove(); endMarker = null; }
-  hideRouteSummary();
-}
-
-export function displayRoute(map, data) {
-  map.addSource("route-source", { type: "geojson", data: data.route });
-  map.addLayer({
-    id: "route-line",
-    type: "line",
-    source: "route-source",
-    layout: { "line-join": "round", "line-cap": "round" },
-    paint: { "line-color": "#175cd3", "line-width": 6, "line-opacity": 0.92 }
-  });
-
-  const coords = getAllCoordinates(data.route);
-  if (!coords.length) return;
-
-  const bounds = coords.reduce(
-    (currentBounds, coordinate) => currentBounds.extend(coordinate),
-    new maplibregl.LngLatBounds(coords[0], coords[0])
-  );
-
-  // Include the actual gate in the map bounds.
-  if (Array.isArray(data.gate_coordinates)) bounds.extend(data.gate_coordinates);
-
-  // Include and display the destination area, when supplied by the API.
-  if (data.destination_area) {
-    const areaFeature = {
-      type: "Feature",
-      properties: { name: data.destination_id },
-      geometry: data.destination_area
-    };
-
-    const areaBounds = getGeoJSONBounds(areaFeature.geometry);
-    bounds.extend([areaBounds[0], areaBounds[1]]);
-    bounds.extend([areaBounds[2], areaBounds[3]]);
-
-    if (map.getSource("destination-area")) {
-      map.getSource("destination-area").setData(areaFeature);
+    if (bounds) {
+      bounds.extend(layerBounds);
     } else {
-      map.addSource("destination-area", { type: "geojson", data: areaFeature });
-      map.addLayer({
-        id: "destination-area-fill",
-        type: "fill",
-        source: "destination-area",
-        paint: { "fill-color": "#3388ff", "fill-opacity": 0.25 }
-      });
-      map.addLayer({
-        id: "destination-area-outline",
-        type: "line",
-        source: "destination-area",
-        paint: { "line-color": "#3388ff", "line-width": 2 }
-      });
-      map.addLayer({
-        id: "destination-area-label",
-        type: "symbol",
-        source: "destination-area",
-        layout: {
-          "symbol-placement": "point",
-          "text-field": ["get", "name"],
-          "text-font": ["Open Sans Regular"],
-          "text-size": 13,
-          "text-anchor": "center",
-          "text-allow-overlap": true
-        },
-        paint: {
-          "text-color": "#000000",
-          "text-halo-color": "#ffffff",
-          "text-halo-width": 5,
-          "text-halo-blur": 0
-        }
-      });
+      bounds = L.latLngBounds(
+        layerBounds.getSouthWest(),
+        layerBounds.getNorthEast()
+      );
     }
   }
 
-  map.fitBounds(bounds, {
-    padding: { top: 120, bottom: 120, left: 120, right: 120 },
-    maxZoom: 15,
-    duration: 700
-  });
-
-  if (Array.isArray(data.gate_coordinates)) {
-    startMarker = addEndpointMarker(map, data.gate_coordinates, "#12b76a", `Gate ${data.gate_id}`);
+  if (bounds?.isValid()) {
+    map.fitBounds(bounds.pad(0.15), {
+      animate: false
+    });
   }
 }
+
+/* ROAD GEOMETRY — ALSO USED BY live-location.js */
+
+function showRouteSummary(destination, start, metres, seconds, roadNames, liveMode) {
+  $("summaryDestination").textContent = destination.name;
+  $("summaryStart").textContent = start.location.name;
+
+  $("summaryDistance").textContent = metres >= 1000
+    ? (metres / 1000).toFixed(2) + " km"
+    : metres.toFixed(0) + " m";
+
+  $("summaryTime").textContent =
+    (seconds / 60).toFixed(1) + " min";
+
+  if ($("journeyControls")) $("journeyControls").hidden = $("startMode")?.value !== "live";
+  // A reroute during an active journey must not reset the Start/Stop controls.
+  if (!liveNavigationActive) {
+    if ($("journeyStage")) {
+      $("journeyStage").textContent = "Route preview ready. Start when you are ready.";
+    }
+    if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
+    if ($("stopLiveRoute")) $("stopLiveRoute").hidden = true;
+    if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
+  }
+
+  $("routeDetails").textContent =
+    "Roads: " +
+    (roadNames.length ? roadNames.join(" → ") : "Same network node") +
+    "\n\nStart-to-road offset: " +
+    start.location.offset.toFixed(1) + " m" +
+    "\nDestination centroid-to-road offset: " +
+    destination.offset.toFixed(1) + " m" +
+    "\n\nRoutes end at the centroid's nearest road position, " +
+    "not necessarily an approved entrance. Off-road gaps, " +
+    "small connection gaps, queues and delays are excluded." +
+    (liveMode
+      ? "\n\nLive navigation follows your GPS position. " +
+        "With GPS accuracy of 50 m or better, the route is recalculated when you are more than 75 m off route."
+      : "");
+
+  $("routeSummary").hidden = false;
+}
+
+
+/* CLEAR RESULT — USED BY live-location.js */
+
+function clearRoute() {
+  if (startConnectorLayer) {
+    map.removeLayer(startConnectorLayer);
+    startConnectorLayer = null;
+  }
+
+  if (routeLayer) {
+    map.removeLayer(routeLayer);
+    routeLayer = null;
+  }
+
+  if (routeOutlineLayer) {
+    map.removeLayer(routeOutlineLayer);
+    routeOutlineLayer = null;
+  }
+
+  if (selectedAreaLayer) {
+    map.removeLayer(selectedAreaLayer);
+    selectedAreaLayer = null;
+  }
+
+  if ($("routeSummary")) {
+    $("routeSummary").hidden = true;
+  }
+
+  updateGateHighlights();
+}
+
+
+/* ROUTING */

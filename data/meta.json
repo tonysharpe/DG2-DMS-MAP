@@ -3,11 +3,8 @@
   "version": 1,
   "name": "Temporary Network",
   "distance_units": "meters",
-  "speed_units": "kmh",
   "routing": {
     "cost": "time",
-    "distance_units": "meters",
-    "speed_units": "kmh",
-    "default_speed_kmh": 30
+    "distance_units": "meters"
   }
 }

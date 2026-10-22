@@ -1,330 +1,3244 @@
-* {
-    box-sizing: border-box;
-}
+/* =========================================================
+   LAAR NAVIGATION — COMPLETE STYLESHEET
+
+   Requires the updated gate-icons-and-popups.js containing:
+     .vehicle-barrier
+     .vehicle-barrier__ground
+     .vehicle-barrier__cabinet
+     .vehicle-barrier__arm
+     .vehicle-barrier__support
+
+   Gate symbols are drawn entirely with CSS.
+   ========================================================= */
+
+
+/* =========================================================
+   1. THEME
+   ========================================================= */
 
 :root {
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system,
-        BlinkMacSystemFont, "Segoe UI", sans-serif;
-    color: #182230;
-    background: #f3f5f8;
+  --page-background: #F5F2EB;
+  --panel-background: #FFFFFF;
+
+  --text-primary: #302C28;
+  --text-secondary: #625E56;
+  --text-muted: #827E76;
+
+  --border-color: #E5E1D8;
+  --border-strong: #D8D0C4;
+
+  --navy: #302C28;
+  --navy-hover: #454039;
+
+  --teal: #32665B;
+  --teal-dark: #254F46;
+  --teal-soft: #E8F0EC;
+
+  --route-color: #4285F4;
+
+  --danger: #A83F3A;
+  --danger-soft: #FAECEA;
+
+  --panel-width: 370px;
+
+  --radius-small: 7px;
+  --radius-medium: 10px;
+  --radius-large: 13px;
+
+  --shadow-small: 0 1px 5px rgba(48, 44, 40, 0.06);
+  --shadow-medium: 0 5px 16px rgba(48, 44, 40, 0.12);
+
+  --font-main:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+}
+
+
+/* =========================================================
+   2. BASE RESET
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
 }
 
 body {
-    margin: 0;
-    min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--panel-width) minmax(0, 1fr);
+
+  overflow: hidden;
+
+  background: var(--page-background);
+  color: var(--text-primary);
+
+  font-family: var(--font-main);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-.topbar {
-    min-height: 88px;
-    padding: 18px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    background: #fff;
-    border-bottom: 1px solid #dce2e9;
-}
-
-h1 {
-    font-size: 22px;
-    margin: 0 0 5px;
-    font-weight: 700;
-}
-
-.topbar p {
-    margin: 0;
-    color: #596579;
-    font-size: 14px;
-}
-
-.status {
-    font-size: 13px;
-    color: #526174;
-    white-space: nowrap;
-}
-
-.status.ok {
-    color: #167647;
-}
-
-.status.error {
-    color: #b42318;
-}
-
-.layout {
-    display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
-    min-height: calc(100vh - 88px);
-}
-
-.panel {
-    padding: 22px;
-    background: #fff;
-    border-right: 1px solid #dce2e9;
-}
-
-label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 13px;
-    font-weight: 650;
-}
-
+button,
+input,
 select,
-button {
-    width: 100%;
-    min-height: 43px;
-    border-radius: 8px;
-    font: inherit;
-    font-size: 14px;
+textarea {
+  font: inherit;
 }
 
+button,
+input,
 select {
-    border: 1px solid #c9d2de;
-    background: #fff;
-    padding: 0 10px;
-    color: #182230;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button {
-    margin-top: 10px;
-    border: 0;
-    background: #175cd3;
-    color: #fff;
-    font-weight: 650;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #1849a9;
-}
-
-button:disabled,
-select:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-}
-
-.message {
-    margin-top: 16px;
-    padding: 11px 12px;
-    border-radius: 8px;
-    background: #f2f4f7;
-    color: #475467;
-    font-size: 13px;
-    line-height: 1.45;
-    overflow-wrap: anywhere;
-}
-
-.message.error {
-    background: #fef3f2;
-    color: #b42318;
-}
-
-.message.success {
-    background: #ecfdf3;
-    color: #067647;
-}
-
-.summary {
-    margin-top: 22px;
-    border-top: 1px solid #e4e7ec;
-    padding-top: 16px;
-}
-
-.summary h2 {
-    margin: 0 0 12px;
-    font-size: 16px;
-}
-
-.summary h3 {
-    margin: 18px 0 8px;
-    font-size: 13px;
-}
-
-dl {
-    margin: 0;
-}
-
-dl div {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 8px 0;
-    border-bottom: 1px solid #f0f2f5;
-    font-size: 13px;
-}
-
-dt {
-    color: #667085;
-}
-
-dd {
-    margin: 0;
-    font-weight: 650;
-    text-align: right;
-}
-
-.road-sequence {
-    font-size: 12px;
-    line-height: 1.65;
-    overflow-wrap: anywhere;
-    color: #344054;
-}
-
-.hint {
-    margin-top: 24px;
-    font-size: 12px;
-    color: #667085;
-    line-height: 1.5;
-}
-
-.map-wrap {
-    position: relative;
-    min-height: 520px;
-}
-
-#map {
-    position: absolute;
-    inset: 0;
-}
-
-.map-legend {
-    position: absolute;
-    left: 12px;
-    bottom: 24px;
-    z-index: 2;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    background: #fff;
-    border: 1px solid #d0d5dd;
-    border-radius: 8px;
-    padding: 9px 12px;
-    box-shadow: 0 2px 8px #00000012;
-    font-size: 12px;
-}
-
-.map-legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.legend-line {
-    display: inline-block;
-    width: 20px;
-    border-top: 4px solid #175cd3;
-}
-
-.legend-dot,
-.legend-end {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #12b76a;
-    border: 2px solid white;
-    box-shadow: 0 0 0 1px #667085;
-}
-
-.legend-end {
-    background: #f04438;
-}
-
-@media (max-width: 760px) {
-    .topbar {
-        align-items: flex-start;
-        flex-direction: column;
-        padding: 16px;
-    }
-
-    .layout {
-        grid-template-columns: 1fr;
-    }
-
-    .panel {
-        border-right: 0;
-        border-bottom: 1px solid #dce2e9;
-    }
-
-    .map-wrap {
-        min-height: 58vh;
-    }
-
-    .status {
-        white-space: normal;
-    }
-}
-
-.user-location-marker {
-  width: 18px;
-  height: 18px;
-  background: #2878F0;
-  border: 3px solid #FFFFFF;
-  border-radius: 50%;
-  box-shadow: 0 0 0 6px rgba(40, 120, 240, 0.2);
   cursor: pointer;
 }
 
-.diagnostics {
-    margin-top: 18px;
-    border-top: 1px solid #e4e7ec;
-    padding-top: 16px;
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
 }
 
-.diagnostics h2 {
-    margin: 0 0 12px;
+[hidden] {
+  display: none !important;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+a {
+  color: var(--teal);
+}
+
+:focus-visible {
+  outline: 3px solid rgba(8, 127, 115, 0.4);
+  outline-offset: 3px;
+}
+
+
+/* =========================================================
+   3. SIDEBAR AND MAP LAYOUT
+   ========================================================= */
+
+body > aside {
+  position: relative;
+  z-index: 1000;
+
+  min-width: 0;
+  height: 100%;
+  padding: 24px 22px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  background: var(--panel-background);
+
+  border-right: 1px solid var(--border-color);
+  box-shadow: 4px 0 18px rgba(21, 43, 66, 0.05);
+
+  scrollbar-width: thin;
+  scrollbar-color: #bdcdd9 transparent;
+}
+
+body > aside::-webkit-scrollbar {
+  width: 7px;
+}
+
+body > aside::-webkit-scrollbar-thumb {
+  background: #bdcdd9;
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+}
+
+#map {
+  position: relative;
+
+  min-width: 0;
+  min-height: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background: #e7edf1;
+}
+
+
+/* =========================================================
+   4. HEADER AND NETWORK DATE
+   ========================================================= */
+
+.site-header {
+  margin-bottom: 22px;
+  padding-bottom: 20px;
+
+  border-bottom: 1px solid var(--border-color);
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 7px;
+
+  color: var(--teal);
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  line-height: 1.4;
+}
+
+.site-header h1 {
+  margin-bottom: 8px;
+
+  color: var(--navy);
+
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.7px;
+}
+
+.site-header > p {
+  margin-bottom: 14px;
+
+  color: var(--text-secondary);
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.network-date {
+  display: inline-block;
+
+  max-width: 100%;
+  padding: 6px 9px;
+
+  background: #f3f6f9;
+  color: var(--text-secondary);
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-small);
+
+  font-size: 11px;
+  line-height: 1.5;
+
+  overflow-wrap: anywhere;
+}
+
+#networkDate {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   5. CONTROL SECTIONS AND FORM FIELDS
+   ========================================================= */
+
+.control-section {
+  margin-bottom: 22px;
+}
+
+.control-section h2 {
+  margin-bottom: 12px;
+
+  color: var(--navy);
+
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+body > aside label {
+  display: block;
+  margin-bottom: 6px;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+body > aside input,
+body > aside select {
+  display: block;
+
+  width: 100%;
+  min-height: 42px;
+
+  margin-bottom: 12px;
+  padding: 10px 11px;
+
+  background: #ffffff;
+  color: var(--text-primary);
+
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-small);
+
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+body > aside select {
+  padding-right: 28px;
+}
+
+body > aside input::placeholder {
+  color: #8191a0;
+  opacity: 1;
+}
+
+body > aside input:focus,
+body > aside select:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(8, 127, 115, 0.1);
+  outline: none;
+}
+
+body > aside input:focus-visible,
+body > aside select:focus-visible {
+  outline: 2px solid rgba(8, 127, 115, 0.4);
+  outline-offset: 2px;
+}
+
+body > aside input:disabled,
+body > aside select:disabled {
+  background: #f1f4f7;
+  color: var(--text-muted);
+  border-color: var(--border-color);
+}
+
+#start {
+  margin-bottom: 14px;
+}
+
+.field-help {
+  margin: -4px 0 12px;
+
+  color: var(--text-muted);
+
+  font-size: 11px;
+  line-height: 1.5;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   6. BUTTONS
+   ========================================================= */
+
+body > aside button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 40px;
+  padding: 9px 12px;
+
+  background: #ffffff;
+  color: var(--navy);
+
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-small);
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+body > aside button:hover:not(:disabled) {
+  background: #f1f6fa;
+  border-color: #8fa8bc;
+}
+
+body > aside button:active:not(:disabled) {
+  background: #e8f0f6;
+}
+
+body > aside button:disabled {
+  background: #f1f4f7;
+  color: #8b9aa7;
+
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.button-row > button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+body > aside .primary-button {
+  width: 100%;
+  min-height: 46px;
+
+  margin-bottom: 20px;
+  padding: 12px 14px;
+
+  background: var(--teal);
+  color: #ffffff;
+
+  border-color: var(--teal);
+
+  font-size: 13px;
+  box-shadow: 0 3px 10px rgba(8, 127, 115, 0.15);
+}
+
+body > aside .primary-button:hover:not(:disabled) {
+  background: var(--teal-dark);
+  border-color: var(--teal-dark);
+}
+
+body > aside .primary-button:active:not(:disabled) {
+  background: #05554e;
+  border-color: #05554e;
+}
+
+
+/* =========================================================
+   7. STATUS MESSAGES AND NOTES
+   ========================================================= */
+
+.location-status,
+.setup-status {
+  padding: 10px 12px;
+
+  background: #f3f6f9;
+  color: var(--text-secondary);
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-small);
+
+  font-size: 12px;
+  line-height: 1.6;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.location-status {
+  margin-bottom: 0;
+}
+
+.setup-status {
+  margin: 14px 0;
+}
+
+.note {
+  margin-bottom: 12px;
+
+  color: var(--text-muted);
+
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+
+/* =========================================================
+   8. ROUTE SUMMARY
+   ========================================================= */
+
+.route-summary {
+  margin-bottom: 22px;
+  padding: 16px;
+
+  background: #f4faf8;
+
+  border: 1px solid #cce4dc;
+  border-radius: var(--radius-medium);
+}
+
+.route-summary h2 {
+  margin-bottom: 12px;
+
+  color: var(--navy);
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.summary-destination {
+  margin-bottom: 5px;
+
+  color: var(--navy);
+
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
+
+  overflow-wrap: anywhere;
+}
+
+.summary-start {
+  margin-bottom: 15px;
+
+  color: var(--text-secondary);
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#summaryStart {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.summary-metrics > div {
+  min-width: 0;
+  padding: 10px;
+
+  background: #ffffff;
+
+  border: 1px solid #dcebe5;
+  border-radius: var(--radius-small);
+}
+
+.metric-label {
+  display: block;
+  margin-bottom: 4px;
+
+  color: var(--text-muted);
+
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.metric-value {
+  display: block;
+
+  color: var(--teal-dark);
+
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.25;
+
+  overflow-wrap: anywhere;
+}
+
+.route-details {
+  padding-top: 12px;
+  border-top: 1px solid #d2e5dd;
+}
+
+.route-details > summary {
+  color: var(--text-secondary);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.route-details > summary:hover {
+  color: var(--teal-dark);
+}
+
+#routeDetails {
+  margin: 10px 0 0;
+
+  color: var(--text-secondary);
+
+  font-size: 11px;
+  line-height: 1.7;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   9. DESTINATION LINK SHARING
+   ========================================================= */
+
+.share-section {
+  padding-top: 18px;
+  border-top: 1px solid var(--border-color);
+}
+
+#copyLink {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+#shareStatus {
+  margin-top: 0;
+}
+
+#shareFallback {
+  margin-bottom: 12px;
+}
+
+#shareLink {
+  margin-bottom: 0;
+
+  background: #f7f9fb;
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   10. LEAFLET CONTROLS
+   ========================================================= */
+
+.leaflet-container {
+  font-family: var(--font-main);
+}
+
+.leaflet-bar {
+  border: 1px solid rgba(21, 43, 66, 0.15) !important;
+  border-radius: var(--radius-small) !important;
+
+  box-shadow: var(--shadow-small) !important;
+  overflow: hidden;
+}
+
+.leaflet-bar a {
+  background: #ffffff;
+  color: var(--navy);
+}
+
+.leaflet-bar a:hover {
+  background: #f1f6fa;
+}
+
+.leaflet-control-layers {
+  max-width: min(260px, calc(100vw - 28px));
+
+  background: #ffffff;
+
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-small);
+
+  box-shadow: var(--shadow-small);
+}
+
+.leaflet-control-layers-expanded {
+  padding: 10px 12px;
+}
+
+.leaflet-control-layers label {
+  margin-bottom: 4px;
+
+  color: var(--text-primary);
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.leaflet-control-layers-selector {
+  accent-color: var(--teal);
+}
+
+.leaflet-control-scale-line {
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--navy);
+
+  border-color: var(--navy);
+  font-size: 10px;
+}
+
+.leaflet-control-attribution {
+  max-width: 100%;
+
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: var(--text-secondary);
+
+  font-size: 10px;
+}
+
+.leaflet-control-attribution a {
+  color: var(--teal-dark);
+}
+
+
+/* =========================================================
+   11. GATE MARKER CONTAINER
+   ========================================================= */
+
+.laar-gate-icon {
+  background: transparent !important;
+  border: none !important;
+  overflow: visible !important;
+}
+
+/*
+ * Do not set a transform on .laar-gate-icon:
+ * Leaflet controls its map positioning.
+ */
+
+.laar-gate-marker {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 44px;
+  height: 44px;
+
+  background-color: var(--navy);
+  background-image: none !important;
+
+  color: #ffffff;
+
+  border: 2px solid #ffffff;
+  border-radius: 14px;
+
+  overflow: visible;
+
+  box-shadow: 0 5px 14px rgba(15, 35, 55, 0.24);
+
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+/* Remove obsolete SVG and image icons if any remain. */
+.laar-gate-marker > svg,
+.laar-gate-marker > img,
+.legend-gate > svg,
+.legend-gate > img {
+  display: none !important;
+}
+
+/* Downward pointer. */
+.laar-gate-marker::after {
+  content: "";
+
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+
+  width: 9px;
+  height: 9px;
+
+  background: var(--navy);
+
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+
+  transform: translateX(-50%) rotate(45deg);
+
+  transition: background-color 150ms ease;
+}
+
+.laar-gate-icon:hover .laar-gate-marker {
+  background-color: var(--navy-hover);
+  box-shadow: 0 7px 18px rgba(15, 35, 55, 0.3);
+}
+
+.laar-gate-icon:hover .laar-gate-marker::after {
+  background: var(--navy-hover);
+}
+
+/* Selected automatic starting gate. */
+.laar-gate-marker.is-selected,
+.laar-gate-icon:hover .laar-gate-marker.is-selected {
+  background-color: var(--teal);
+
+  outline: 3px solid rgba(8, 127, 115, 0.35);
+  outline-offset: 3px;
+
+  box-shadow: 0 6px 18px rgba(8, 127, 115, 0.25);
+}
+
+.laar-gate-marker.is-selected::after,
+.laar-gate-icon:hover .laar-gate-marker.is-selected::after {
+  background: var(--teal);
+}
+
+.laar-gate-icon:focus-visible {
+  outline: none;
+}
+
+.laar-gate-icon:focus-visible .laar-gate-marker {
+  outline: 3px solid #43c7ee;
+  outline-offset: 4px;
+}
+
+
+/* =========================================================
+   12. CSS-ONLY VEHICLE BOOM BARRIER
+   ========================================================= */
+
+.vehicle-barrier {
+  position: relative;
+
+  display: block;
+  flex: 0 0 auto;
+
+  width: 30px;
+  height: 26px;
+
+  margin: 0;
+  padding: 0;
+
+  background: transparent;
+  border: none;
+
+  pointer-events: none;
+}
+
+.vehicle-barrier > span {
+  position: absolute;
+  display: block;
+
+  margin: 0;
+  padding: 0;
+
+  box-sizing: border-box;
+}
+
+/* Ground line. */
+.vehicle-barrier__ground {
+  left: 1px;
+  bottom: 2px;
+
+  width: 28px;
+  height: 2px;
+
+  background: #ffffff;
+  border-radius: 1px;
+}
+
+/* Left-hand mechanism cabinet. */
+.vehicle-barrier__cabinet {
+  z-index: 2;
+
+  left: 3px;
+  bottom: 4px;
+
+  width: 8px;
+  height: 15px;
+
+  background: #ffffff;
+  border-radius: 2px 2px 1px 1px;
+}
+
+/* Blue status indicator on the cabinet. */
+.vehicle-barrier__cabinet::before {
+  content: "";
+
+  position: absolute;
+  top: 4px;
+  left: 2px;
+
+  display: block;
+
+  width: 4px;
+  height: 3px;
+
+  background: #43c7ee;
+  border-radius: 1px;
+}
+
+/* Cabinet access-panel detail. */
+.vehicle-barrier__cabinet::after {
+  content: "";
+
+  position: absolute;
+  left: 2px;
+  bottom: 3px;
+
+  display: block;
+
+  width: 4px;
+  height: 1px;
+
+  background: #9aafbd;
+}
+
+/* Horizontal boom arm with red reflective bands. */
+.vehicle-barrier__arm {
+  z-index: 3;
+
+  left: 7px;
+  top: 7px;
+
+  width: 22px;
+  height: 4px;
+
+  background-color: #ffffff;
+  background-image: repeating-linear-gradient(
+    115deg,
+    #ffffff 0,
+    #ffffff 4px,
+    #ed5a5a 4px,
+    #ed5a5a 7px
+  );
+
+  border-radius: 1px;
+}
+
+/* Right-hand receiving stand. */
+.vehicle-barrier__support {
+  z-index: 1;
+
+  right: 3px;
+  bottom: 4px;
+
+  width: 3px;
+  height: 11px;
+
+  background: #ffffff;
+  border-radius: 1px;
+}
+
+/* Support cap directly beneath the arm. */
+.vehicle-barrier__support::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: -1px;
+
+  display: block;
+
+  width: 5px;
+  height: 2px;
+
+  background: #ffffff;
+  border-radius: 1px;
+}
+
+
+/* =========================================================
+   13. HORIZONTAL GATE LABELS
+   ========================================================= */
+
+.leaflet-tooltip.laar-gate-label {
+  width: max-content !important;
+  min-width: max-content;
+  max-width: none !important;
+
+  padding: 5px 9px;
+
+  background: rgba(255, 255, 255, 0.97);
+  color: var(--navy);
+
+  border: 1px solid #d5e1e9;
+  border-radius: 6px;
+
+  box-shadow: 0 2px 7px rgba(21, 43, 66, 0.12);
+
+  font-family: var(--font-main);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.3;
+
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+}
+
+.leaflet-tooltip-top.laar-gate-label::before {
+  border-top-color: #d5e1e9;
+}
+
+.leaflet-tooltip-bottom.laar-gate-label::before {
+  border-bottom-color: #d5e1e9;
+}
+
+.leaflet-tooltip-left.laar-gate-label::before {
+  border-left-color: #d5e1e9;
+}
+
+.leaflet-tooltip-right.laar-gate-label::before {
+  border-right-color: #d5e1e9;
+}
+
+
+/* =========================================================
+   14. GATE POPUP CARDS
+   ========================================================= */
+
+.laar-gate-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+
+  background: #ffffff;
+
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-medium);
+
+  overflow: hidden;
+}
+
+.laar-gate-popup .leaflet-popup-content {
+  margin: 0;
+
+  font-family: var(--font-main);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.laar-gate-popup .leaflet-popup-tip {
+  background: #ffffff;
+}
+
+.laar-gate-popup a.leaflet-popup-close-button {
+  top: 7px;
+  right: 7px;
+
+  width: 26px;
+  height: 26px;
+
+  color: rgba(255, 255, 255, 0.85);
+
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 26px;
+}
+
+.laar-gate-popup a.leaflet-popup-close-button:hover {
+  color: #ffffff;
+}
+
+.laar-gate-card {
+  width: 100%;
+
+  background: #ffffff;
+  color: var(--text-primary);
+}
+
+.laar-gate-card__header {
+  padding: 16px 34px 15px 16px;
+
+  background: var(--navy);
+  color: #ffffff;
+}
+
+.laar-gate-card__eyebrow {
+  margin-bottom: 6px;
+
+  color: #82d8ed;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  line-height: 1.4;
+}
+
+.laar-gate-card__title {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.3;
+
+  overflow-wrap: anywhere;
+}
+
+.laar-gate-card__body {
+  padding: 15px 16px 16px;
+}
+
+.laar-gate-card__badge {
+  display: inline-block;
+
+  max-width: 100%;
+  margin-bottom: 13px;
+  padding: 5px 8px;
+
+  border-radius: 5px;
+
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.laar-gate-card__badge--valid {
+  background: var(--teal-soft);
+  color: var(--teal-dark);
+}
+
+.laar-gate-card__badge--invalid {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.laar-gate-card__metric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+
+  border-bottom: 1px solid var(--border-color);
+}
+
+.laar-gate-card__metric-label {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.laar-gate-card__metric-value {
+  color: var(--navy);
+
+  font-size: 15px;
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+.laar-gate-popup .laar-gate-card__note {
+  margin: 0;
+
+  color: var(--text-muted);
+
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+
+/* =========================================================
+   15. MAP LEGEND
+   ========================================================= */
+
+.map-legend {
+  min-width: 190px;
+  max-width: 240px;
+
+  padding: 12px 14px;
+
+  background: rgba(255, 255, 255, 0.97);
+  color: var(--text-primary);
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-medium);
+
+  box-shadow: var(--shadow-small);
+}
+
+.map-legend__title {
+  margin-bottom: 10px;
+
+  color: var(--navy);
+
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.map-legend__row {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-height: 28px;
+  margin-bottom: 7px;
+
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.map-legend__row:last-child {
+  margin-bottom: 0;
+}
+
+.map-legend__row > span:last-child {
+  min-width: 0;
+}
+
+/* CSS barrier inside the legend. */
+.legend-gate {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 26px;
+
+  width: 26px;
+  height: 26px;
+
+  background-color: var(--navy);
+  background-image: none !important;
+
+  border-radius: 7px;
+
+  overflow: hidden;
+}
+
+.legend-gate .vehicle-barrier {
+  transform: scale(0.72);
+  transform-origin: center;
+}
+
+.legend-gate--selected {
+  background-color: var(--teal);
+
+  outline: 2px solid rgba(8, 127, 115, 0.35);
+  outline-offset: 2px;
+}
+
+.legend-location {
+  display: block;
+  flex: 0 0 16px;
+
+  width: 16px;
+  height: 16px;
+
+  margin-left: 5px;
+  margin-right: 5px;
+
+  background: #2188ee;
+
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+
+  box-shadow: 0 0 0 2px rgba(33, 136, 238, 0.3);
+}
+
+.legend-area {
+  display: block;
+  flex: 0 0 26px;
+
+  width: 26px;
+  height: 18px;
+
+  background: rgba(215, 129, 195, 0.35);
+
+  border: 2px solid #b23b9a;
+  border-radius: 4px;
+}
+
+.legend-route {
+  display: block;
+  flex: 0 0 26px;
+
+  width: 26px;
+  height: 5px;
+
+  background: var(--route-color);
+  border-radius: 4px;
+}
+
+
+/* =========================================================
+   16. RESPONSIVE LAYOUT
+   ========================================================= */
+
+@media (max-width: 1100px) {
+  :root {
+    --panel-width: 330px;
+  }
+
+  body > aside {
+    padding: 20px 18px;
+  }
+
+  .site-header h1 {
+    font-size: 25px;
+  }
+}
+
+@media (max-width: 760px) {
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+
+    overflow: auto;
+  }
+
+  body > aside {
+    order: 1;
+
+    width: 100%;
+    height: auto;
+    padding: 20px;
+
+    overflow: visible;
+
+    border-right: none;
+    border-top: 1px solid var(--border-color);
+
+    box-shadow: none;
+  }
+
+  #map {
+    order: 0;
+    flex: 0 0 auto;
+
+    width: 100%;
+    height: 52vh;
+    height: 52dvh;
+
+    min-height: 320px;
+  }
+
+  .site-header {
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+  }
+
+  .control-section {
+    margin-bottom: 18px;
+  }
+
+  .map-legend {
+    min-width: 165px;
+    max-width: 190px;
+
+    padding: 9px 10px;
+  }
+
+  .map-legend__title {
+    margin-bottom: 7px;
+    font-size: 11px;
+  }
+
+  .map-legend__row {
+    gap: 8px;
+
+    min-height: 25px;
+    margin-bottom: 5px;
+
+    font-size: 10px;
+  }
+
+  body > aside input,
+  body > aside select {
     font-size: 16px;
+  }
 }
 
-.diagnostic-steps {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+@media (max-width: 420px) {
+  body > aside {
+    padding: 18px 15px;
+  }
+
+  #map {
+    min-height: 290px;
+  }
+
+  .site-header h1 {
+    font-size: 24px;
+  }
+
+  .button-row {
+    gap: 6px;
+  }
+
+  .button-row > button {
+    padding: 9px 7px;
+    font-size: 11px;
+  }
+
+  .summary-metrics {
+    gap: 8px;
+  }
+
+  .metric-value {
+    font-size: 17px;
+  }
+
+  .map-legend {
+    min-width: 155px;
+    max-width: 175px;
+  }
 }
 
-.diagnostic-steps li {
-    position: relative;
-    margin: 0;
-    padding: 0 0 14px 22px;
-    font-size: 12px;
-    line-height: 1.45;
-    overflow-wrap: anywhere;
+
+/* =========================================================
+   17. REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-.diagnostic-steps li:last-child {
-    padding-bottom: 0;
+
+/* =========================================================
+   MOBILE FIELD-USE LAYOUT
+   Map-first canvas with a touch-friendly bottom-sheet planner.
+   ========================================================= */
+
+.mobile-panel-toggle {
+  display: none;
 }
 
-.diagnostic-steps li::before {
-    content: "";
-    position: absolute;
-    left: 2px;
-    top: 4px;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #98a2b3;
-}
+@media (max-width: 760px) {
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
 
-.diagnostic-steps li.ok::before {
-    background: #12b76a;
-}
-
-.diagnostic-steps li.error::before {
-    background: #f04438;
-}
-
-.diagnostic-stage {
+  body {
     display: block;
-    margin-bottom: 2px;
-    color: #344054;
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  #map {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  body > aside {
+    position: fixed;
+    z-index: 1200;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 84vh;
+    max-height: 84dvh;
+    padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background: var(--panel-background, #fff);
+    border: 1px solid var(--border-color);
+    border-bottom: 0;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -8px 28px rgba(48, 44, 40, 0.16);
+    transform: translateY(0);
+    transition: transform 220ms ease;
+  }
+
+  body > aside.mobile-panel-collapsed {
+    transform: translateY(calc(100% - 76px - env(safe-area-inset-bottom)));
+  }
+
+  /* Only the header and Plan route button remain interactive while collapsed. */
+  body > aside.mobile-panel-collapsed {
+    overflow: hidden !important;
+    touch-action: none;
+  }
+
+  body > aside.mobile-panel-collapsed .mobile-panel-toggle {
+    touch-action: manipulation;
+  }
+
+  .site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 52px;
+    margin: 0 0 10px;
+    padding: 0 0 10px;
+  }
+
+  .site-header h1 {
+    margin: 0;
+    font-size: 20px;
+    line-height: 1.2;
+  }
+
+  .mobile-panel-toggle {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-width: 116px;
+    min-height: 44px;
+    padding: 9px 13px;
+    background: var(--teal, #32665B);
+    color: #fff;
+    border: 1px solid var(--teal, #32665B);
+    border-radius: 11px;
+    font-size: 14px;
     font-weight: 700;
+    touch-action: manipulation;
+  }
+
+  .mobile-panel-toggle:active {
+    transform: scale(0.98);
+  }
+
+  body > aside input,
+  body > aside select {
+    width: 100%;
+    min-height: 48px;
+    font-size: 16px;
+    touch-action: manipulation;
+  }
+
+  body > aside button {
+    min-height: 48px;
+    font-size: 14px;
+    touch-action: manipulation;
+  }
+
+  .control-section {
+    margin-bottom: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .control-section h2 {
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .button-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .button-row > button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 48px;
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  #route {
+    width: 100%;
+    min-height: 52px;
+    margin: 8px 0 12px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .route-summary {
+    margin: 8px 0 12px;
+    padding: 12px;
+  }
+
+  .route-summary h2 {
+    margin-top: 0;
+  }
+
+  .summary-destination {
+    font-size: 16px;
+    line-height: 1.3;
+  }
+
+  .summary-start {
+    margin-bottom: 10px;
+    overflow-wrap: anywhere;
+  }
+
+  .summary-metrics > div {
+    padding: 8px;
+  }
+
+  .metric-value {
+    font-size: 17px;
+  }
+
+  .summary-metrics {
+    gap: 12px;
+  }
+
+  .metric-value {
+    font-size: 18px;
+  }
+
+  .map-legend {
+    max-width: min(190px, calc(100vw - 32px));
+    min-width: 0;
+    padding: 8px 10px;
+  }
+
+  .map-legend__title {
+    font-size: 11px;
+  }
+
+  .map-legend__row {
+    min-height: 22px;
+    margin: 3px 0;
+    font-size: 10px;
+  }
+
+  .leaflet-top {
+    top: max(8px, env(safe-area-inset-top));
+  }
+
+  .leaflet-left {
+    left: max(8px, env(safe-area-inset-left));
+  }
+
+  .leaflet-right {
+    right: max(8px, env(safe-area-inset-right));
+  }
+
+  .leaflet-bottom {
+    bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .leaflet-bar a,
+  .leaflet-touch .leaflet-bar a {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    font-size: 22px;
+  }
+
+  .leaflet-control-scale {
+    margin-bottom: 10px;
+  }
+
+  .setup-status,
+  .location-status {
+    overflow-wrap: anywhere;
+  }
 }
 
-.diagnostic-detail {
-    color: #667085;
+@media (max-width: 380px) {
+  body > aside {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .mobile-panel-toggle {
+    min-width: 104px;
+    padding-right: 9px;
+    padding-left: 9px;
+  }
+
+  .site-header h1 {
+    font-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 760px) {
+  body > aside {
+    transition: none;
+  }
 }
 
 
+/* ================================================================
+   DIRIYAH THEME
+   Consolidated from diriyah-theme.css
+   ================================================================ */
+
+/*
+ * DIRIYAH-INSPIRED PRESENTATION
+ *
+ * Load after style.css.
+ * Keeps the existing application layout.
+ */
+
+
+/* PALETTE */
+
+:root {
+  --diriyah-tan: #D9C7A5;
+  --sand: #F5F2EB;
+  --paper: #FFFFFF;
+  --ink: #302C28;
+  --muted: #625E56;
+  --line: #E5E1D8;
+  --public-road: #32665B;
+  --haul-road: #E98232;
+  --route-red: #4285F4;
+  --earth-dark: #4285F4;
+  --earth-outline: #827E76;
+}
+
+
+/* BASE */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+
+  color: var(--ink);
+  background: var(--sand);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+}
+
+aside {
+  background: var(--paper);
+  color: var(--ink);
+
+  border-right:
+    1px solid var(--line);
+
+  box-shadow:
+    3px 0 18px rgba(48, 43, 39, 0.09);
+}
+
+
+/* HEADER */
+
+.site-header {
+  padding-bottom: 16px;
+
+  background: var(--sand);
+  color: var(--ink);
+
+  border-bottom:
+    1px solid var(--line);
+}
+
+.site-header h1 {
+  margin-bottom: 8px;
+
+  color: var(--ink);
+
+  letter-spacing: -0.035em;
+}
+
+.site-header > p {
+  display: none;
+}
+
+.eyebrow {
+  color: var(--earth-outline);
+
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+.network-date {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+
+/* SECTIONS */
+
+.control-section {
+  padding-top: 16px;
+  padding-bottom: 16px;
+
+  border-color: var(--line);
+}
+
+.control-section h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  letter-spacing: 0;
+}
+
+h2,
+label {
+  color: var(--ink);
+}
+
+label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Avoid repeating the visible Vehicle section heading. */
+
+label[for="vehicleType"] {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+
+  white-space: nowrap;
+
+  border: 0;
+}
+
+
+/* FORM CONTROLS */
+
+input,
+select {
+  background: var(--paper);
+  color: var(--ink);
+
+  border: 1px solid var(--border-strong, #D8D0C4);
+  border-radius: 8px;
+}
+
+select,
+input[type="search"],
+input[type="text"] {
+  min-height: 42px;
+
+  font-size: 14px;
+}
+
+input::placeholder {
+  color: #75695e;
+  opacity: 1;
+}
+
+
+/* BUTTONS */
+
+button {
+  min-height: 40px;
+
+  background: var(--sand);
+  color: var(--ink);
+
+  border: 1px solid var(--border-strong, #D8D0C4);
+  border-radius: 8px;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+button:not(:disabled):hover {
+  background: #EEEAE2;
+
+  border-color:
+    var(--earth-outline);
+}
+
+button.primary-button,
+#route {
+  background: var(--earth-dark);
+  color: var(--paper);
+
+  border-color:
+    var(--earth-dark);
+}
+
+button.primary-button:not(:disabled):hover,
+#route:not(:disabled):hover {
+  background: #2F6FD0;
+}
+
+
+/* DISABLED AND FOCUS */
+
+button:disabled,
+input:disabled,
+select:disabled {
+  opacity: 1;
+
+  background: #F0EDE6;
+  color: #827E76;
+
+  border-color: #E5E1D8;
+
+  cursor: not-allowed;
+}
+
+:where(
+  button,
+  input,
+  select,
+  summary,
+  a
+):focus-visible {
+  outline:
+    3px solid var(--public-road);
+
+  outline-offset: 3px;
+}
+
+
+/* HELP TEXT */
+
+.field-help,
+.note,
+.summary-start {
+  color: var(--muted);
+}
+
+.field-help {
+  margin-top: 8px;
+  margin-bottom: 0;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+/* ROUTE SUMMARY */
+
+.route-summary {
+  background: var(--sand);
+  color: var(--ink);
+
+  border: 1px solid var(--line);
+
+  border-left:
+    4px solid var(--route-red);
+
+  border-radius: 10px;
+}
+
+.summary-destination,
+.metric-value {
+  color: var(--ink);
+}
+
+.metric-label {
+  color: var(--muted);
+}
+
+.route-details {
+  border-color: var(--line);
+}
+
+#routeDetails {
+  white-space: pre-line;
+
+  color: var(--muted);
+}
+
+
+/* STATUS */
+
+.setup-status,
+.location-status {
+  background: var(--sand);
+  color: var(--ink);
+
+  border-color: var(--line);
+  border-radius: 8px;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#status {
+  white-space: pre-line;
+}
+
+
+/* COLLAPSIBLE GUIDANCE */
+
+.navigation-guidance {
+  margin-top: 16px;
+  padding-top: 12px;
+
+  border-top:
+    1px solid var(--line);
+}
+
+.navigation-guidance > summary {
+  color: var(--muted);
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.navigation-guidance > summary:hover {
+  color: var(--ink);
+}
+
+.navigation-guidance__body {
+  padding-top: 6px;
+}
+
+.navigation-guidance__body .note {
+  margin: 10px 0 0;
+
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+
+/* MAP */
+
+#map {
+  background: #f7f4ed;
+}
+
+.leaflet-container {
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+}
+
+
+/* LEAFLET CONTROLS */
+
+.leaflet-bar {
+  border:
+    1px solid #bca389 !important;
+
+  box-shadow:
+    0 2px 10px rgba(48, 43, 39, 0.14);
+}
+
+.leaflet-bar a {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.leaflet-bar a:hover {
+  background: var(--sand);
+}
+
+
+/* POPUPS */
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 10px;
+}
+
+.leaflet-tooltip {
+  background: var(--paper);
+  color: var(--ink);
+
+  border-color: var(--line);
+}
+
+
+/* GATE LABELS */
+
+.laar-gate-label {
+  background: var(--paper);
+  color: var(--ink);
+
+  border: 1px solid var(--border-strong, #D8D0C4);
+
+  font-weight: 700;
+
+  box-shadow:
+    0 1px 4px rgba(48, 43, 39, 0.18);
+}
+
+
+/* GATE POPUPS */
+
+.laar-gate-card {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.laar-gate-card__header {
+  background: var(--sand);
+
+  border-bottom:
+    1px solid var(--line);
+}
+
+.laar-gate-card__title {
+  color: var(--ink);
+}
+
+.laar-gate-card__eyebrow {
+  color: var(--earth-outline);
+}
+
+.laar-gate-card__body {
+  background: var(--paper);
+}
+
+.laar-gate-card__metric {
+  border-color: var(--line);
+}
+
+.laar-gate-card__metric-label,
+.laar-gate-card__note {
+  color: var(--muted);
+}
+
+.laar-gate-card__metric-value {
+  color: var(--ink);
+}
+
+
+/* DARKER GATE BACKGROUNDS */
+
+.laar-gate-marker {
+  background: #C9B99F;
+
+  border-color: #FFFFFF;
+
+  box-shadow:
+    0 2px 6px rgba(48, 43, 39, 0.22);
+}
+
+.laar-gate-marker.is-selected {
+  background: #32665B;
+
+  border-color: #FFFFFF;
+
+  box-shadow:
+    0 0 0 4px rgba(24, 91, 97, 0.2),
+    0 2px 6px rgba(48, 43, 39, 0.22);
+}
+
+
+/* LEGEND */
+
+.map-legend {
+  min-width: 190px;
+  max-width: 255px;
+
+  padding: 12px 14px;
+
+  background: var(--paper);
+  color: var(--ink);
+
+  border: 1px solid var(--line);
+  border-radius: 10px;
+
+  box-shadow:
+    0 3px 14px rgba(48, 43, 39, 0.13);
+
+  line-height: 1.45;
+}
+
+.map-legend__title {
+  margin-bottom: 8px;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.map-legend__row {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+  margin: 6px 0;
+
+  font-size: 12px;
+}
+
+.diriyah-swatch {
+  display: inline-block;
+
+  flex: 0 0 30px;
+
+  width: 30px;
+  height: 0;
+
+  border-top: 7px solid;
+}
+
+.diriyah-swatch--main {
+  border-color: #5B4033;
+}
+
+.diriyah-swatch--public {
+  border-color: var(--public-road);
+}
+
+.diriyah-swatch--haul {
+  border-color: var(--haul-road);
+}
+
+.diriyah-swatch--route {
+  border-color: var(--route-red);
+  border-top-width: 10px;
+}
+
+.diriyah-area-key {
+  flex: 0 0 30px;
+
+  height: 15px;
+
+  border:
+    2px solid var(--earth-outline);
+
+  background:
+    rgba(217, 199, 165, 0.24);
+}
+
+.diriyah-legend-note {
+  margin: 9px 0 0;
+  padding-top: 8px;
+
+  color: var(--muted);
+
+  border-top:
+    1px solid var(--line);
+
+  font-size: 11px;
+}
+
+
+/* SMALL SCREENS */
+
+@media (max-width: 600px) {
+  .map-legend {
+    min-width: 150px;
+    max-width: 205px;
+
+    padding: 9px 11px;
+  }
+
+  .map-legend__row {
+    font-size: 11px;
+  }
+}
+
+
+/* MINIMALIST DIRIYAH SYSTEM
+   Keep the map quiet; reserve saturated colours for navigation meaning. */
+body > aside {
+  box-shadow: 2px 0 8px rgba(48, 44, 40, 0.035);
+}
+.site-header {
+  background: transparent;
+  border-bottom: 1px solid var(--line);
+}
+.eyebrow {
+  color: var(--public-road);
+  letter-spacing: 0.09em;
+}
+.control-section {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+}
+.control-section h2 {
+  margin-bottom: 9px;
+}
+.route-summary {
+  background: #F7F5F0;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--route-red);
+  border-radius: 9px;
+}
+.metric-value {
+  color: var(--route-red);
+}
+button.primary-button,
+#route {
+  background: var(--route-red);
+  border-color: var(--route-red);
+  box-shadow: none;
+}
+button.primary-button:not(:disabled):hover,
+#route:not(:disabled):hover {
+  background: #2F6FD0;
+  border-color: #2F6FD0;
+}
+button:not(:disabled):hover {
+  background: #F0EDE6;
+  border-color: #C9C1B5;
+}
+.leaflet-control-layers,
+.leaflet-bar,
+.map-legend {
+  border-color: var(--line) !important;
+  box-shadow: 0 1px 5px rgba(48, 44, 40, 0.08) !important;
+}
+.map-legend {
+  min-width: 164px;
+  max-width: 220px;
+  padding: 10px 12px;
+  border-radius: 9px;
+}
+.map-legend__title {
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.map-legend__row {
+  gap: 8px;
+  margin: 5px 0;
+  font-size: 11px;
+}
+.diriyah-swatch {
+  flex-basis: 26px;
+  width: 26px;
+  border-top-width: 5px;
+}
+.diriyah-swatch--route {
+  border-top-width: 7px;
+}
+.diriyah-area-key {
+  height: 12px;
+  border-width: 1.5px;
+}
+.diriyah-legend-note {
+  margin-top: 7px;
+  padding-top: 6px;
+  font-size: 10px;
+}
+.laar-gate-card__header {
+  background: #F5F2EB;
+  border-bottom: 1px solid var(--line);
+}
+.laar-gate-card__eyebrow {
+  color: var(--public-road);
+}
+.laar-gate-marker {
+  border-radius: 11px;
+  box-shadow: 0 2px 6px rgba(48, 44, 40, 0.14);
+}
+.laar-gate-marker.is-selected {
+  background: var(--public-road);
+  outline: 2px solid rgba(50, 102, 91, 0.18);
+  outline-offset: 2px;
+  box-shadow: 0 2px 7px rgba(48, 44, 40, 0.14);
+}
+#map {
+  background: #F5F2EB;
+}
+@media (max-width: 760px) {
+  body > aside {
+    padding: 16px 16px;
+  }
+  .site-header {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+  .control-section {
+    padding-top: 7px;
+    padding-bottom: 7px;
+    margin-bottom: 5px;
+  }
+  .route-summary {
+    padding: 12px;
+  }
+}
+
+
+/* Keep form labels available to assistive technology without duplicating
+   nearby section headings or placeholders visually. */
+label[for="destinationSearch"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* SELECTED LAAR EMPHASIS */
+.leaflet-pane .selected-laar-tooltip {
+  background: #FFF8E8;
+  color: #603B0B;
+  border: 2px solid #9A5B13;
+  border-radius: 7px;
+  box-shadow: 0 2px 9px rgba(64, 42, 12, 0.24);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 9px;
+}
+
+.leaflet-pane .selected-laar-tooltip::before {
+  border-top-color: #9A5B13;
+}
+
+
+/* COLLAPSIBLE MAP LEGEND */
+.map-legend__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 36px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  border: 0;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.map-legend__toggle:hover {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+.map-legend__toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.map-legend__content[hidden] {
+  display: none !important;
+}
+
+.map-legend__content {
+  padding-top: 5px;
+}
+
+.map-legend__content .map-legend__row {
+  margin-top: 5px;
+}
+
+@media (max-width: 760px) {
+  .map-legend {
+    width: min(178px, calc(100vw - 28px));
+    min-width: 0;
+    max-width: calc(100vw - 28px);
+    padding: 7px 10px;
+  }
+
+  .map-legend__toggle {
+    min-height: 34px;
+    font-size: 12px;
+  }
+
+  .map-legend__content {
+    max-height: 42vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .map-legend__content .map-legend__row {
+    min-height: 22px;
+    margin: 4px 0;
+    font-size: 10px;
+  }
+
+  .map-legend__content .diriyah-legend-note {
+    margin-bottom: 2px;
+  }
+}
+
+
+/* The map cursor is set dynamically only when the pointer is within the
+   15 m snap radius of the nearest road permitted for the selected vehicle. */
+
+
+/* =========================================================
+   SINGLE SOURCE OF TRUTH — SITE AND MAP THEME
+   Change palette values here; JavaScript map layers read these
+   custom properties rather than defining a second theme.
+   ========================================================= */
+:root {
+  --page-background: #E8EAED;
+  --panel-background: #FFFFFF;
+  --text-primary: #202124;
+  --text-secondary: #5F6368;
+  --text-muted: #70757A;
+  --border-color: #DADCE0;
+  --border-strong: #C7C9CC;
+  --navy: #202124;
+  --navy-hover: #3C4043;
+  --teal: #1A73E8;
+  --teal-dark: #1558B0;
+  --teal-soft: #E8F0FE;
+  --route-color: #4285F4;
+  --danger: #D93025;
+  --danger-soft: #FCE8E6;
+
+  --map-public-road: #FFFFFF;
+  --map-main-road: #92A9C6;
+  --map-main-road-outline: #7189A8;
+  --map-haul-road: #F6B26B;
+  --map-unknown-road: #DADCE0;
+  --map-road-outline: #C5C9CE;
+  --map-route: #4285F4;
+  --map-area-outline: #1A73E8;
+  --map-area-fill: #8AB4F8;
+  --map-residential-outline: #DADCE0;
+  --map-masterplan-fill: #F8F9FA;
+  --map-local-road: #FFFFFF;
+  --map-secondary-road-outline: #B8C9D8;
+  --map-secondary-road: #CED8E1;
+  --map-road-width: 4;
+  --map-route-width: 7.5;
+}
+
+
+/* THEME OVERRIDES — moved from JavaScript into this stylesheet */
+/* =========================================================
+   GOOGLE MAPS-INSPIRED LIGHT THEME
+   Presentation only; routing rules and permissions are unchanged.
+   ========================================================= */
+:root {
+  --page-background: #E8EAED;
+  --panel-background: #FFFFFF;
+  --text-primary: #202124;
+  --text-secondary: #5F6368;
+  --text-muted: #70757A;
+  --border-color: #DADCE0;
+  --border-strong: #C7C9CC;
+  --navy: #202124;
+  --navy-hover: #3C4043;
+  --teal: #1A73E8;
+  --teal-dark: #1558B0;
+  --teal-soft: #E8F0FE;
+  --route-color: #4285F4;
+  --danger: #D93025;
+  --danger-soft: #FCE8E6;
+  --shadow-small: 0 1px 4px rgba(60, 64, 67, 0.22);
+  --shadow-medium: 0 4px 12px rgba(60, 64, 67, 0.28);
+}
+body > aside { box-shadow: 2px 0 8px rgba(60, 64, 67, 0.12); }
+#map { background: #E8EAED; }
+a { color: #1A73E8; }
+:focus-visible { outline-color: rgba(26, 115, 232, 0.45); }
+body > aside input:focus,
+body > aside select:focus {
+  border-color: #1A73E8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.16);
+}
+body > aside .primary-button,
+body > aside .primary-button:hover:not(:disabled),
+.laar-gate-marker.is-selected,
+.laar-gate-icon:hover .laar-gate-marker.is-selected {
+  background: #1A73E8;
+  border-color: #1A73E8;
+  color: #FFFFFF;
+}
+body > aside .primary-button:hover:not(:disabled) {
+  background: #1765CC;
+  border-color: #1765CC;
+}
+body > aside .primary-button:active:not(:disabled) {
+  background: #1558B0;
+  border-color: #1558B0;
+}
+.laar-gate-marker,
+.laar-gate-marker::after { background-color: #5F6368; }
+.laar-gate-icon:hover .laar-gate-marker,
+.laar-gate-icon:hover .laar-gate-marker::after { background-color: #3C4043; }
+.laar-gate-marker.is-selected::after,
+.laar-gate-icon:hover .laar-gate-marker.is-selected::after { background-color: #1A73E8; }
+.laar-gate-marker.is-selected,
+.laar-gate-icon:hover .laar-gate-marker.is-selected {
+  outline-color: rgba(26, 115, 232, 0.24);
+  box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+}
+.route-summary { background: #F8F9FA; border-color: #DADCE0; }
+.summary-metrics > div { border-color: #E8EAED; }
+.metric-value { color: #1A73E8; }
+.map-legend {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: #DADCE0;
+  box-shadow: 0 1px 5px rgba(60, 64, 67, 0.24);
+  color: #202124;
+}
+.diriyah-swatch--main { border-color: #F9D776; }
+.diriyah-swatch--public { border-color: #FFFFFF; filter: drop-shadow(0 0 1px #9AA0A6); }
+.diriyah-swatch--haul { border-color: #F6B26B; }
+.diriyah-swatch--route { border-color: #4285F4; }
+.diriyah-area-key {
+  background: rgba(138, 180, 248, 0.30);
+  border-color: #1A73E8;
+}
+.leaflet-bar,
+.leaflet-control-layers {
+  border-color: #DADCE0 !important;
+  box-shadow: 0 1px 4px rgba(60, 64, 67, 0.22) !important;
+}
+.leaflet-bar a { color: #202124; }
+.leaflet-bar a:hover { background: #F1F3F4; }
+.leaflet-control-scale-line { color: #5F6368; border-color: #5F6368; }
+.leaflet-control-attribution { color: #5F6368; }
+.laar-gate-card__header {
+  background: #F8F9FA;
+  color: #202124;
+  border-bottom: 1px solid #DADCE0;
+}
+.laar-gate-card__title { color: #202124; }
+.laar-gate-card__eyebrow { color: #1A73E8; }
+.laar-gate-popup a.leaflet-popup-close-button { color: #5F6368; }
+.laar-gate-popup a.leaflet-popup-close-button:hover { color: #202124; }
+
+
+/* Remaining map presentation colours, shared by Leaflet overlays and legends. */
+:root {
+  --map-origin-connector: #AAB9CC;
+  --map-location: #136DF5;
+  --map-location-outline: #FFFFFF;
+  --map-location-focus: #43C7EE;
+}
+
+
+/* High-visibility map recenter / live-location control */
+.leaflet-top.leaflet-right { z-index: 1200; }
+.leaflet-top.leaflet-right .leaflet-control { margin-top: 10px; margin-right: 14px; }
+.leaflet-top.leaflet-right .laar-recenter-control { margin-top: 10px; }
+.leaflet-control.laar-recenter-control {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  display: flex !important;
+  flex: 0 0 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+  max-width: 52px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  line-height: 1 !important;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  padding: 11px;
+  background: #1A73E8;
+  color: #FFFFFF;
+  border: 3px solid #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(32, 33, 36, 0.42), 0 0 0 1px rgba(32, 33, 36, 0.18);
+  cursor: pointer;
+  transition: background-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+}
+.leaflet-control.laar-recenter-control:hover {
+  background: #1558B0;
+  box-shadow: 0 3px 10px rgba(32, 33, 36, 0.48), 0 0 0 2px rgba(26, 115, 232, 0.2);
+  transform: scale(1.04);
+}
+.leaflet-control.laar-recenter-control:active {
+  background: #174EA6;
+  transform: scale(0.97);
+}
+.leaflet-control.laar-recenter-control svg {
+  display: block !important;
+  flex: 0 0 27px;
+  width: 27px !important;
+  min-width: 27px !important;
+  height: 27px !important;
+  min-height: 27px !important;
+  overflow: visible;
+  stroke: currentColor;
+}
+.leaflet-control.laar-recenter-control:focus-visible {
+  outline: 3px solid #F9AB00;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .leaflet-control.laar-recenter-control {
+    transition: none;
+  }
+}
+
+
+/* LIVE JOURNEY OVERVIEW AND DIRECTION GUIDANCE */
+.journey-controls {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color, #DADCE0);
+}
+.journey-controls p {
+  color: var(--text-secondary, #5F6368);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.journey-controls button {
+  width: 100%;
+  margin-top: 8px;
+}
+.journey-guidance {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px;
+  background: #E8F0FE;
+  border-radius: 10px;
+  color: #202124;
+}
+.journey-direction-arrow {
+  display: inline-flex;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #1A73E8;
+  color: #FFFFFF;
+  font-size: 30px;
+  transition: transform 180ms ease;
+}
+#journeyDirectionText {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+
+/* Map-anchored live journey prompts: compact and positioned away from the
+   central route corridor. The route overview remains fully visible behind it. */
+.journey-controls {
+  position: fixed;
+  z-index: 1200;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  width: min(300px, calc(100vw - 36px));
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(48, 44, 40, 0.14);
+  border-radius: 13px;
+  box-shadow: 0 4px 18px rgba(25, 35, 45, 0.18);
+  backdrop-filter: blur(8px);
+}
+.journey-controls p {
+  margin: 0 0 8px;
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.journey-controls button {
+  width: 100%;
+  min-height: 40px;
+  margin: 5px 0 0;
+}
+.journey-controls .primary-button {
+  margin-bottom: 0;
+}
+.journey-guidance {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--teal-soft);
+  border-radius: 9px;
+}
+.journey-direction-arrow {
+  display: inline-flex;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--teal);
+  color: white;
+  font-size: 26px;
+  transition: transform 180ms ease;
+}
+#journeyDirectionText {
+  font-size: 11px;
+  line-height: 1.35;
+}
+@media (max-width: 700px) {
+  .journey-controls {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: min(260px, calc(100vw - 24px));
+    padding: 10px;
+  }
+  .journey-controls p { font-size: 11px; }
+  .journey-controls button { min-height: 38px; }
+}
+
+
+/* Keep the mobile planner title and panel toggle pinned while the panel scrolls. */
+@media (max-width: 760px) {
+  body > aside .site-header {
+    position: sticky;
+    top: -12px;
+    z-index: 5;
+    margin-top: -12px;
+    padding-top: 12px;
+    background: var(--panel-background, #fff);
+    box-shadow: 0 8px 10px -10px rgba(48, 44, 40, 0.35);
+  }
+
+  body > aside .site-header h1 {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  body > aside .mobile-panel-toggle {
+    position: relative;
+    z-index: 6;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  body > aside.mobile-panel-collapsed .site-header {
+    box-shadow: none;
+  }
+}
+
+
+/* Crisp, flat 2D live-location marker: bold arrow plus high-contrast position dot. */
+.laar-live-heading-marker {
+  width: 32px !important;
+  height: 42px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  transform-origin: 50% 22px;
+  transform: rotate(var(--laar-route-bearing, 0deg));
+  overflow: visible !important;
+  pointer-events: auto;
+}
+.laar-live-heading-core {
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  display: block;
+  transform: translate(-50%, -50%);
+  border: 3px solid #FFFFFF;
+  border-radius: 50%;
+  background: #1769FF;
+  box-shadow: 0 0 0 1.5px #1249A8;
+}
+.laar-live-heading-arrow {
+  position: absolute;
+  left: 50%;
+  top: 1px;
+  width: 23px;
+  height: 24px;
+  transform: translateX(-50%);
+  background: #1769FF;
+  clip-path: polygon(50% 0, 100% 92%, 50% 72%, 0 92%);
+  filter: drop-shadow(0 1px 0 #FFFFFF) drop-shadow(0 1px 1px rgba(0,0,0,.35));
+}
+.laar-live-heading-arrow::after {
+  content: "";
+  position: absolute;
+  inset: 3px 5px 7px;
+  background: #FFFFFF;
+  opacity: .95;
+  clip-path: polygon(50% 0, 100% 92%, 50% 72%, 0 92%);
+}
+.journey-guidance .journey-direction-arrow,
+#journeyDirectionText { display: none !important; }
+.journey-guidance { padding: 8px 10px; }
+
+
+/* On phones, never let the floating journey card cover the route planner.
+   Show it when the planner is collapsed so the map can be used unobstructed. */
+@media (max-width: 760px) {
+  body:has(#navigationPanel:not(.mobile-panel-collapsed)) .journey-controls {
+    display: none !important;
+  }
+
+  body:has(#navigationPanel.mobile-panel-collapsed) .journey-controls {
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: min(250px, calc(100vw - 24px));
+  }
+}
+
+
+/* Live-routing controls: clear actions, accessible tap targets, and no overlap. */
+.journey-controls[hidden],
+.journey-controls button[hidden] { display: none !important; }
+.journey-controls {
+  box-sizing: border-box;
+  width: min(288px, calc(100vw - 32px));
+  padding: 13px;
+  color: var(--text-primary, #202124);
+}
+.journey-stage {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+.journey-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
+}
+.journey-controls .journey-actions button {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 650;
+}
+.journey-controls .stop-routing-button {
+  background: #FFFFFF;
+  color: #B3261E;
+  border: 1px solid #DADCE0;
+}
+.journey-controls .stop-routing-button:hover:not(:disabled) {
+  background: #FCE8E6;
+  border-color: #D93025;
+}
+.journey-footnote {
+  margin-top: 8px;
+  color: var(--text-secondary, #5F6368);
+  font-size: 10px;
+  line-height: 1.35;
+}
+@media (max-width: 760px) {
+  /* The map card only appears while the planner is collapsed. */
+  body:has(#navigationPanel:not(.mobile-panel-collapsed)) .journey-controls {
+    display: none !important;
+  }
+  body:has(#navigationPanel.mobile-panel-collapsed) .journey-controls {
+    left: auto;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: min(250px, calc(100vw - 24px));
+    max-height: min(48vh, 360px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+
+/* Refined live-location icon: a crisp heading arrow, strong position dot,
+   and subtle halo for contrast on pale or detailed map backgrounds. */
+.laar-live-heading-marker {
+  width: 36px !important;
+  height: 44px !important;
+  transform-origin: 50% 22px;
+  transform: rotate(var(--laar-live-heading, 0deg));
+}
+.laar-live-heading-marker::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 13px;
+  width: 30px;
+  height: 30px;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(26, 115, 232, 0.26);
+  border-radius: 50%;
+  background: rgba(26, 115, 232, 0.12);
+}
+.laar-live-heading-core {
+  top: 22px;
+  width: 17px;
+  height: 17px;
+  border: 3px solid #FFFFFF;
+  background: #1A73E8;
+  box-shadow: 0 0 0 1.5px #174EA6, 0 1px 4px rgba(32, 33, 36, 0.35);
+}
+.laar-live-heading-arrow {
+  top: 0;
+  width: 26px;
+  height: 27px;
+  background: #1A73E8;
+  clip-path: polygon(50% 0, 96% 92%, 50% 73%, 4% 92%);
+  filter: drop-shadow(0 1px 1px rgba(32, 33, 36, 0.42));
+}
+.laar-live-heading-arrow::after {
+  inset: 4px 8px 8px;
+  background: #FFFFFF;
+  clip-path: polygon(50% 0, 100% 92%, 50% 72%, 0 92%);
+}
+
+
+/* Mobile live-routing panel must layer above the LAAR navigation sheet. */
+@media (max-width: 760px) {
+  body > #journeyControls.journey-controls {
+    display: block !important;
+    position: fixed;
+    z-index: 1400;
+    left: auto;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: min(250px, calc(100vw - 24px));
+    max-height: min(48vh, 360px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+
+/* Mobile: reserve pinch-zoom for the map, not the UI panels.
+   Vertical scrolling and normal control interaction remain available. */
+@media (max-width: 760px) {
+  body > aside,
+  body > #journeyControls.journey-controls {
+    touch-action: pan-y;
+    -ms-touch-action: pan-y;
+  }
+
+  body > aside button,
+  body > aside input,
+  body > aside select,
+  body > aside textarea,
+  body > #journeyControls button {
+    touch-action: manipulation;
+    -ms-touch-action: manipulation;
+  }
+}
+
+
+/* iOS/Safari and mobile browsers: block multi-touch zoom gestures on panels only. */
+@media (max-width: 760px) {
+  body > aside,
+  body > #journeyControls.journey-controls {
+    touch-action: pan-y !important;
+    -ms-touch-action: pan-y !important;
+  }
+}
+
+
+/* Mobile stacking: keep the live-routing card beneath Leaflet's layer/key
+   controls and never over the expanded LAAR navigation panel. */
+@media (max-width: 760px) {
+  body > #journeyControls.journey-controls {
+    z-index: 500 !important;
+  }
+
+  body:has(#navigationPanel:not(.mobile-panel-collapsed)) > #journeyControls.journey-controls {
+    display: none !important;
+  }
+
+  body:has(#navigationPanel.mobile-panel-collapsed) > #journeyControls.journey-controls {
+    display: block;
+  }
+}
+
+
+/* Final mobile stacking rules: Leaflet layer/map-key controls stay above the
+   live-routing card; the LAAR planner stays above the card when expanded. */
+@media (max-width: 760px) {
+  body > #journeyControls.journey-controls {
+    z-index: 500 !important;
+  }
+
+  body > #journeyControls.journey-controls[hidden] {
+    display: none !important;
+  }
+
+  body:has(#navigationPanel:not(.mobile-panel-collapsed)) > #journeyControls.journey-controls {
+    display: none !important;
+  }
+
+  body:has(#navigationPanel.mobile-panel-collapsed) > #journeyControls.journey-controls:not([hidden]) {
+    display: block !important;
+  }
+}
+
+
+/* Mobile live-routing popup with a persistent, identifiable map-pin launcher. */
+.journey-popup-toggle { display: none; }
+@media (max-width: 760px) {
+  body > #journeyPopupToggle.journey-popup-toggle {
+    position: fixed;
+    z-index: 1100;
+    top: max(14px, env(safe-area-inset-top));
+    right: max(14px, env(safe-area-inset-right));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 46px;
+    padding: 9px 13px;
+    border: 1px solid #244f46;
+    border-radius: 999px;
+    background: #32665B;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(0,0,0,.24);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  #journeyPopupToggle svg {
+    display: block;
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  body > #journeyPopupToggle.journey-popup-toggle.is-open {
+    background: #254F46;
+  }
+  body > #journeyControls.journey-controls {
+    display: none !important;
+    position: fixed;
+    z-index: 1050 !important;
+    top: calc(max(14px, env(safe-area-inset-top)) + 56px);
+    right: max(14px, env(safe-area-inset-right));
+    bottom: auto;
+    left: auto;
+    width: min(290px, calc(100vw - 28px));
+    max-height: min(58vh, 440px);
+    overflow-y: auto;
+    border: 1px solid #d7dedb;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    overscroll-behavior: contain;
+  }
+  body > #journeyControls.journey-controls.mobile-popup-open:not([hidden]) {
+    display: block !important;
+  }
+  body > #journeyControls.journey-controls[hidden] {
+    display: none !important;
+  }
+}
+
+
+/* Mobile: place the recenter control on the left, directly beneath zoom. */
+@media (max-width: 760px) {
+  .leaflet-top.leaflet-left .leaflet-control-zoom {
+    margin-top: max(12px, env(safe-area-inset-top));
+    margin-left: max(12px, env(safe-area-inset-left));
+  }
+  .leaflet-top.leaflet-left .laar-recenter-control {
+    margin-top: 8px !important;
+    margin-left: max(12px, env(safe-area-inset-left)) !important;
+  }
+  .leaflet-top.leaflet-right .laar-recenter-control {
+    margin-top: 0 !important;
+  }
+}
+
+
+/* iOS double-tap protection: disable double-tap page zoom while preserving
+   normal single taps and Leaflet's map zoom controls/gestures. */
+@media (max-width: 760px) {
+  html, body {
+    touch-action: manipulation;
+  }
+  #map, #map .leaflet-container, #map .leaflet-interactive {
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+  body > #journeyPopupToggle,
+  body > #journeyControls,
+  body > aside {
+    touch-action: manipulation;
+  }
+}
+
+
+/* Final mobile map-control placement: live route below the layers control,
+   and recenter in Leaflet's left control stack directly below zoom. */
+@media (max-width: 760px) {
+  body > #journeyPopupToggle.journey-popup-toggle {
+    top: calc(max(12px, env(safe-area-inset-top)) + 58px);
+    right: max(12px, env(safe-area-inset-right));
+  }
+
+  .leaflet-top.leaflet-left .leaflet-control-zoom {
+    margin-top: max(12px, env(safe-area-inset-top)) !important;
+    margin-left: max(12px, env(safe-area-inset-left)) !important;
+    margin-bottom: 0 !important;
+  }
+
+  .leaflet-top.leaflet-left .laar-recenter-control {
+    margin-top: 8px !important;
+    margin-left: max(12px, env(safe-area-inset-left)) !important;
+  }
+
+  .leaflet-top.leaflet-right .laar-recenter-control {
+    display: none !important;
+  }
+}
+
+
+/* Final mobile live-route placement: keep launcher and popup below the
+   top-right Leaflet layers control instead of sharing its vertical space. */
+@media (max-width: 760px) {
+  body > #journeyPopupToggle.journey-popup-toggle {
+    top: calc(max(12px, env(safe-area-inset-top)) + 52px) !important;
+    right: max(12px, env(safe-area-inset-right)) !important;
+  }
+
+  body > #journeyControls.journey-controls {
+    top: calc(max(12px, env(safe-area-inset-top)) + 108px) !important;
+    right: max(12px, env(safe-area-inset-right)) !important;
+  }
+}
+
+
+/* Hide the route summary card entirely; routing and map rendering remain active. */
+#routeSummary,
+.route-summary {
+  display: none !important;
+}

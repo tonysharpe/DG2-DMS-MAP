@@ -1,86 +1,193 @@
-const API_BASE = "";
+"use strict";
 
-import { setMessage, setServiceStatus, showRouteSummary } from "./ui.js?v=route-cache-2";
-import { clearRoute, displayRoute } from "./routeDisplay.js?v=route-cache-2";
-
-const destinationSelect = document.getElementById("destinationSelect");
-const routeButton = document.getElementById("routeButton");
-
-// Checks the routing API and populates the destination selector.
-export async function loadDestinations() {
-  try {
-    const health = await fetch(`${API_BASE}/health`);
-    if (!health.ok) throw new Error(`Health check returned HTTP ${health.status}`);
-    setServiceStatus("Routing service connected", "ok");
-
-    const response = await fetch(`${API_BASE}/destinations`);
-    if (!response.ok) throw new Error(`Destinations request returned HTTP ${response.status}`);
-    const data = await response.json();
-    const destinations = data.destinations || [];
-    if (!destinations.length) throw new Error("The routing service returned no destinations.");
-
-    destinationSelect.innerHTML = "";
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "Select a destination…";
-    destinationSelect.appendChild(placeholder);
-
-    destinations.forEach(id => {
-      const option = document.createElement("option");
-      option.value = id;
-      option.textContent = id;
-      destinationSelect.appendChild(option);
-    });
-
-    destinationSelect.disabled = false;
-    routeButton.disabled = false;
-    setMessage(`${destinations.length} destinations loaded. Select one and calculate a route.`);
-  } catch (error) {
-    setServiceStatus("Routing service unavailable", "error");
-    setMessage(`Could not load destinations: ${error.message}. Check the API service and network connection.`, "error");
-  }
-}
-
-// Requests a route, displays it on the map, and updates route details.
-export async function calculateRoute(map) {
-  const destinationId = destinationSelect.value;
-  if (!destinationId) {
-    setMessage("Select a destination first.", "error");
-    return;
-  }
-
-  routeButton.disabled = true;
-  routeButton.textContent = "Calculating…";
-  setMessage(`Calculating route to ${destinationId}…`);
-  clearRoute(map);
-
-  try {
-    const response = await fetch(`${API_BASE}/route`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ destination_id: destinationId })
-    });
-    const responseText = await response.text();
-    let data;
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      const summary = responseText.trim().slice(0, 200) || "Empty response body";
-      throw new Error(`Routing API returned non-JSON response (HTTP ${response.status}): ${summary}`);
-    }
-    if (!response.ok) throw new Error(data.detail || `Request failed with HTTP ${response.status}`);
-    if (data.status === "no_route") throw new Error(data.message || "No route is available for this destination.");
-    if (data.status !== "ok" || !data.route || !Array.isArray(data.route.features)) {
-      throw new Error("API response did not contain route geometry in the expected format.");
+/*
+ * LAAR DESTINATION ACCESS FILTER
+ *
+ * Load after app.js and live-location.js.
+ * Filters destinations using the currently active vehicle graph.
+ * This is a UI filter only; it is not a security boundary.
+ */
+(function () {
+  function install() {
+    if (
+      typeof renderDestinationOptions !== "function" ||
+      typeof calculate !== "function" ||
+      typeof prepareRoutingStart !== "function"
+    ) {
+      console.error(
+        "laar-access.js: app.js/live-location.js functions are missing. " +
+        "Check script order and that this file is loaded."
+      );
+      return;
     }
 
-    displayRoute(map, data);
-    showRouteSummary(data);
-    setMessage(`Route to ${destinationId} found.`, "success");
-  } catch (error) {
-    setMessage(`Route calculation failed: ${error.message}`, "error");
-  } finally {
-    routeButton.disabled = false;
-    routeButton.textContent = "Calculate route";
+    const originalRender = renderDestinationOptions;
+    let renderingFilteredOptions = false;
+
+    function getRoutingContext() {
+      if (($("startMode")?.value || "gate") === "live") {
+        try {
+          const prepared = prepareRoutingStart();
+          if (
+            !prepared ||
+            !(prepared.graph instanceof Map) ||
+            !Array.isArray(prepared.sources)
+          ) {
+            return { graph: new Map(), sources: [], ready: false };
+          }
+
+          const sources = prepared.sources
+            .map(source => source.location?.node)
+            .filter(node => node !== null && node !== undefined);
+
+          return {
+            graph: prepared.graph,
+            sources,
+            ready: sources.length > 0
+          };
+        } catch (_) {
+          return { graph: new Map(), sources: [], ready: false };
+        }
+      }
+
+      const sources = locations
+        .filter(location =>
+          location.kind === "gate" &&
+          location.valid &&
+          location.node !== null &&
+          location.node !== undefined
+        )
+        .map(location => location.node);
+
+      return { graph: adjacency, sources, ready: sources.length > 0 };
+    }
+
+    function getReachableNodes(context) {
+      const reachable = new Set();
+      // The graph is rebuilt for the active vehicle: cars contain public
+      // roads only; trucks contain haul roads with truck=yes only.
+      // Traverse only actual directed graph edges on that permitted network.
+      const permittedRoadIds = new Set(roads.map(road => road.id));
+      const queue = [];
+
+      for (const node of context.sources) {
+        if (!reachable.has(node)) {
+          reachable.add(node);
+          queue.push(node);
+        }
+      }
+
+      for (let i = 0; i < queue.length; i += 1) {
+        const edges = context.graph.get(queue[i]) || [];
+        for (const edge of edges) {
+          if (!permittedRoadIds.has(edge.roadId)) continue;
+          if (reachable.has(edge.to)) continue;
+          reachable.add(edge.to);
+          queue.push(edge.to);
+        }
+      }
+
+      return reachable;
+    }
+
+    function getAccessibleOptions() {
+      const context = getRoutingContext();
+      if (!context.ready) return { ready: false, options: [] };
+
+      const reachable = getReachableNodes(context);
+      const options = destinationOptions.filter(option => {
+        const location = locations[option.index];
+        return Boolean(
+          location &&
+          location.kind === "destination" &&
+          location.valid &&
+          option.hasPolygon &&
+          location.node !== null &&
+          location.node !== undefined &&
+          reachable.has(location.node)
+        );
+      });
+
+      return { ready: true, options };
+    }
+
+    function renderFilteredOptions() {
+      if (renderingFilteredOptions) return;
+      if (!$("end") || !$("destinationSearch")) {
+        originalRender();
+        return;
+      }
+
+      renderingFilteredOptions = true;
+      const allOptions = destinationOptions;
+      const selectedBefore = $("end").value;
+
+      try {
+        const result = getAccessibleOptions();
+        destinationOptions = result.options;
+        originalRender();
+
+        const selectedStillAvailable = result.options.some(
+          option => String(option.index) === selectedBefore
+        );
+
+        if (selectedBefore && !selectedStillAvailable) {
+          $("end").value = "";
+          if (typeof clearRoute === "function") clearRoute();
+          if ($("start")) $("start").selectedIndex = -1;
+          if (typeof updateDestinationUrl === "function") updateDestinationUrl();
+          if (typeof refreshShareControls === "function") refreshShareControls();
+        }
+
+        if ($("searchStatus")) {
+          if (!result.ready) {
+            $("searchStatus").textContent =
+              "No valid starting route yet. Start live location or choose a gate.";
+          } else if (!result.options.length) {
+            $("searchStatus").textContent =
+              "No LAAR destinations are reachable for this vehicle and start.";
+          } else {
+            $("searchStatus").textContent =
+              result.options.length + " reachable LAAR destination(s).";
+          }
+        }
+      } finally {
+        destinationOptions = allOptions;
+        renderingFilteredOptions = false;
+      }
+    }
+
+    // app.js calls renderDestinationOptions during startup and on search.
+    renderDestinationOptions = renderFilteredOptions;
+
+    // Vehicle changes rebuild the permitted road network in app.js.
+    // Re-render after that handler has updated roads/adjacency.
+    const vehicle = $("vehicleType");
+    if (vehicle) {
+      const existingVehicleChange = vehicle.onchange;
+      vehicle.onchange = function (event) {
+        if (typeof existingVehicleChange === "function") {
+          existingVehicleChange.call(this, event);
+        }
+        renderFilteredOptions();
+      };
+    }
+
+    for (const id of ["startMode", "start"]) {
+      const element = $(id);
+      if (element) {
+        element.addEventListener("change", renderFilteredOptions);
+      }
+    }
+
+    // Re-run after the initial network build and after shared-link loading.
+    renderFilteredOptions();
+    window.addEventListener("pageshow", renderFilteredOptions);
   }
-}
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", install, { once: true });
+  } else {
+    install();
+  }
+})();
