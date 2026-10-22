@@ -318,6 +318,7 @@ function themeColor(property) {
     {},
     { collapsed: true }
   ).addTo(map);
+  window.laarLayerControl = control;
 
   if (typeof displayedRoadLayer !== "undefined" && displayedRoadLayer) {
     control.addOverlay(displayedRoadLayer, "Roads");
