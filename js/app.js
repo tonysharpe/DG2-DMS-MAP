@@ -307,6 +307,7 @@ let gateMarkers = new Map();
 let gateMarkerLayer = null;
 
 let costMode = "distance";
+const routeEstimateSpeedKmh = 30;
 
 
 /* DATA LOADING */
@@ -786,7 +787,6 @@ function build(
 
   // Use each road's GeoJSON speed (km/h). The fallback is only for older
   // road features that do not provide a valid positive speed.
-  const routeEstimateSpeedKmh = 30;
 
   status("Building network: junctions and roads…");
 
