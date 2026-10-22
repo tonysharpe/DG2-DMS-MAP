@@ -34,8 +34,8 @@ function themeColor(property) {
     },
 
     {
-      label: "Local roads — current",
-      file: "data/Local_Roads_Current.geojson",
+      label: "Riyadh local roads",
+      file: "data/riyadh_local.geojson",
       pane: "siteReferenceRoads",
       visible: true,
       style: {
