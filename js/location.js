@@ -117,7 +117,7 @@ function routeDistanceFromRoadProjection(road, projection, destinationNode) {
     const addSegment = (a, b) => {
       const length = road.length * (b.m - a.m) /
         road.ms[road.ms.length - 1];
-      const seconds = length / (road.speed / 3.6);
+      const seconds = length / (road.speedKmh / 3.6);
       const points = section(road, a.m, b.m);
       if (road.direction !== "reverse") {
         graph.get(a.node).push({
@@ -651,146 +651,12 @@ function prepareRoutingStart() {
       .trim().toLowerCase() === "yes";
 
   /*
-   * Routeability fallback for map clicks:
-   * If the nearest permitted road cannot reach the selected destination,
-   * search permitted roads within 10 km of the actual map click and select
-   * the geographically closest one that has a valid directed route. Apply
-   * this regardless of the local flag. Vehicle access and one-way restrictions
-   * are checked before a candidate is accepted; later routing rules still apply.
-   * The dashed connector shows the gap between the click and selected road.
+   * Keep map-click selection responsive: chooseMapClickRoad() has already
+   * attached the click to the nearest permitted road. Do not run a full
+   * network search for every nearby road here; repeated searches blocked the
+   * browser UI on larger networks. The main route calculation below performs
+   * the authoritative route search and reports if the selected road is disconnected.
    */
-  if (startMode === "map") {
-    const destination = typeof selectedDestination === "function"
-      ? selectedDestination()
-      : null;
-    if (destination) {
-      const routeableCandidates = [];
-      for (const candidateRoad of roads) {
-        const projection = nearest(snapshot.point, candidateRoad.pts);
-        if (!Number.isFinite(projection.offset) || projection.offset > MAP_CLICK_BUFFER_METRES) continue;
-        const routeDistance = routeDistanceFromRoadProjection(
-          candidateRoad, projection, destination.node
-        );
-        if (!Number.isFinite(routeDistance)) continue;
-        routeableCandidates.push({
-          road: candidateRoad,
-          projection,
-          routeDistance
-        });
-      }
-
-      if (routeableCandidates.length) {
-        routeableCandidates.sort((a, b) =>
-          a.projection.offset - b.projection.offset ||
-          a.routeDistance - b.routeDistance
-        );
-        const routeable = routeableCandidates[0];
-        selectedRoad = routeable.road;
-        nearestMappedRoad = {
-          candidate: selectedRoad,
-          ...routeable.projection
-        };
-        mapClickOrigin = {
-          ...mapClickOrigin,
-          snapPoint: [...routeable.projection.q],
-          offset: routeable.projection.offset,
-          measure: routeable.projection.m,
-          attachedRoadId: selectedRoad.id,
-          roadName: selectedRoad.name
-        };
-        if (mapClickOriginMarker) {
-          mapClickOriginMarker.bindTooltip(
-            "Map origin — routeable road " + selectedRoad.name,
-            { direction: "top" }
-          );
-        }
-      } else {
-        throw new Error(
-          "No connected route to the selected destination was found from any " +
-          "vehicle-permitted road within 10 km of the map click. Try another map point " +
-          "or check the road network connections."
-        );
-      }
-    }
-  }
-
-  /*
-   * Optional 40% map-click override:
-   * - only inspect links whose JSON road type is "main";
-   * - candidate must be within 50 m of the original snapped point;
-   * - compare against the route distance from the true nearest road;
-   * - switch only when the directed route is at least 40% shorter.
-   * Skip this rule when the initial closest link has local: "yes".
-   * Candidate links must explicitly have local: "no". If the true nearest
-   * road is disconnected, its distance is Infinity and this override is
-   * skipped; the separate routeability fallback remains.
-   * This never blocks the normal click-routing path if no candidate qualifies.
-   */
-  if (startMode === "map" && !originalRoadIsLocalYes) {
-    const destination = typeof selectedDestination === "function"
-      ? selectedDestination()
-      : null;
-    const initialDistance = destination
-      ? routeDistanceFromRoadProjection(
-          originalNearestRoad, originalNearestProjection, destination.node
-        )
-      : Infinity;
-    let override = null;
-
-    if (Number.isFinite(initialDistance) && initialDistance > 0 && destination) {
-      for (const candidateRoad of roads) {
-        if (candidateRoad.id === originalNearestRoad.id ||
-            candidateRoad.type !== "main" ||
-            String(roadField(candidateRoad.properties || {}, "local") ?? "").trim().toLowerCase() !== "no") continue;
-        const originalSnapPoint = mapClickOrigin.originalSnapPoint || mapClickOrigin.snapPoint;
-        const candidateProjection = nearest(originalSnapPoint, candidateRoad.pts);
-        if (!Number.isFinite(candidateProjection.offset) || candidateProjection.offset > MAIN_ROAD_40_PERCENT_BUFFER_METRES) continue;
-
-        const candidateDistance = routeDistanceFromRoadProjection(
-          candidateRoad, candidateProjection, destination.node
-        );
-        if (!Number.isFinite(candidateDistance) ||
-            candidateDistance > initialDistance * 0.60) continue;
-
-        if (!override || candidateDistance < override.routeDistance) {
-          override = {
-            road: candidateRoad,
-            projection: candidateProjection,
-            routeDistance: candidateDistance
-          };
-        }
-      }
-    }
-
-    if (override) {
-      selectedRoad = override.road;
-      nearestMappedRoad = {
-        candidate: selectedRoad,
-        ...override.projection,
-        // Keep the off-road connector distance measured from the actual click.
-        offset: dist(snapshot.point, override.projection.q)
-      };
-      mapClickOrigin = {
-        ...mapClickOrigin,
-        snapPoint: [...override.projection.q],
-        offset: nearestMappedRoad.offset,
-        measure: override.projection.m,
-        attachedRoadId: selectedRoad.id,
-        roadName: selectedRoad.name
-      };
-      if (mapClickOriginMarker) {
-        mapClickOriginMarker.bindTooltip(
-          "Map origin — 40% rule selected " + selectedRoad.name,
-          { direction: "top" }
-        );
-      }
-      locationStatus(
-        "40% rule selected main road " + selectedRoad.name +
-        " (route " + Math.round(override.routeDistance) +
-        " m versus " + Math.round(initialDistance) + " m initially)."
-      );
-    }
-  }
 
   // The graph starts at the road projection. Live GPS displays that snapped
   // point; map-click mode preserves the exact clicked coordinate as origin.
@@ -832,7 +698,7 @@ function prepareRoutingStart() {
     function addSegment(a, b) {
       const length = selectedRoad.length * (b.m - a.m) /
         selectedRoad.ms[selectedRoad.ms.length - 1];
-      const seconds = length / (selectedRoad.speed / 3.6);
+      const seconds = length / (selectedRoad.speedKmh / 3.6);
       const points = section(selectedRoad, a.m, b.m);
       if (selectedRoad.direction !== "reverse") {
         graph.get(a.node).push({
