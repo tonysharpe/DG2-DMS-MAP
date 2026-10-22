@@ -784,8 +784,8 @@ function build(
   interiorConnections = [];
   ignoredDestinationNames = [];
 
-  // Travel-time estimates use one fixed planning speed. Per-road speed
-  // limits or speed attributes in the GeoJSON are intentionally ignored.
+  // Use each road's GeoJSON speed (km/h). The fallback is only for older
+  // road features that do not provide a valid positive speed.
   const routeEstimateSpeedKmh = 30;
 
   status("Building network: junctions and roads…");
@@ -882,8 +882,13 @@ function build(
       const length = Number.isFinite(sourceLength) && sourceLength > 0
         ? sourceLength * (part.geometryLength / totalGeometryLength)
         : geometryLength;
-      const roundabout = isRoundaboutLink(p);
+      const rawSpeed = Number(p.speed);
+      const speedKmh = p.speed !== undefined && p.speed !== null &&
+        String(p.speed).trim() !== "" && Number.isFinite(rawSpeed) && rawSpeed > 0
+        ? rawSpeed
+        : routeEstimateSpeedKmh;
       let direction = String(p.direction || "both").trim().toLowerCase();
+      const roundabout = isRoundaboutLink(p);
       if (direction === "one") direction = "forward";
       if (["two-way", "twoway", "bidirectional"].includes(direction)) direction = "both";
       if (roundabout) direction = "forward";
@@ -899,7 +904,7 @@ function build(
         id, name: p.Name || p.name || id,
         startNode: start.id, endNode: end.id,
         pts: points, ms: measures, length, direction, roundabout,
-        properties: p,
+        speedKmh, properties: p,
         type: roadField(p, "type"), truck: roadField(p, "truck"),
         cuts: [
           { m: 0, node: start.id },
@@ -1068,7 +1073,7 @@ function build(
         road.length * (b.m - a.m) /
         road.ms[road.ms.length - 1];
 
-      const seconds = length / (routeEstimateSpeedKmh / 3.6);
+      const seconds = length / (road.speedKmh / 3.6);
       const points = section(road, a.m, b.m);
 
       if (road.direction !== "reverse") {
@@ -1493,7 +1498,8 @@ function calculate(collapseMobilePanelOnSuccess = false) {
       for (const edge of adjacency.get(current) || []) {
         if (visited.has(edge.to)) continue;
 
-        const candidate = distance + edge.length;
+        // Dijkstra minimizes travel time using the speed of each road link.
+        const candidate = distance + edge.seconds;
 
         if (candidate < (best.get(edge.to) ?? Infinity)) {
           best.set(edge.to, candidate);
