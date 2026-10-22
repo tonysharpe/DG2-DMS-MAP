@@ -2203,10 +2203,12 @@ select:disabled {
   border-top: 7px solid;
 }
 
-.diriyah-swatch--main {
-  border-color: #5B4033;
+.diriyah-swatch--major {
+  border-color: var(--map-major-road);
 }
 
+.diriyah-swatch--minor,
+.diriyah-swatch--local,
 .diriyah-swatch--public {
   border-color: var(--public-road);
 }
@@ -2524,8 +2526,8 @@ label[for="destinationSearch"] {
   --danger-soft: #FCE8E6;
 
   --map-public-road: #FFFFFF;
-  --map-main-road: #92A9C6;
-  --map-main-road-outline: #7189A8;
+  --map-major-road: #92A9C6;
+  --map-major-road-outline: #7189A8;
   --map-haul-road: #F6B26B;
   --map-unknown-road: #DADCE0;
   --map-road-outline: #C5C9CE;
