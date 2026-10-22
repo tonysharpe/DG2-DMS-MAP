@@ -339,10 +339,10 @@ function showRouteFailureBanner(message) {
     "transform:translateX(-50%)",
     "z-index:2000",
     "display:flex",
-    "align-items:flex-start",
-    "gap:12px",
-    "width:max-content",
-    "max-width:calc(100% - 32px)",
+    "align-items:center",
+    "gap:8px",
+    "width:fit-content",
+    "max-width:calc(100% - 24px)",
     "box-sizing:border-box",
     "padding:12px 14px",
     "border:1px solid #b3261e",
@@ -350,12 +350,13 @@ function showRouteFailureBanner(message) {
     "background:#fce8e6",
     "color:#7f1d1d",
     "box-shadow:0 3px 12px rgba(0,0,0,.22)",
-    "font:600 14px/1.4 system-ui,sans-serif",
+    "font:600 13px/1.35 system-ui,sans-serif",
     "pointer-events:auto"
   ].join(";");
 
   const text = document.createElement("span");
   text.textContent = message;
+  text.style.cssText = "min-width:0;text-align:center;overflow-wrap:anywhere";
   const close = document.createElement("button");
   close.type = "button";
   close.textContent = "×";
@@ -1529,7 +1530,6 @@ function calculate(collapseMobilePanelOnSuccess = false) {
     refreshShareControls();
 
     showDestinationArea(destination);
-    if (!liveNavigationActive) fitSelectedResult();
 
     if (!destination.valid) {
       if (!Number.isFinite(destination.offset)) {
