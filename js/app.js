@@ -304,6 +304,7 @@ let ignoredDestinationNames = [];
 
 let destinationOptions = [];
 let gateMarkers = new Map();
+let gateMarkerLayer = null;
 
 let costMode = "distance";
 
@@ -1718,6 +1719,9 @@ async function init() {
     map.createPane("routePane");
     map.getPane("routePane").style.zIndex = "450";
 
+    map.createPane("gateMarkerPane");
+    map.getPane("gateMarkerPane").style.zIndex = "670";
+
     L.control.scale({ imperial: false }).addTo(map);
 
     const pending = new Set([
@@ -1795,7 +1799,16 @@ async function init() {
       style: roadCasingStyle
     }).addTo(map);
 
-    const roadLayer = L.geoJSON(r, {
+    const roadTypeOrder = { local: 0, minor: 1, major: 2, main: 2, public: 3, haul: 4 };
+    const orderedRoadData = {
+      ...r,
+      features: [...(r.features || [])].sort((a, b) => {
+        const typeA = String(a.properties?.type || "").trim().toLowerCase();
+        const typeB = String(b.properties?.type || "").trim().toLowerCase();
+        return (roadTypeOrder[typeA] ?? -1) - (roadTypeOrder[typeB] ?? -1);
+      })
+    };
+    const roadLayer = L.geoJSON(orderedRoadData, {
       smoothFactor: 1.5,
       style: roadStyle,
       onEachFeature: bindRoadPopup
@@ -1837,6 +1850,7 @@ async function init() {
     if (horizontalOffset) map.panBy([horizontalOffset, 0], { animate: false });
 
     gateMarkers = new Map();
+    gateMarkerLayer = L.layerGroup().addTo(map);
     destinationOptions = [];
 
     $("start").replaceChildren();
@@ -1852,11 +1866,12 @@ async function init() {
 
         const marker = L.marker(ll(location.point), {
           icon: createGateIcon(),
+          pane: "gateMarkerPane",
           title: location.name,
           alt: "Site gate: " + location.name,
           keyboard: true,
           riseOnHover: true
-        }).addTo(map);
+        }).addTo(gateMarkerLayer);
 
         const label = document.createElement("span");
         label.textContent = location.name;
