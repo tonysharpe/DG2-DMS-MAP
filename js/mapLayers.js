@@ -34,19 +34,6 @@ function themeColor(property) {
     },
 
     {
-      label: "Riyadh local roads",
-      file: "data/riyadh_local.geojson",
-      pane: "siteReferenceRoads",
-      visible: true,
-      style: {
-        color: themeColor("--map-local-road"),
-        weight: 1.6,
-        opacity: 0.72,
-        fillColor: themeColor("--map-local-road"),
-        fillOpacity: 0.25
-      }
-    },
-    {
       label: "Riyadh secondary roads",
       file: "data/riyadh_secondary.geojson",
       pane: "siteReferenceRoads",
