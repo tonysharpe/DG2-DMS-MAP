@@ -1323,65 +1323,42 @@ function searchKey(value) {
 }
 
 
+function destinationCategory(item) {
+  const name = String(item?.name || "");
+  if (/\\bWAN\\b/i.test(name)) return "WAN";
+  if (/\\bOffice\\b/i.test(name)) return "Office";
+  if (/\\bLAAR\\b/i.test(name)) return "LAAR";
+  return "Other";
+}
+
 function renderDestinationOptions() {
   const previous = $("end").value;
   const query = searchKey($("destinationSearch").value);
-
-  const matching = destinationOptions.filter(item => {
-    return searchKey(item.name).includes(query);
-  });
-
-  /*
-   * Retain an already selected destination even if the
-   * user types a search that does not match it.
-   */
+  const category = document.querySelector('input[name="destinationType"]:checked')?.value || "LAAR";
+  const matching = destinationOptions.filter(item => destinationCategory(item) === category && searchKey(item.name).includes(query));
+  const selected = destinationOptions.find(item => String(item.index) === previous && destinationCategory(item) === category);
   const visible = [...matching];
-
-  const selected = destinationOptions.find(item => {
-    return String(item.index) === previous;
-  });
-
-  const retained =
-    selected &&
-    !visible.some(item => item.index === selected.index);
-
+  const retained = selected && !visible.some(item => item.index === selected.index);
   if (retained) visible.push(selected);
-
   visible.sort((a, b) => {
     const left = searchKey(a.name);
     const right = searchKey(b.name);
     const rank = value => !query ? 0 : value === query ? 0 : value.startsWith(query) ? 1 : 2;
-    return rank(left) - rank(right) ||
-      a.name.localeCompare(b.name, undefined, { numeric: true });
+    return rank(left) - rank(right) || a.name.localeCompare(b.name, undefined, { numeric: true });
   });
-
   $("end").replaceChildren();
-
   const placeholder = document.createElement("option");
   placeholder.value = "";
-  placeholder.textContent = matching.length
-    ? "Select a LAAR…"
-    : "No search matches";
-
+  placeholder.textContent = matching.length ? "Select " + category + "…" : "No " + category + " matches";
   $("end").appendChild(placeholder);
-
   for (const item of visible) {
     const option = document.createElement("option");
-
     option.value = String(item.index);
-    option.textContent =
-      item.name +
-      (!item.hasPolygon ? " — polygon missing" : "") +
-      (!item.valid ? " — outside snap limit" : "");
-
+    option.textContent = item.name + (!item.hasPolygon ? " — polygon missing" : "") + (!item.valid ? " — outside snap limit" : "");
     $("end").appendChild(option);
   }
-
   $("end").value = selected ? previous : "";
-
-  $("searchStatus").textContent =
-    matching.length + " matching destination(s)" +
-    (retained ? ". Current selection retained." : ".");
+  $("searchStatus").textContent = matching.length + " matching " + category + " destination(s)" + (retained ? ". Current selection retained." : ".");
 }
 
 
@@ -2037,6 +2014,33 @@ async function init() {
 
     $("vehicleType").disabled = false;
     $("vehicleType").onchange = changeVehicle;
+    document.querySelectorAll('input[name="vehicleTypeChoice"]').forEach(radio => {
+      radio.checked = radio.value === $("vehicleType").value;
+      radio.addEventListener("change", () => {
+        if (!radio.checked) return;
+        $("vehicleType").value = radio.value;
+        $("vehicleType").dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    });
+    document.querySelectorAll('input[name="destinationType"]').forEach(radio => {
+      radio.addEventListener("change", () => {
+        $("end").value = "";
+        $("destinationSearch").value = "";
+        clearRoute();
+        renderDestinationOptions();
+        refreshShareControls();
+        status("Select a " + radio.value + " destination.");
+      });
+    });
+    document.querySelectorAll('input[name="startModeChoice"]').forEach(radio => {
+      radio.checked = radio.value === $("startMode").value;
+      radio.addEventListener("change", () => {
+        if (!radio.checked) return;
+        $("startMode").value = radio.value;
+        $("startMode").dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    });
+
     $("destinationSearch").disabled = false;
     $("end").disabled = false;
     $("route").disabled = false;
@@ -2049,9 +2053,10 @@ async function init() {
       if (event.key !== "Enter") return;
 
       const query = searchKey($("destinationSearch").value);
-      const matching = destinationOptions.filter(item => {
-        return searchKey(item.name).includes(query);
-      });
+      const category = document.querySelector('input[name="destinationType"]:checked')?.value || "LAAR";
+      const matching = destinationOptions.filter(item =>
+        destinationCategory(item) === category && searchKey(item.name).includes(query)
+      );
 
       if (matching.length === 1) {
         event.preventDefault();
