@@ -676,7 +676,7 @@ function prepareRoutingStart() {
           roadField(candidateRoad.properties || {}, "local") ?? ""
         ).trim().toLowerCase();
         if (candidateRoad.id === originalNearestRoad.id ||
-            candidateRoad.type !== "main" ||
+            candidateRoad.type !== "major" ||
             candidateLocal !== "no") continue;
 
         const originalSnapPoint = mapClickOrigin.originalSnapPoint || mapClickOrigin.snapPoint;
@@ -724,7 +724,7 @@ function prepareRoutingStart() {
         );
       }
       locationStatus(
-        "40% rule selected main road " + selectedRoad.name +
+        "40% rule selected major road " + selectedRoad.name +
         " (route " + Math.round(override.routeDistance) +
         " m versus " + Math.round(initialDistance) + " m initially)."
       );
