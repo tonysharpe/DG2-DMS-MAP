@@ -1791,14 +1791,6 @@ async function init() {
         ? "Not recorded"
         : String(reviewed);
 
-    // Draw a subtle grey casing below the road fill, as on Google Maps.
-    L.geoJSON(r, {
-      pane: "roadCasingPane",
-      smoothFactor: 1.5,
-      interactive: false,
-      style: roadCasingStyle
-    }).addTo(map);
-
     const roadTypeOrder = { local: 0, minor: 1, major: 2, main: 2, public: 3, haul: 4 };
     const orderedRoadData = {
       ...r,
@@ -1808,6 +1800,15 @@ async function init() {
         return (roadTypeOrder[typeA] ?? -1) - (roadTypeOrder[typeB] ?? -1);
       })
     };
+
+    // Draw road casings in the same bottom-to-top order as road surfaces.
+    L.geoJSON(orderedRoadData, {
+      pane: "roadCasingPane",
+      smoothFactor: 1.5,
+      interactive: false,
+      style: roadCasingStyle
+    }).addTo(map);
+
     const roadLayer = L.geoJSON(orderedRoadData, {
       smoothFactor: 1.5,
       style: roadStyle,
@@ -1851,6 +1852,9 @@ async function init() {
 
     gateMarkers = new Map();
     gateMarkerLayer = L.layerGroup().addTo(map);
+    if (window.laarLayerControl) {
+      window.laarLayerControl.addOverlay(gateMarkerLayer, "Gates");
+    }
     destinationOptions = [];
 
     $("start").replaceChildren();
