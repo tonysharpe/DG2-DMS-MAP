@@ -2536,8 +2536,6 @@ label[for="destinationSearch"] {
   --map-area-fill: #8AB4F8;
   --map-masterplan-fill: #F8F9FA;
   --map-local-road: #FFFFFF;
-  --map-secondary-road-outline: #B8C9D8;
-  --map-secondary-road: #CED8E1;
   --map-road-width: 4;
   --map-route-width: 7.5;
 }
