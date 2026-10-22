@@ -7,19 +7,6 @@ function themeColor(property) {
 (async function initialiseBackgroundLayers() {
   const definitions = [
     {
-      label: "Residential roads",
-      file: "data/parcels.geojson",
-      pane: "siteBackground",
-      smoothFactor: 2,
-      visible: true,
-      interactive: false,
-      style: {
-        color: themeColor("--map-residential-outline"),
-        weight: 1,
-        opacity: 0.55
-      }
-    },
-    {
       label: "Masterplan",
       file: "data/masterplan.geojson",
       pane: "siteBackground",
