@@ -151,6 +151,10 @@ function routeDistanceFromRoadProjection(road, projection, destinationNode) {
     if (current === destinationNode) return currentDistance;
     visited.add(current);
     for (const edge of graph.get(current) || []) {
+      if (edge.roadId !== undefined && edge.roadId !== null &&
+          typeof routeDebugRoadIds !== "undefined") {
+        routeDebugRoadIds.add(edge.roadId);
+      }
       if (visited.has(edge.to)) continue;
       const nextDistance = currentDistance + edge.length;
       if (nextDistance < (distances.get(edge.to) ?? Infinity)) {
