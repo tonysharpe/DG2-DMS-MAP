@@ -646,17 +646,17 @@ function prepareRoutingStart() {
   // 40% comparison, even if the separate routeability fallback is needed.
   const originalNearestRoad = selectedRoad;
   const originalNearestProjection = nearest(snapshot.point, originalNearestRoad.pts);
-  const originalRoadIsLocalYes =
-    String(roadField(originalNearestRoad.properties || {}, "local") ?? "")
-      .trim().toLowerCase() === "yes";
+  const originalRoadLocal = String(
+    roadField(originalNearestRoad.properties || {}, "local") ?? ""
+  ).trim().toLowerCase();
 
   /*
-   * Optional routeability/40% override for map-click origins.
-   * Consider at most 10 road-by-road route searches, and only roads whose
-   * GeoJSON local field explicitly says "no". Keep the browser responsive
-   * by bounding the number of full graph searches per click.
+   * Only run the alternative-road search when the initially closest road
+   * explicitly has local: "no". Measure the 50 m candidate buffer from the
+   * projection onto that closest road, not from the user's clicked point.
+   * Rank eligible alternatives by proximity and route-search at most ten.
    */
-  if (startMode === "map" && !originalRoadIsLocalYes) {
+  if (startMode === "map" && originalRoadLocal === "no") {
     const destination = typeof selectedDestination === "function"
       ? selectedDestination()
       : null;
@@ -666,36 +666,43 @@ function prepareRoutingStart() {
         )
       : Infinity;
     let override = null;
-    let routeSearches = 0;
     const MAX_MAP_CLICK_ROUTE_SEARCHES = 10;
+    const originalRoadSnapPoint = originalNearestProjection.q;
+    const candidates = [];
 
     if (Number.isFinite(initialDistance) && initialDistance > 0 && destination) {
       for (const candidateRoad of roads) {
-        if (routeSearches >= MAX_MAP_CLICK_ROUTE_SEARCHES) break;
+        if (candidateRoad.id === originalNearestRoad.id ||
+            candidateRoad.type !== "major") continue;
         const candidateLocal = String(
           roadField(candidateRoad.properties || {}, "local") ?? ""
         ).trim().toLowerCase();
-        if (candidateRoad.id === originalNearestRoad.id ||
-            candidateRoad.type !== "major" ||
-            candidateLocal !== "no") continue;
+        if (candidateLocal !== "no") continue;
 
-        const originalSnapPoint = mapClickOrigin.originalSnapPoint || mapClickOrigin.snapPoint;
-        const candidateProjection = nearest(originalSnapPoint, candidateRoad.pts);
+        const candidateProjection = nearest(originalRoadSnapPoint, candidateRoad.pts);
         if (!Number.isFinite(candidateProjection.offset) ||
             candidateProjection.offset > MAIN_ROAD_40_PERCENT_BUFFER_METRES) continue;
 
-        // Count only actual route searches, not roads rejected by proximity/metadata.
-        routeSearches += 1;
+        candidates.push({
+          road: candidateRoad,
+          projection: candidateProjection,
+          offsetFromClosestRoad: candidateProjection.offset
+        });
+      }
+
+      candidates.sort((a, b) => a.offsetFromClosestRoad - b.offsetFromClosestRoad);
+
+      for (const candidate of candidates.slice(0, MAX_MAP_CLICK_ROUTE_SEARCHES)) {
         const candidateDistance = routeDistanceFromRoadProjection(
-          candidateRoad, candidateProjection, destination.node
+          candidate.road, candidate.projection, destination.node
         );
         if (!Number.isFinite(candidateDistance) ||
             candidateDistance > initialDistance * 0.60) continue;
 
         if (!override || candidateDistance < override.routeDistance) {
           override = {
-            road: candidateRoad,
-            projection: candidateProjection,
+            road: candidate.road,
+            projection: candidate.projection,
             routeDistance: candidateDistance
           };
         }
@@ -719,7 +726,7 @@ function prepareRoutingStart() {
       };
       if (mapClickOriginMarker) {
         mapClickOriginMarker.bindTooltip(
-          "Map origin — 40% rule selected " + selectedRoad.name,
+          "Map origin — 40% rule selected major road " + selectedRoad.name,
           { direction: "top" }
         );
       }
