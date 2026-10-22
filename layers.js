@@ -146,7 +146,7 @@ async function loadRoadLayer(map, config) {
 }
 
 export const loadLocalRoads = map => loadRoadLayer(map, {
-  path: "../../data/local_roads.geojson", filename: "local_roads.geojson", sourceId: "local_roads",
+  path: "../../data/riyadh_local.geojson", filename: "riyadh_local.geojson", sourceId: "riyadh_local",
   outlineColor: "#B8C9D8", outlineWidth: 1.0, surfaceColor: "#CED8E1", surfaceWidth: 0.7
 });
 
@@ -187,8 +187,8 @@ export async function setLayerOrder(map, timeoutMs = 15000) {
     "communities-outline",
     "community-labels",
     
-    "local_roads-outline",
-    "local_roads-lines",
+    "riyadh_local-outline",
+    "riyadh_local-lines",
     "riyadh_residential-outline",
     "riyadh_residential-lines",
     "riyadh_secondary-outline",
