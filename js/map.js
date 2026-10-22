@@ -52,9 +52,9 @@
 
     let color = themeColor("--map-unknown-road");
 
-    if (type === "main") {
-      color = themeColor("--map-main-road");
-    } else if (type === "public") {
+    if (type === "major" || type === "main") {
+      color = themeColor("--map-major-road");
+    } else if (["minor", "local", "public"].includes(type)) {
       color = themeColor("--map-public-road");
     } else if (type === "haul") {
       color = themeColor("--map-haul-road");
@@ -73,8 +73,8 @@
   roadCasingStyle = function (feature) {
     const type = roadField(feature.properties || {}, "type");
     return {
-      color: type === "main" ? themeColor("--map-main-road-outline") : themeColor("--map-road-outline"),
-      weight: type === "main" ? 6 : 5.5,
+      color: (type === "major" || type === "main") ? themeColor("--map-major-road-outline") : themeColor("--map-road-outline"),
+      weight: (type === "major" || type === "main") ? 6 : 5.5,
       opacity: 1,
       lineCap: "round",
       lineJoin: "round"
@@ -167,8 +167,18 @@
 
         <div id="mapLegendContent" class="map-legend__content"${mobileLegend ? " hidden" : ""}>
           <div class="map-legend__row">
-            <span class="diriyah-swatch diriyah-swatch--main" aria-hidden="true"></span>
-            <span>Main road</span>
+            <span class="diriyah-swatch diriyah-swatch--major" aria-hidden="true"></span>
+            <span>Major road</span>
+          </div>
+
+          <div class="map-legend__row">
+            <span class="diriyah-swatch diriyah-swatch--minor" aria-hidden="true"></span>
+            <span>Minor road</span>
+          </div>
+
+          <div class="map-legend__row">
+            <span class="diriyah-swatch diriyah-swatch--local" aria-hidden="true"></span>
+            <span>Local road</span>
           </div>
 
           <div class="map-legend__row">
