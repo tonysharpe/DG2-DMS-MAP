@@ -73,10 +73,11 @@ function roadAccess(properties, vehicle = vehicleMode) {
   const type = roadField(properties, "type");
   const car = roadField(properties, "car");
   const truck = roadField(properties, "truck");
-  if (!["haul", "public", "main"].includes(type)) return false;
+  const supportedTypes = ["major", "minor", "local", "public", "haul", "main"];
+  if (!supportedTypes.includes(type)) return false;
   if (vehicle === "car") {
     if (type === "haul") return false;
-    return car ? car === "yes" : type === "public";
+    return car ? car === "yes" : ["minor", "local", "public", "main"].includes(type);
   }
   if (vehicle === "truck") return truck === "yes";
   return false;
@@ -85,7 +86,10 @@ function roadAccess(properties, vehicle = vehicleMode) {
 function roadStyle(feature) {
   const type = roadField(feature?.properties || {}, "type");
   const palette = {
-    main: { color: "--map-main-road", outline: "--map-main-road-outline", width: "--map-road-width", casing: 6 },
+    major: { color: "--map-major-road", outline: "--map-major-road-outline", width: "--map-road-width", casing: 6 },
+    main: { color: "--map-major-road", outline: "--map-major-road-outline", width: "--map-road-width", casing: 6 },
+    minor: { color: "--map-public-road", outline: "--map-road-outline", width: "--map-road-width", casing: 5.5 },
+    local: { color: "--map-public-road", outline: "--map-road-outline", width: "--map-road-width", casing: 5.5 },
     public: { color: "--map-public-road", outline: "--map-road-outline", width: "--map-road-width", casing: 5.5 },
     haul: { color: "--map-haul-road", outline: "--map-road-outline", width: "--map-road-width", casing: 5.5 }
   };
@@ -103,7 +107,10 @@ function roadStyle(feature) {
 function roadCasingStyle(feature) {
   const type = roadField(feature?.properties || {}, "type");
   const palette = {
-    main: { color: "--map-main-road-outline", casing: 6 },
+    major: { color: "--map-major-road-outline", casing: 6 },
+    main: { color: "--map-major-road-outline", casing: 6 },
+    minor: { color: "--map-road-outline", casing: 5.5 },
+    local: { color: "--map-road-outline", casing: 5.5 },
     public: { color: "--map-road-outline", casing: 5.5 },
     haul: { color: "--map-road-outline", casing: 5.5 }
   };
@@ -155,7 +162,7 @@ function reportAccessData(data) {
     const type = roadField(p, "type");
     const car = roadField(p, "car");
     const truck = roadField(p, "truck");
-    return !["haul", "public", "main"].includes(type) ||
+    return !["major", "minor", "local", "public", "haul", "main"].includes(type) ||
       !["yes", "no"].includes(truck) ||
       (car !== "" && !["yes", "no"].includes(car));
   });
