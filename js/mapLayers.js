@@ -7,42 +7,46 @@ function themeColor(property) {
 (async function initialiseBackgroundLayers() {
   const definitions = [
     {
+      label: "Boundary",
+      file: "data/boundary.geojson",
+      pane: "siteBaseLayers",
+      visible: true,
+      interactive: false,
+      style: {
+        color: "#7189A8",
+        weight: 1.4,
+        opacity: 0.85,
+        fillColor: "#DADCE0",
+        fillOpacity: 0.08
+      }
+    },
+    {
+      label: "Communities",
+      file: "data/communities.geojson",
+      pane: "siteBaseLayers",
+      visible: true,
+      interactive: false,
+      style: {
+        color: "#9B85AF",
+        weight: 1.2,
+        opacity: 0.45,
+        fillColor: "#B9A5C9",
+        fillOpacity: 0.08
+      }
+    },
+    {
       label: "Masterplan",
       file: "data/masterplan.geojson",
       pane: "siteBackground",
       visible: true,
       boundary: true,
       style: {
-        color: themeColor("--map-residential-outline"),
+        color: "#DADCE0",
         weight: 0.7,
         fillColor: themeColor("--map-masterplan-fill"),
         fillOpacity: 0.22
       }
-    },
-
-    {
-      label: "Riyadh secondary roads",
-      file: "data/riyadh_secondary.geojson",
-      pane: "siteReferenceRoads",
-      visible: true,
-      casingStyle: {
-        color: themeColor("--map-secondary-road-outline"),
-        weight: 2.5,
-        opacity: 1,
-        lineCap: "round",
-        lineJoin: "round"
-      },
-      style: {
-        color: themeColor("--map-secondary-road"),
-        weight: 1.5,
-        opacity: 1,
-        lineCap: "round",
-        lineJoin: "round"
-      }
-    },
-
-
-
+    }
   ];
 
   const wait = milliseconds => {
@@ -302,6 +306,7 @@ function themeColor(property) {
     return;
   }
 
+  pane("siteBaseLayers", 210);
   pane("siteBackground", 250);
   pane("siteReferenceRoadCasings", 290);
   pane("siteReferenceRoads", 300);
@@ -313,6 +318,13 @@ function themeColor(property) {
     {},
     { collapsed: true }
   ).addTo(map);
+
+  if (typeof displayedRoadLayer !== "undefined" && displayedRoadLayer) {
+    control.addOverlay(displayedRoadLayer, "Roads");
+  }
+  if (typeof gateMarkerLayer !== "undefined" && gateMarkerLayer) {
+    control.addOverlay(gateMarkerLayer, "Gates");
+  }
 
   const errors = [];
 
