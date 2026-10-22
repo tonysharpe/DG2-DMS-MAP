@@ -23,7 +23,7 @@ const LIVE_ROUTE_ATTEMPT_COOLDOWN_MS = 15000;
 const LIVE_FOLLOW_ZOOM = 19; // Close navigation view, centred on the live route start.
 let mapClickOrigin = null;
 let mapClickOriginMarker = null;
-const MAP_CLICK_BUFFER_METRES = 10000;
+const MAP_CLICK_BUFFER_METRES = 15000;
 const MAIN_ROAD_40_PERCENT_BUFFER_METRES = 50;
 let locationWatchGeneration = 0;
 const LIVE_LOCATION_MAX_AGE = 60000;
@@ -46,16 +46,16 @@ function removeMapClickOrigin() {
  *
  * The vehicle-specific network is built in app.js. Therefore `roads`
  * already contains only links permitted for the active vehicle.
- * Initially select the geographically nearest permitted link within 10 km.
+ * Initially select the geographically nearest permitted link within 15 km.
  * If it cannot route to the selected destination, prepareRoutingStart()
- * searches permitted links within 10 km for the closest routeable alternative.
+ * searches permitted links within 15 km for the closest routeable alternative.
  */
 function chooseMapClickRoad(clickedPoint) {
   let best = null;
 
   for (const road of roads) {
     const projection = nearest(clickedPoint, road.pts);
-    if (!Number.isFinite(projection.offset) || projection.offset > 10000) continue;
+    if (!Number.isFinite(projection.offset) || projection.offset > MAP_CLICK_BUFFER_METRES) continue;
 
     if (!best || projection.offset < best.projection.offset) {
       best = { road, projection };
@@ -173,7 +173,7 @@ function setMapClickOrigin(latlng) {
   const choice = chooseMapClickRoad(clickedPoint);
   if (!choice) {
     const message = "No road permitted for " + vehicleMode +
-      " was found within 10 km of this point.";
+      " was found within 15 km of this point.";
     locationStatus("Map origin rejected: " + message);
     status("Origin not changed. Click elsewhere on the map.");
     return;
@@ -568,7 +568,7 @@ function initialiseLocationControls() {
       $("stopLocation").disabled = true;
       removeMapClickOrigin();
       map.closePopup();
-      locationStatus("Click anywhere on the map. The origin snaps to the nearest road permitted for the selected vehicle within 10 km. The route follows mapped connections and road directions.");
+      locationStatus("Click anywhere on the map. The origin snaps to the nearest road permitted for the selected vehicle within 15 km. The route follows mapped connections and road directions.");
       status("Step 1 of 2: click anywhere on the map to set the origin.");
     } else {
       if (typeof setMapClickHitAreaEnabled === "function") setMapClickHitAreaEnabled(false);
@@ -612,7 +612,7 @@ function prepareRoutingStart() {
     // Re-evaluate against the active vehicle network when routing starts.
     const choice = chooseMapClickRoad(snapshot.point);
     if (!choice) {
-      throw new Error("No road permitted for " + vehicleMode + " was found within 10 km of the selected map point.");
+      throw new Error("No road permitted for " + vehicleMode + " was found within 15 km of the selected map point.");
     }
     nearestMappedRoad = { candidate: choice.road, ...choice.projection };
     mapClickOrigin = {
@@ -681,32 +681,40 @@ function prepareRoutingStart() {
         };
       }
 
-      for (const candidateRoad of roads) {
-        if (candidateRoad.id === originalNearestRoad.id ||
-            candidateRoad.type !== "major") continue;
-        const candidateLocal = String(
-          roadField(candidateRoad.properties || {}, "local") ?? ""
-        ).trim().toLowerCase();
-        if (candidateLocal !== "no") continue;
+      const searchNearbyRoads = (majorOnly) => {
+        for (const candidateRoad of roads) {
+          if (candidateRoad.id === originalNearestRoad.id) continue;
+          if (majorOnly && candidateRoad.type !== "major") continue;
+          const candidateLocal = String(
+            roadField(candidateRoad.properties || {}, "local") ?? ""
+          ).trim().toLowerCase();
+          if (candidateLocal !== "no") continue;
 
-        const candidateProjection = nearest(originalRoadSnapPoint, candidateRoad.pts);
-        if (!Number.isFinite(candidateProjection.offset) ||
-            candidateProjection.offset > MAIN_ROAD_40_PERCENT_BUFFER_METRES) continue;
+          const candidateProjection = nearest(originalRoadSnapPoint, candidateRoad.pts);
+          if (!Number.isFinite(candidateProjection.offset) ||
+              candidateProjection.offset > MAIN_ROAD_40_PERCENT_BUFFER_METRES) continue;
 
-        const candidateTravelSeconds = routeDistanceFromRoadProjection(
-          candidateRoad, candidateProjection, destination.node
-        );
-        if (!Number.isFinite(candidateTravelSeconds)) continue;
+          const candidateTravelSeconds = routeDistanceFromRoadProjection(
+            candidateRoad, candidateProjection, destination.node
+          );
+          if (!Number.isFinite(candidateTravelSeconds)) continue;
 
-        if (!fastest || candidateTravelSeconds < fastest.travelSeconds) {
-          fastest = {
-            road: candidateRoad,
-            projection: candidateProjection,
-            travelSeconds: candidateTravelSeconds,
-            isOriginal: false
-          };
+          if (!fastest || candidateTravelSeconds < fastest.travelSeconds) {
+            fastest = {
+              road: candidateRoad,
+              projection: candidateProjection,
+              travelSeconds: candidateTravelSeconds,
+              isOriginal: false
+            };
+          }
         }
-      }
+      };
+
+      // Prefer the major-road alternatives first. If neither the original
+      // link nor any major-road alternative reaches the LAAR, retry with all
+      // road types within the same 50 m buffer.
+      searchNearbyRoads(true);
+      if (!fastest) searchNearbyRoads(false);
     }
 
     if (fastest && !fastest.isOriginal) {
