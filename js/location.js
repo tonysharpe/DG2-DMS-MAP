@@ -681,14 +681,16 @@ function prepareRoutingStart() {
         };
       }
 
-      const searchNearbyRoads = (majorOnly) => {
+      const searchNearbyRoads = (majorOnly, requireNonLocal) => {
         for (const candidateRoad of roads) {
           if (candidateRoad.id === originalNearestRoad.id) continue;
           if (majorOnly && candidateRoad.type !== "major") continue;
-          const candidateLocal = String(
-            roadField(candidateRoad.properties || {}, "local") ?? ""
-          ).trim().toLowerCase();
-          if (candidateLocal !== "no") continue;
+          if (requireNonLocal) {
+            const candidateLocal = String(
+              roadField(candidateRoad.properties || {}, "local") ?? ""
+            ).trim().toLowerCase();
+            if (candidateLocal !== "no") continue;
+          }
 
           const candidateProjection = nearest(originalRoadSnapPoint, candidateRoad.pts);
           if (!Number.isFinite(candidateProjection.offset) ||
@@ -713,8 +715,8 @@ function prepareRoutingStart() {
       // Prefer the major-road alternatives first. If neither the original
       // link nor any major-road alternative reaches the LAAR, retry with all
       // road types within the same 50 m buffer.
-      searchNearbyRoads(true);
-      if (!fastest) searchNearbyRoads(false);
+      searchNearbyRoads(true, true);
+      if (!fastest) searchNearbyRoads(false, false);
     }
 
     if (fastest && !fastest.isOriginal) {
