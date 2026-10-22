@@ -156,7 +156,7 @@ function routeDistanceFromRoadProjection(road, projection, destinationNode) {
         routeDebugRoadIds.add(edge.roadId);
       }
       if (visited.has(edge.to)) continue;
-      const nextDistance = currentDistance + edge.length;
+      const nextDistance = currentDistance + edge.seconds;
       if (nextDistance < (distances.get(edge.to) ?? Infinity)) {
         distances.set(edge.to, nextDistance);
       }
@@ -655,26 +655,32 @@ function prepareRoutingStart() {
   ).trim().toLowerCase();
 
   /*
-   * Only run the alternative-road search when the initially closest road
-   * explicitly has local: "no". Measure the 50 m candidate buffer from the
-   * projection onto that closest road, not from the user's clicked point.
-   * Rank eligible alternatives by proximity and route-search at most ten.
+   * If the closest road is explicitly local: "no", evaluate the original
+   * attachment and every eligible major/local:no road within 50 m of its
+   * projection. routeDistanceFromRoadProjection returns travel time in seconds,
+   * so choose the fastest connected option. The clicked point itself may be
+   * much farther from the road; it is not used for the 50 m candidate buffer.
    */
   if (startMode === "map" && originalRoadLocal === "no") {
     const destination = typeof selectedDestination === "function"
       ? selectedDestination()
       : null;
-    const initialDistance = destination
-      ? routeDistanceFromRoadProjection(
-          originalNearestRoad, originalNearestProjection, destination.node
-        )
-      : Infinity;
-    let override = null;
-    const MAX_MAP_CLICK_ROUTE_SEARCHES = 10;
     const originalRoadSnapPoint = originalNearestProjection.q;
-    const candidates = [];
+    let fastest = null;
 
-    if (Number.isFinite(initialDistance) && initialDistance > 0 && destination) {
+    if (destination) {
+      const originalTravelSeconds = routeDistanceFromRoadProjection(
+        originalNearestRoad, originalNearestProjection, destination.node
+      );
+      if (Number.isFinite(originalTravelSeconds)) {
+        fastest = {
+          road: originalNearestRoad,
+          projection: originalNearestProjection,
+          travelSeconds: originalTravelSeconds,
+          isOriginal: true
+        };
+      }
+
       for (const candidateRoad of roads) {
         if (candidateRoad.id === originalNearestRoad.id ||
             candidateRoad.type !== "major") continue;
@@ -687,57 +693,46 @@ function prepareRoutingStart() {
         if (!Number.isFinite(candidateProjection.offset) ||
             candidateProjection.offset > MAIN_ROAD_40_PERCENT_BUFFER_METRES) continue;
 
-        candidates.push({
-          road: candidateRoad,
-          projection: candidateProjection,
-          offsetFromClosestRoad: candidateProjection.offset
-        });
-      }
-
-      candidates.sort((a, b) => a.offsetFromClosestRoad - b.offsetFromClosestRoad);
-
-      for (const candidate of candidates.slice(0, MAX_MAP_CLICK_ROUTE_SEARCHES)) {
-        const candidateDistance = routeDistanceFromRoadProjection(
-          candidate.road, candidate.projection, destination.node
+        const candidateTravelSeconds = routeDistanceFromRoadProjection(
+          candidateRoad, candidateProjection, destination.node
         );
-        if (!Number.isFinite(candidateDistance) ||
-            candidateDistance > initialDistance * 0.60) continue;
+        if (!Number.isFinite(candidateTravelSeconds)) continue;
 
-        if (!override || candidateDistance < override.routeDistance) {
-          override = {
-            road: candidate.road,
-            projection: candidate.projection,
-            routeDistance: candidateDistance
+        if (!fastest || candidateTravelSeconds < fastest.travelSeconds) {
+          fastest = {
+            road: candidateRoad,
+            projection: candidateProjection,
+            travelSeconds: candidateTravelSeconds,
+            isOriginal: false
           };
         }
       }
     }
 
-    if (override) {
-      selectedRoad = override.road;
+    if (fastest && !fastest.isOriginal) {
+      selectedRoad = fastest.road;
       nearestMappedRoad = {
         candidate: selectedRoad,
-        ...override.projection,
-        offset: dist(snapshot.point, override.projection.q)
+        ...fastest.projection,
+        offset: dist(snapshot.point, fastest.projection.q)
       };
       mapClickOrigin = {
         ...mapClickOrigin,
-        snapPoint: [...override.projection.q],
+        snapPoint: [...fastest.projection.q],
         offset: nearestMappedRoad.offset,
-        measure: override.projection.m,
+        measure: fastest.projection.m,
         attachedRoadId: selectedRoad.id,
         roadName: selectedRoad.name
       };
       if (mapClickOriginMarker) {
         mapClickOriginMarker.bindTooltip(
-          "Map origin — 40% rule selected major road " + selectedRoad.name,
+          "Map origin — fastest valid route via " + selectedRoad.name,
           { direction: "top" }
         );
       }
       locationStatus(
-        "40% rule selected major road " + selectedRoad.name +
-        " (route " + Math.round(override.routeDistance) +
-        " m versus " + Math.round(initialDistance) + " m initially)."
+        "Selected fastest valid route via " + selectedRoad.name +
+        " (" + Math.round(fastest.travelSeconds) + " s)."
       );
     }
   }
