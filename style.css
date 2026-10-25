@@ -3801,3 +3801,10 @@ body > #journeyControls.journey-controls {
   color: #fff !important;
   opacity: 1 !important;
 }
+
+
+/* Separate each primary navigation section consistently, as in Share. */
+#navigationPanel > .control-section {
+  padding-top: 18px;
+  border-top: 1px solid var(--border-color);
+}
