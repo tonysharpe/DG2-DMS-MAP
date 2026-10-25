@@ -1356,18 +1356,50 @@ function renderDestinationOptions() {
     const rank = value => !query ? 0 : value === query ? 0 : value.startsWith(query) ? 1 : 2;
     return rank(left) - rank(right) || a.name.localeCompare(b.name, undefined, { numeric: true });
   });
-  $("end").replaceChildren();
+  const end = $("end");
+  const pickerToggle = $("destinationPickerToggle");
+  const pickerList = $("destinationPickerList");
+  end.replaceChildren();
   const placeholder = document.createElement("option");
   placeholder.value = "";
   placeholder.textContent = matching.length ? "Select " + category + "…" : "No " + category + " matches";
-  $("end").appendChild(placeholder);
+  end.appendChild(placeholder);
   for (const item of visible) {
     const option = document.createElement("option");
     option.value = String(item.index);
     option.textContent = item.name + (!item.hasPolygon ? " — polygon missing" : "") + (!item.valid ? " — outside snap limit" : "");
-    $("end").appendChild(option);
+    end.appendChild(option);
   }
-  $("end").value = selected ? previous : "";
+  end.value = selected ? previous : "";
+  if (pickerToggle) {
+    pickerToggle.textContent = selected ? selected.name : (matching.length ? "Select " + category + "…" : "No " + category + " matches");
+    pickerToggle.disabled = end.disabled;
+  }
+  if (pickerList) {
+    pickerList.replaceChildren();
+    for (const item of visible) {
+      const option = document.createElement("button");
+      option.type = "button";
+      option.className = "destination-picker-option";
+      option.setAttribute("role", "option");
+      option.setAttribute("aria-selected", String(Boolean(selected && selected.index === item.index)));
+      option.textContent = item.name + (!item.hasPolygon ? " — polygon missing" : "") + (!item.valid ? " — outside snap limit" : "");
+      option.addEventListener("click", () => {
+        end.value = String(item.index);
+        pickerToggle.textContent = item.name;
+        pickerToggle.setAttribute("aria-expanded", "false");
+        pickerList.hidden = true;
+        end.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      pickerList.appendChild(option);
+    }
+    if (!visible.length) {
+      const empty = document.createElement("p");
+      empty.className = "destination-picker-empty";
+      empty.textContent = "No matching destinations.";
+      pickerList.appendChild(empty);
+    }
+  }
   $("searchStatus").textContent = matching.length + " matching " + category + " destination(s)" + (retained ? ". Current selection retained." : ".");
 }
 
@@ -2091,6 +2123,27 @@ async function init() {
 
     $("destinationSearch").disabled = false;
     $("end").disabled = false;
+    const pickerToggle = $("destinationPickerToggle");
+    const pickerList = $("destinationPickerList");
+    if (pickerToggle && pickerList) {
+      pickerToggle.disabled = false;
+      pickerToggle.addEventListener("click", () => {
+        const opening = pickerList.hidden;
+        pickerList.hidden = !opening;
+        pickerToggle.setAttribute("aria-expanded", String(opening));
+      });
+      document.addEventListener("click", event => {
+        if (event.target.closest("#destinationPickerToggle, #destinationPickerList")) return;
+        pickerList.hidden = true;
+        pickerToggle.setAttribute("aria-expanded", "false");
+      });
+      pickerToggle.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          pickerList.hidden = true;
+          pickerToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
     $("clear").disabled = false;
     $("fit").disabled = false;
 
