@@ -536,7 +536,8 @@ function addRecenterControl() {
 // after the user explicitly confirms Begin journey.
 const calculateRouteForJourney = calculate;
 function syncHeaderLiveRouteButton() {
-  window.laarRouteAvailable = Boolean(routeLayer);
+  // Route availability is set by calculate() when a preview is cleared or drawn.
+  // Starting/stopping live guidance must not change whether the preview exists.
   document.dispatchEvent(new CustomEvent("laar-route-state-change"));
 }
 calculate = function () {
