@@ -110,13 +110,19 @@
 
     <!-- DESTINATION -->
     <section class="control-section" aria-labelledby="destinationHeading">
-      <h2 id="destinationHeading">Destination</h2>
+      <h2 id="destinationHeading">Destination:</h2>
       <fieldset class="radio-options destination-type-options" aria-label="Destination type">
         <legend class="visually-hidden">Destination type</legend>
         <label><input type="radio" name="destinationType" value="WAN"> WAN</label>
         <label><input type="radio" name="destinationType" value="LAAR" checked> LAAR</label>
         <label><input type="radio" name="destinationType" value="Office"> Office</label>
       </fieldset>
+      <label for="destinationPickerToggle">Available destinations</label>
+      <button id="destinationPickerToggle" class="destination-picker-toggle" type="button" aria-expanded="false" aria-controls="destinationPickerList" disabled>Select destination…</button>
+      <div id="destinationPickerList" class="destination-picker-list" role="listbox" aria-label="Available destinations" hidden></div>
+      <select id="end" disabled aria-hidden="true" tabindex="-1">
+        <option value="" selected>Select destination…</option>
+      </select>
     </section>
 
 <!-- START LOCATION -->
@@ -142,12 +148,6 @@
       <input id="destinationSearch" type="search" placeholder="Type to search…" autocomplete="off"
         aria-describedby="searchStatus" disabled>
       <p id="searchStatus" class="field-help" aria-live="polite"></p>
-      <label for="destinationPickerToggle">Available destinations</label>
-      <button id="destinationPickerToggle" class="destination-picker-toggle" type="button" aria-expanded="false" aria-controls="destinationPickerList" disabled>Select destination…</button>
-      <div id="destinationPickerList" class="destination-picker-list" role="listbox" aria-label="Available destinations" hidden></div>
-      <select id="end" disabled aria-hidden="true" tabindex="-1">
-        <option value="" selected>Select destination…</option>
-      </select>
     </section>
 
 <!-- ROUTE SUMMARY -->
