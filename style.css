@@ -3354,3 +3354,17 @@ body > aside .primary-button:active:not(:disabled) {
   outline: none !important;
   box-shadow: 0 2px 7px rgba(21, 43, 66, 0.12) !important;
 }
+
+
+/* Final gate marker sizing and compact gate labels. */
+.leaflet-container .laar-gate-marker {
+  width: 33px !important;
+  height: 33px !important;
+}
+.leaflet-container .leaflet-tooltip.laar-gate-label {
+  padding: 2.5px 4.5px !important;
+}
+.map-legend .legend-gate .security-guard-symbol {
+  width: 75% !important;
+  height: 75% !important;
+}
