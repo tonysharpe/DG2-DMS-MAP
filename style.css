@@ -3590,3 +3590,11 @@ body > #journeyControls.journey-controls {
     display: none !important;
   }
 }
+
+
+/* Keep the desktop live-routing panel compact while tracking is active. */
+@media (min-width: 761px) {
+  body > #journeyControls.journey-controls #journeyGuidance {
+    display: none !important;
+  }
+}
