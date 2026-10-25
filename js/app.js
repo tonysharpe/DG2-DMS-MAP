@@ -236,7 +236,7 @@ async function fetchRoutingNetworkCache() {
   try {
     const response = await fetch("data/routing-network-cache.json", { cache: "no-store" });
     if (!response.ok) return null;
-    const cache = await response.json();
+    const cache = JSON.parse(await response.text(), (_key, value) =>\n      value === "__INF__" ? Infinity : value === "__-INF__" ? -Infinity : value === "__NAN__" ? NaN : value);
     if (cache.schemaVersion !== 1 || cache.inputsSignature !== routingInputSignature ||
         !cache.networks || !cache.networks.truck || !cache.networks.car) return null;
     return cache;
