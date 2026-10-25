@@ -2132,7 +2132,6 @@ async function init() {
       await build(j, r, g, d, metadata);
       window.recordMapLoadTiming?.("Build routing network", networkBuildStartedAt);
     }
-    window.laarNetworkBuildReady = true;
 
     const reviewed =
       metadata?.network_reviewed_at ??
@@ -2426,6 +2425,7 @@ async function init() {
     );
     $("locate").disabled = false;
     startLiveLocation();
+    window.laarNetworkBuildReady = true;
     hideMapLoadingDialog();
     window.recordMapLoadTiming?.("Application initialisation total", window.mapLoadTimingState?.startedAt ?? performance.now());
     window.updateMapLoadTimingSummary?.();
