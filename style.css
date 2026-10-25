@@ -3411,3 +3411,28 @@ body > aside .primary-button:active:not(:disabled) {
   height: 4px;
   background: var(--map-major-road);
 }
+
+
+/* Align map-key symbols in a fixed centered column; labels share a left edge. */
+.map-legend .map-legend__content .map-legend__row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.map-legend .map-legend__content .map-legend__row > span:first-child {
+  flex: 0 0 30px;
+  width: 30px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.map-legend .map-legend__content .map-legend__row > span:last-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+}
+.map-legend .map-legend__content .diriyah-swatch {
+  flex: 0 0 30px;
+  width: 30px;
+}
