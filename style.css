@@ -3436,3 +3436,33 @@ body > aside .primary-button:active:not(:disabled) {
   flex: 0 0 30px;
   width: 30px;
 }
+
+
+/* Keep the location dot at its original size while centering it in the icon column. */
+.map-legend .map-legend__content .map-legend__row > .legend-location {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  position: relative;
+}
+.map-legend .map-legend__content .map-legend__row > .legend-location::before {
+  content: "";
+  display: block;
+  width: 16px;
+  height: 16px;
+  box-sizing: content-box;
+  background: #2188ee;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(33, 136, 238, 0.3);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
