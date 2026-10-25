@@ -246,6 +246,7 @@ function stopLiveLocation(showMessage = true) {
   lastLiveRouteAttemptAt = 0;
   lastLiveRerouteAt = 0;
   removeLiveLocationLayers();
+  syncHeaderLiveRouteButton();
   if ($("stopLocation")) $("stopLocation").disabled = true;
   if ($("startMode")?.value === "live") {
     clearRoute();
@@ -311,6 +312,7 @@ function startLiveRoute() {
 function stopLiveRoute() {
   liveNavigationActive = false;
   journeyStartConfirmed = false;
+  syncHeaderLiveRouteButton();
   if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
   if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
   if ($("stopLiveRoute")) $("stopLiveRoute").hidden = true;
@@ -324,6 +326,7 @@ function confirmBeginJourney() {
   }
   journeyStartConfirmed = true;
   liveNavigationActive = true;
+  syncHeaderLiveRouteButton();
   if ($("journeyGuidance")) $("journeyGuidance").hidden = false;
   if ($("startLiveRoute")) $("startLiveRoute").hidden = true;
   if ($("stopLiveRoute")) $("stopLiveRoute").hidden = false;
@@ -529,10 +532,13 @@ function addRecenterControl() {
 // A live route is initially an overview. Camera-following starts only
 // after the user explicitly confirms Begin journey.
 const calculateRouteForJourney = calculate;
+function syncHeaderLiveRouteButton() {
+  window.laarRouteAvailable = Boolean(routeLayer);
+  document.dispatchEvent(new CustomEvent("laar-route-state-change"));
+}
 calculate = function () {
   const result = calculateRouteForJourney.apply(this, arguments);
-  if ($("startMode")?.value === "live" && routeLayer && !liveNavigationActive) {
-  }
+  syncHeaderLiveRouteButton();
   return result;
 };
 
