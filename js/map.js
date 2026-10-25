@@ -188,7 +188,7 @@
 
           <div class="map-legend__row">
             <span class="diriyah-area-key" aria-hidden="true"></span>
-            <span>Selected Destination</span>
+            <span>Destination</span>
           </div>
 
           <div class="map-legend__row">
