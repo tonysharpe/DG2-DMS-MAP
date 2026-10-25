@@ -161,34 +161,24 @@
           aria-expanded="${mobileLegend ? "false" : "true"}"
           aria-controls="mapLegendContent"
         >
-          <span>Map key</span>
+          <span>Map Key</span>
           <span class="map-legend__toggle-icon" aria-hidden="true">${mobileLegend ? "+" : "−"}</span>
         </button>
 
         <div id="mapLegendContent" class="map-legend__content"${mobileLegend ? " hidden" : ""}>
           <div class="map-legend__row">
-            <span class="diriyah-swatch diriyah-swatch--major" aria-hidden="true"></span>
-            <span>Major road</span>
-          </div>
-
-          <div class="map-legend__row">
-            <span class="diriyah-swatch diriyah-swatch--minor" aria-hidden="true"></span>
-            <span>Minor road</span>
-          </div>
-
-          <div class="map-legend__row">
             <span class="diriyah-swatch diriyah-swatch--local" aria-hidden="true"></span>
-            <span>Local road</span>
+            <span>Local Road</span>
           </div>
 
           <div class="map-legend__row">
             <span class="diriyah-swatch diriyah-swatch--public" aria-hidden="true"></span>
-            <span>Public road</span>
+            <span>Public Road</span>
           </div>
 
           <div class="map-legend__row">
             <span class="diriyah-swatch diriyah-swatch--haul" aria-hidden="true"></span>
-            <span>Haul road</span>
+            <span>Haul Road</span>
           </div>
 
           <div class="map-legend__row">
@@ -198,7 +188,7 @@
 
           <div class="map-legend__row">
             <span class="diriyah-area-key" aria-hidden="true"></span>
-            <span>Selected LAAR</span>
+            <span>Selected Destination</span>
           </div>
 
           <div class="map-legend__row">
@@ -207,13 +197,8 @@
           </div>
 
           <div class="map-legend__row">
-            <span class="legend-gate legend-gate--selected">${gateSvg()}</span>
-            <span>Starting gate</span>
-          </div>
-
-          <div class="map-legend__row">
             <span class="legend-location" aria-hidden="true"></span>
-            <span>My location</span>
+            <span>My Location</span>
           </div>
 
           <p class="diriyah-legend-note">
@@ -317,7 +302,7 @@
     setLabel("destinationSearch", "Search");
     setLabel("end", "LAAR");
     setLabel("startMode", "Start from");
-    setLabel("start", "Selected gate");
+    setLabel("start", "Selected Gate");
 
     setOptionText("vehicleType", "car", "Car");
     setOptionText("vehicleType", "truck", "Truck");
@@ -325,7 +310,7 @@
     setOptionText("startMode", "gate", "Best gate");
     setOptionText("startMode", "live", "My location");
 
-    setText("route", "Show route");
+    setText("route", "Show Route");
     setText("locate", "Locate me");
     setText("stopLocation", "Stop");
     setText("copyLink", "Copy link");
