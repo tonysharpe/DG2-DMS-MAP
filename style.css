@@ -3692,3 +3692,30 @@ body > #journeyControls.journey-controls {
   pointer-events: auto !important;
 }
 
+
+
+/* Native mobile select menus can flicker inside transformed fixed panels.
+   Collapse the planner by clipping its height instead of translating it. */
+@media (max-width: 760px) {
+  body > #navigationPanel {
+    transform: none !important;
+    transition: none !important;
+    will-change: auto !important;
+    backface-visibility: visible !important;
+  }
+  body > #navigationPanel.mobile-panel-collapsed {
+    transform: none !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    overflow: hidden !important;
+    transition: none !important;
+  }
+  body > #navigationPanel:not(.mobile-panel-collapsed) {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 84vh !important;
+    max-height: 84dvh !important;
+    overflow-y: auto !important;
+  }
+}
