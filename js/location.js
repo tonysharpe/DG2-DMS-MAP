@@ -243,6 +243,7 @@ function stopLiveLocation(showMessage = true) {
   if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
   if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
   if ($("stopLiveRoute")) $("stopLiveRoute").hidden = true;
+  syncHeaderLiveRouteButton();
   lastLiveRouteAttemptAt = 0;
   lastLiveRerouteAt = 0;
   removeLiveLocationLayers();
@@ -316,6 +317,7 @@ function stopLiveRoute() {
   if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
   if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
   if ($("stopLiveRoute")) $("stopLiveRoute").hidden = true;
+  syncHeaderLiveRouteButton();
   locationStatus("Routing stopped. Your location is still being tracked; start the route again or use Stop location to turn GPS off.");
 }
 
@@ -330,6 +332,7 @@ function confirmBeginJourney() {
   if ($("journeyGuidance")) $("journeyGuidance").hidden = false;
   if ($("startLiveRoute")) $("startLiveRoute").hidden = true;
   if ($("stopLiveRoute")) $("stopLiveRoute").hidden = false;
+  syncHeaderLiveRouteButton();
   updateJourneyGuidance();
   followLiveLocation();
 }
