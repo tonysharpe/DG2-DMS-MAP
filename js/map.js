@@ -178,7 +178,7 @@
 
           <div class="map-legend__row">
             <span class="diriyah-swatch diriyah-swatch--haul" aria-hidden="true"></span>
-            <span>Haul Road</span>
+            <span>Haul Roads</span>
           </div>
 
           <div class="map-legend__row">
