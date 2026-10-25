@@ -3692,23 +3692,3 @@ body > #journeyControls.journey-controls {
   pointer-events: auto !important;
 }
 
-
-/* Avoid mobile browser repaint/viewport flicker when opening the native LAAR select. */
-@media (max-width: 760px) {
-  body > #navigationPanel {
-    transition: none !important;
-    will-change: auto !important;
-    backface-visibility: visible !important;
-  }
-  body > #navigationPanel select,
-  body > #navigationPanel select:focus {
-    transform: none !important;
-    animation: none !important;
-  }
-  body > #navigationPanel.destination-select-open {
-    transform: translateY(0) !important;
-  }
-  body > #navigationPanel.destination-select-open.mobile-panel-collapsed {
-    transform: translateY(calc(100% - 76px - env(safe-area-inset-bottom))) !important;
-  }
-}
