@@ -2212,6 +2212,7 @@ select:disabled {
 .diriyah-swatch--local,
 .diriyah-swatch--public {
   border-color: var(--map-public-road);
+  filter: drop-shadow(0 0 1px var(--map-road-outline));
 }
 
 .diriyah-swatch--haul {
