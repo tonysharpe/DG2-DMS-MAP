@@ -2126,22 +2126,6 @@ async function init() {
         calculate();
       }
     };
-
-    $("route").onclick = () => {
-      // Show / update is an explicit request for the full route overview.
-      // If navigation was actively following GPS, stop camera-following so
-      // the overview remains visible instead of immediately snapping back.
-      if (liveNavigationActive) {
-        liveNavigationActive = false;
-        journeyStartConfirmed = false;
-        if ($("journeyStage")) $("journeyStage").textContent = "Route preview ready. Start when you are ready.";
-        if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
-        if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
-        if ($("stopLiveRoute")) $("stopLiveRoute").hidden = true;
-      }
-      calculate(true);
-      if (routeLayer) fitSelectedResult();
-    };
     $("copyLink").onclick = copyDestinationLink;
 
     $("clear").onclick = () => {
