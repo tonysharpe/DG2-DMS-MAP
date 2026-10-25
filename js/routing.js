@@ -92,10 +92,19 @@
 
     function getAccessibleOptions() {
       const context = getRoutingContext();
-      if (!context.ready) return { ready: false, options: [] };
+      if (!context.ready) return { ready: false, options: [], unreachable: [] };
 
       const reachable = getReachableNodes(context);
-      const options = destinationOptions.filter(option => {
+      const allDestinations = locations.flatMap((location, index) =>
+        location.kind === "destination" ? [{
+          index,
+          name: location.name,
+          type: location.type,
+          valid: location.valid,
+          hasPolygon: destinationAreas.has(location.name)
+        }] : []
+      );
+      const isAccessible = option => {
         const location = locations[option.index];
         return Boolean(
           location &&
@@ -106,9 +115,11 @@
           location.node !== undefined &&
           reachable.has(location.node)
         );
-      });
+      };
+      const options = destinationOptions.filter(isAccessible);
+      const unreachable = allDestinations.filter(option => !isAccessible(option));
 
-      return { ready: true, options };
+      return { ready: true, options, unreachable };
     }
 
     function renderFilteredOptions() {
@@ -149,6 +160,33 @@
           } else {
             $("searchStatus").textContent =
               result.options.length + " reachable LAAR destination(s).";
+          }
+        }
+
+        const diagnosticsStatus = $("diagnosticsStatus");
+        const unreachableList = $("unreachableDestinations");
+        if (diagnosticsStatus && unreachableList) {
+          unreachableList.replaceChildren();
+          if (!result.ready) {
+            diagnosticsStatus.textContent =
+              "Choose a valid start location to check destination reachability.";
+          } else if (!result.unreachable.length) {
+            diagnosticsStatus.textContent =
+              "All destinations are reachable for the selected vehicle and start location.";
+          } else {
+            diagnosticsStatus.textContent =
+              result.unreachable.length + " destination(s) cannot be reached:";
+            result.unreachable
+              .slice()
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .forEach(option => {
+                const item = document.createElement("li");
+                item.textContent = option.name +
+                  (!option.valid ? " (invalid destination data)" :
+                    !option.hasPolygon ? " (no destination area)" :
+                    locations[option.index].node == null ? " (not connected to the road network)" : "");
+                unreachableList.appendChild(item);
+              });
           }
         }
       } finally {
