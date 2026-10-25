@@ -3770,3 +3770,15 @@ body > #journeyControls.journey-controls {
 .destination-picker-option[aria-selected="true"] { background: rgba(26,115,232,.12); font-weight: 700; }
 .destination-picker-option:active { background: rgba(26,115,232,.2); }
 .destination-picker-empty { margin: 0; padding: 12px; color: var(--muted-text-color, #666); }
+
+
+/* Retire the legacy floating live-routing dialog on mobile; header controls replace it. */
+@media (max-width: 760px) {
+  body > #journeyControls.journey-controls,
+  body > #journeyControls.journey-controls:not([hidden]),
+  body > #journeyControls.journey-controls[hidden] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+}
