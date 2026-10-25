@@ -41,6 +41,8 @@ const SCALE_BAR_MAX_WIDTH = 100;
 let vehicleMode = "truck";
 let networkInputs = null;
 let displayedRoadLayer = null;
+let routingNetworkCache = null;
+let routingInputSignature = null;
 
 function setMapClickHitAreaEnabled(enabled) {
   if (!map) return;
@@ -185,6 +187,71 @@ function refreshVehicleRoads() {
   displayedRoadLayer.eachLayer(layer => { if (layer.isPopupOpen()) layer.closePopup(); });
 }
 
+function routingDataSignature(inputs) {
+  const text = JSON.stringify([
+    inputs.j, inputs.r, inputs.g, inputs.d, inputs.metadata ?? null
+  ]);
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function exportRoutingNetworkSnapshot() {
+  return {
+    nodes: [...nodes],
+    junctionNodes: [...junctionNodes],
+    adjacency: [...adjacency],
+    generatedEndpointIds: [...generatedEndpointIds],
+    roads,
+    allRoadCandidates,
+    locations,
+    roadConnections,
+    interiorConnections,
+    ignoredDestinationNames
+  };
+}
+
+function applyRoutingNetworkSnapshot(snapshot) {
+  if (!snapshot || !Array.isArray(snapshot.nodes) ||
+      !Array.isArray(snapshot.adjacency) || !Array.isArray(snapshot.roads) ||
+      !Array.isArray(snapshot.locations)) {
+    throw new Error("Generated routing network has an invalid structure.");
+  }
+  nodes = new Map(snapshot.nodes);
+  junctionNodes = new Map(snapshot.junctionNodes || []);
+  adjacency = new Map(snapshot.adjacency);
+  generatedEndpointIds = new Set(snapshot.generatedEndpointIds || []);
+  roads = snapshot.roads;
+  allRoadCandidates = snapshot.allRoadCandidates || [];
+  locations = snapshot.locations;
+  roadConnections = snapshot.roadConnections || [];
+  interiorConnections = snapshot.interiorConnections || [];
+  ignoredDestinationNames = snapshot.ignoredDestinationNames || [];
+}
+
+async function fetchRoutingNetworkCache() {
+  try {
+    const response = await fetch("data/routing-network-cache.json", { cache: "no-store" });
+    if (!response.ok) return null;
+    const cache = await response.json();
+    if (cache.schemaVersion !== 1 || cache.inputsSignature !== routingInputSignature ||
+        !cache.networks || !cache.networks.truck || !cache.networks.car) return null;
+    return cache;
+  } catch (error) {
+    console.info("Generated routing cache unavailable; using the normal network build.", error);
+    return null;
+  }
+}
+
+window.exportRoutingNetworkSnapshot = () => ({
+  inputsSignature: routingInputSignature,
+  vehicleMode,
+  snapshot: exportRoutingNetworkSnapshot()
+});
+
 async function changeVehicle() {
   clearRoute();
   if ($("startMode")?.value === "map" && typeof removeMapClickOrigin === "function") {
@@ -195,7 +262,12 @@ async function changeVehicle() {
   const previousName = selectedDestination()?.name;
   try {
     const { j, r, g, d, metadata } = networkInputs;
-    await build(j, r, g, d, metadata);
+    const cachedNetwork = routingNetworkCache?.networks?.[vehicleMode === "truck" ? "truck" : "car"];
+    if (cachedNetwork) {
+      applyRoutingNetworkSnapshot(cachedNetwork);
+    } else {
+      await build(j, r, g, d, metadata);
+    }
     destinationOptions = locations.flatMap((location, index) => location.kind === "destination" ? [{
       index, name: location.name, type: location.type, valid: location.valid,
       hasPolygon: destinationAreas.has(location.name)
@@ -2046,11 +2118,20 @@ async function init() {
 
     window.recordMapLoadTiming?.("Load routing data set", routingDataStartedAt);
     networkInputs = { j, r, g, d, metadata };
+    routingInputSignature = routingDataSignature(networkInputs);
     vehicleMode = $("vehicleType").value;
     const networkBuildStartedAt = performance.now();
     const invalidAccessCount = reportAccessData(r);
-    await build(j, r, g, d, metadata);
-    window.recordMapLoadTiming?.("Build routing network", networkBuildStartedAt);
+    routingNetworkCache = await fetchRoutingNetworkCache();
+    const initialCachedNetwork = routingNetworkCache?.networks?.[vehicleMode === "truck" ? "truck" : "car"];
+    if (initialCachedNetwork) {
+      applyRoutingNetworkSnapshot(initialCachedNetwork);
+      window.recordMapLoadTiming?.("Load prebuilt routing network", networkBuildStartedAt);
+    } else {
+      await build(j, r, g, d, metadata);
+      window.recordMapLoadTiming?.("Build routing network", networkBuildStartedAt);
+    }
+    window.laarNetworkBuildReady = true;
 
     const reviewed =
       metadata?.network_reviewed_at ??
