@@ -3374,3 +3374,14 @@ body > aside .primary-button:active:not(:disabled) {
 .leaflet-container .leaflet-tooltip-top.laar-gate-label::before {
   border-top-color: #D5E1E9 !important;
 }
+
+
+/* Compact vertical rhythm for map-key entries. */
+.map-legend__row {
+  min-height: 22px;
+  margin-bottom: 3px;
+  line-height: 1.25;
+}
+.map-legend__title {
+  margin-bottom: 6px;
+}
