@@ -281,15 +281,15 @@ function themeColor(property) {
   let ready = false;
 
   for (let attempt = 0; attempt < 600; attempt++) {
-    const destinationSelect = document.getElementById("end");
+    const routeButton = document.getElementById("route");
 
     if (
       typeof map !== "undefined" &&
       map &&
       typeof locations !== "undefined" &&
       locations.length &&
-      destinationSelect &&
-      !destinationSelect.disabled
+      routeButton &&
+      !routeButton.disabled
     ) {
       ready = true;
       break;
