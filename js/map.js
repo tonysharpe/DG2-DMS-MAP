@@ -308,9 +308,9 @@
   /* MINIMAL MENU */
 
   function applyMinimalMenu() {
-    setText("vehicleHeading", "Vehicle");
+    setText("vehicleHeading", "Vehicle Type:");
     setText("destinationHeading", "Destination");
-    setText("startingHeading", "Start");
+    setText("startingHeading", "Start Location:");
     setText("shareHeading", "Share");
 
     setLabel("vehicleType", "Vehicle");
