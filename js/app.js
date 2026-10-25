@@ -1223,10 +1223,10 @@ function createGateIcon(selected = false) {
       </div>
     `,
 
-    iconSize: [44, 44],
-    iconAnchor: [22, 22],
-    popupAnchor: [0, -22],
-    tooltipAnchor: [0, 22]
+    iconSize: [33, 33],
+    iconAnchor: [16.5, 16.5],
+    popupAnchor: [0, -16.5],
+    tooltipAnchor: [0, 16.5]
   });
 }
 
@@ -1990,7 +1990,7 @@ async function init() {
         marker.bindTooltip(label, {
           permanent: true,
           direction: "bottom",
-          offset: [0, 4],
+          offset: [0, -2],
           className: "laar-gate-label"
         });
 
