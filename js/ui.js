@@ -9,6 +9,7 @@
   if (!panel || !toggle) return;
 
   function setExpanded(expanded) {
+    toggle.disabled = false;
     if (mobileQuery.matches) {
       // Always return the planner to its initial position when opening or
       // collapsing it after a route has been calculated.
@@ -24,6 +25,7 @@
   }
 
   function syncViewport() {
+    toggle.disabled = false;
     if (mobileQuery.matches) {
       setExpanded(false);
     } else {
