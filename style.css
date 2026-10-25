@@ -3643,3 +3643,9 @@ body > #journeyControls.journey-controls {
   .header-actions .live-route-toggle { padding: 7px 9px; font-size: 12px; }
   body > #journeyControls.journey-controls { display: none !important; }
 }
+
+/* Keep the desktop header unchanged; these paired controls are for the mobile sheet. */
+@media (min-width: 761px) {
+  .header-actions { display: contents; }
+  .header-actions .live-route-toggle { display: none; }
+}
