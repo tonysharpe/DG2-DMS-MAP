@@ -94,8 +94,8 @@
         <option value="bus">Bus</option>
         <option value="minibus">Mini Bus</option>
         <option value="pickup">Pick-up</option>
-        <option value="suv">SUV</option>
-        <option value="car">Car</option>
+        <option value="suv">Site Car</option>
+        <option value="car">Private Car</option>
       </select>
       <fieldset class="radio-options vehicle-options" aria-label="Vehicle type">
         <legend class="visually-hidden">Vehicle type</legend>
@@ -108,9 +108,20 @@
       </fieldset>
     </section>
 
-    <!-- START LOCATION -->
+    <!-- DESTINATION -->
+    <section class="control-section" aria-labelledby="destinationHeading">
+      <h2 id="destinationHeading">Destination</h2>
+      <fieldset class="radio-options destination-type-options" aria-label="Destination type">
+        <legend class="visually-hidden">Destination type</legend>
+        <label><input type="radio" name="destinationType" value="WAN"> WAN</label>
+        <label><input type="radio" name="destinationType" value="LAAR" checked> LAAR</label>
+        <label><input type="radio" name="destinationType" value="Office"> Office</label>
+      </fieldset>
+    </section>
+
+<!-- START LOCATION -->
     <section class="control-section" aria-labelledby="startingHeading">
-      <h2 id="startingHeading">Site location</h2>
+      <h2 id="startingHeading">Start Location:</h2>
       <fieldset class="radio-options start-options" aria-label="Start location">
         <legend class="visually-hidden">Start location</legend>
         <label><input type="radio" name="startModeChoice" value="gate" checked> Access Gate</label>
@@ -124,15 +135,9 @@
       </select>
     </section>
 
-    <!-- DESTINATION -->
-    <section class="control-section" aria-labelledby="destinationHeading">
-      <h2 id="destinationHeading">Destination</h2>
-      <fieldset class="radio-options destination-type-options" aria-label="Destination type">
-        <legend class="visually-hidden">Destination type</legend>
-        <label><input type="radio" name="destinationType" value="WAN"> WAN</label>
-        <label><input type="radio" name="destinationType" value="LAAR" checked> LAAR</label>
-        <label><input type="radio" name="destinationType" value="Office"> Office</label>
-      </fieldset>
+    <!-- DEVELOPMENT FEATURES -->
+    <section class="control-section development-section" aria-labelledby="developmentHeading">
+      <h2 id="developmentHeading">Development Features:</h2>
       <label for="destinationSearch">Find destination</label>
       <input id="destinationSearch" type="search" placeholder="Type to search…" autocomplete="off"
         aria-describedby="searchStatus" disabled>
@@ -145,8 +150,7 @@
       </select>
     </section>
 
-
-    <!-- ROUTE SUMMARY -->
+<!-- ROUTE SUMMARY -->
 
     <section
       id="routeSummary"
