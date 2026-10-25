@@ -3839,3 +3839,22 @@ body > #journeyControls.journey-controls {
 .unreachable-destinations li {
   margin: 0 0 4px;
 }
+
+
+/* Map-loading timing output in Development Features diagnostics. */
+.map-load-heading {
+  margin: 14px 0 6px;
+  font-size: 0.9rem;
+}
+.map-load-timings {
+  margin: 6px 0 0;
+  padding-left: 22px;
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  font-size: 0.8rem;
+}
+.map-load-timings li {
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
