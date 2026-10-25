@@ -233,6 +233,7 @@ function applyRoutingNetworkSnapshot(snapshot) {
 }
 
 async function fetchRoutingNetworkCache() {
+  if (new URLSearchParams(window.location.search).get("rebuildRoutingCache") === "1") return null;
   try {
     const response = await fetch("data/routing-network-cache.json", { cache: "no-store" });
     if (!response.ok) return null;
