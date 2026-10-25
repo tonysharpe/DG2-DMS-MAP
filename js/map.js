@@ -167,8 +167,8 @@
 
         <div id="mapLegendContent" class="map-legend__content"${mobileLegend ? " hidden" : ""}>
           <div class="map-legend__row">
-            <span class="diriyah-swatch diriyah-swatch--local" aria-hidden="true"></span>
-            <span>Local Road</span>
+            <span class="map-key-major-road" aria-hidden="true"><span></span></span>
+            <span>Major Roads</span>
           </div>
 
           <div class="map-legend__row">
