@@ -407,6 +407,43 @@ const routeEstimateSpeedKmh = 30;
 
 /* DATA LOADING */
 
+(function installMapLoadDiagnostics() {
+  const state = window.mapLoadTimingState = {
+    startedAt: performance.now(),
+    entries: []
+  };
+
+  window.recordMapLoadTiming = function (label, startedAt, endedAt = performance.now()) {
+    const duration = Math.max(0, endedAt - startedAt);
+    state.entries.push({ label, duration, elapsed: endedAt - state.startedAt });
+    const list = document.getElementById("mapLoadTimings");
+    const summary = document.getElementById("mapLoadTimingSummary");
+    if (list) {
+      list.replaceChildren();
+      state.entries.forEach(entry => {
+        const item = document.createElement("li");
+        item.textContent = entry.label + ": " + (entry.duration / 1000).toFixed(2) +
+          " s (+" + (entry.elapsed / 1000).toFixed(2) + " s after scripts start)";
+        list.appendChild(item);
+      });
+    }
+    if (summary) {
+      summary.textContent = "Elapsed since app scripts started: " +
+        ((performance.now() - state.startedAt) / 1000).toFixed(2) +
+        " s. Timings are measured in this browser session.";
+    }
+  };
+
+  window.updateMapLoadTimingSummary = function () {
+    const summary = document.getElementById("mapLoadTimingSummary");
+    if (summary) {
+      summary.textContent = "Elapsed since app scripts started: " +
+        ((performance.now() - state.startedAt) / 1000).toFixed(2) +
+        " s. Timings are measured in this browser session.";
+    }
+  };
+})();
+
 async function read(filename, optional = false) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 60000);
@@ -1879,8 +1916,10 @@ async function init() {
     let failed = false;
 
     async function load(filename, optional = false) {
+      const loadStartedAt = performance.now();
       try {
         const data = await read(filename, optional);
+        window.recordMapLoadTiming?.("Load and parse " + filename, loadStartedAt);
         pending.delete(filename);
 
         if (!failed) {
@@ -1894,6 +1933,7 @@ async function init() {
         return data;
 
       } catch (error) {
+        window.recordMapLoadTiming?.("Failed loading " + filename, loadStartedAt);
         failed = true;
         throw error;
       }
@@ -1903,6 +1943,7 @@ async function init() {
 
     // Load and render the visible map geometry first. Routing inputs are fetched
     // afterwards so graph construction cannot delay the first useful map frame.
+    const visibleGeometryStartedAt = performance.now();
     const [r, areas, boundary] = await Promise.all([
       load(ROADS_FILE),
       load("data/destination_areas.geojson"),
@@ -1958,10 +1999,14 @@ async function init() {
 
     map.invalidateSize({ pan: false, animate: false });
     map.fitBounds(siteBounds, { padding: [20, 20], animate: false });
+    window.recordMapLoadTiming?.("Render initial boundary and road geometry", visibleGeometryStartedAt);
 
     // Let the browser paint the map before fetching/building the routing graph.
+    const paintWaitStartedAt = performance.now();
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    window.recordMapLoadTiming?.("Wait for initial map paint", paintWaitStartedAt);
 
+    const routingDataStartedAt = performance.now();
     const [j, g, d, metadata] = await Promise.all([
       load("data/junctions.geojson"),
       load("data/gates.geojson"),
@@ -1980,10 +2025,13 @@ async function init() {
 
     await new Promise(resolve => setTimeout(resolve, 0));
 
+    window.recordMapLoadTiming?.("Load routing data set", routingDataStartedAt);
     networkInputs = { j, r, g, d, metadata };
     vehicleMode = $("vehicleType").value;
+    const networkBuildStartedAt = performance.now();
     const invalidAccessCount = reportAccessData(r);
     build(j, r, g, d, metadata);
+    window.recordMapLoadTiming?.("Build routing network", networkBuildStartedAt);
 
     const reviewed =
       metadata?.network_reviewed_at ??
@@ -2278,6 +2326,8 @@ async function init() {
     $("locate").disabled = false;
     startLiveLocation();
     hideMapLoadingDialog();
+    window.recordMapLoadTiming?.("Application initialisation total", window.mapLoadTimingState?.startedAt ?? performance.now());
+    window.updateMapLoadTimingSummary?.();
 
   } catch (error) {
     for (const id of [
