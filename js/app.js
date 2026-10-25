@@ -1822,7 +1822,8 @@ async function init() {
 
     const pending = new Set([
       ROADS_FILE, "data/junctions.geojson", "data/gates.geojson",
-      "data/destinations.geojson", "data/meta.json", "data/destination_areas.geojson"
+      "data/destinations.geojson", "data/meta.json", "data/destination_areas.geojson",
+      "data/boundary.geojson"
     ]);
 
     let failed = false;
@@ -1850,13 +1851,14 @@ async function init() {
 
     status("Loading network files…");
 
-    const [r, j, g, d, metadata, areas] = await Promise.all([
+    const [r, j, g, d, metadata, areas, boundary] = await Promise.all([
       load(ROADS_FILE),
       load("data/junctions.geojson"),
       load("data/gates.geojson"),
       load("data/destinations.geojson"),
       load("data/meta.json", true),
-      load("data/destination_areas.geojson")
+      load("data/destination_areas.geojson"),
+      load("data/boundary.geojson")
     ]);
 
     if (
@@ -1875,6 +1877,18 @@ async function init() {
     const invalidAccessCount = reportAccessData(r);
     build(j, r, g, d, metadata);
     loadDestinationAreas(areas);
+
+    // Render the site boundary with the supplied solid pale-pink fill.
+    L.geoJSON(boundary, {
+      interactive: false,
+      style: {
+        color: "#F8E0DE",
+        weight: 1,
+        opacity: 1,
+        fillColor: "#F8E0DE",
+        fillOpacity: 1
+      }
+    }).addTo(map);
 
     const reviewed =
       metadata?.network_reviewed_at ??
