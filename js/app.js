@@ -1943,13 +1943,13 @@ async function init() {
 
     // Load and render the visible map geometry first. Routing inputs are fetched
     // afterwards so graph construction cannot delay the first useful map frame.
-    const visibleGeometryStartedAt = performance.now();
     const [r, areas, boundary] = await Promise.all([
       load(ROADS_FILE),
       load("data/destination_areas.geojson"),
       load("data/boundary.geojson")
     ]);
 
+    const visibleGeometryStartedAt = performance.now();
     loadDestinationAreas(areas);
 
     L.geoJSON(boundary, {
@@ -1999,7 +1999,7 @@ async function init() {
 
     map.invalidateSize({ pan: false, animate: false });
     map.fitBounds(siteBounds, { padding: [20, 20], animate: false });
-    window.recordMapLoadTiming?.("Render initial boundary and road geometry", visibleGeometryStartedAt);
+    window.recordMapLoadTiming?.("Prepare and render initial boundary and road geometry", visibleGeometryStartedAt);
 
     // Let the browser paint the map before fetching/building the routing graph.
     const paintWaitStartedAt = performance.now();
