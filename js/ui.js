@@ -40,6 +40,16 @@
   // can make the destination selector flash between the sheet and full map.
 
 
+  const destinationSelect = document.getElementById("end");
+  if (destinationSelect) {
+    destinationSelect.addEventListener("focus", function () {
+      panel.classList.add("destination-select-open");
+    });
+    destinationSelect.addEventListener("blur", function () {
+      panel.classList.remove("destination-select-open");
+    });
+  }
+
   toggle.addEventListener("click", function () {
     const expanded = toggle.getAttribute("aria-expanded") === "true";
     setExpanded(!expanded);
