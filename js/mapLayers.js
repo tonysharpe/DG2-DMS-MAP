@@ -280,37 +280,16 @@ function themeColor(property) {
     }
   }
 
-  let ready = false;
-  const routingWaitStartedAt = performance.now();
-
-  for (let attempt = 0; attempt < 600; attempt++) {
-    const destinationSelect = document.getElementById("end");
-
-    if (
-      typeof map !== "undefined" &&
-      map &&
-      typeof locations !== "undefined" &&
-      locations.length &&
-      destinationSelect &&
-      !destinationSelect.disabled
-    ) {
-      ready = true;
-      break;
-    }
-
-    await wait(100);
-  }
-
-  if (!ready) {
-    warning(
-      "Background layers did not load because routing " +
-      "initialisation did not complete."
-    );
-    return;
-  }
-
-  window.recordMapLoadTiming?.("Wait for routing initialisation before background layers", routingWaitStartedAt);
+  // Wait only for the initial road map to be visible. Background layers do
+  // not depend on the routing graph and should render while it is building.
   const backgroundRenderStartedAt = performance.now();
+  const mapWaitStartedAt = performance.now();
+  if (!window.initialMapGeometryReady) {
+    await new Promise(resolve => {
+      document.addEventListener("laar-initial-map-rendered", resolve, { once: true });
+    });
+  }
+  window.recordMapLoadTiming?.("Wait for initial map geometry before background layers", mapWaitStartedAt);
 
   pane("siteBaseLayers", 210);
   pane("siteBackground", 250);
@@ -329,9 +308,8 @@ function themeColor(property) {
   if (typeof displayedRoadLayer !== "undefined" && displayedRoadLayer) {
     control.addOverlay(displayedRoadLayer, "Roads");
   }
-  if (typeof gateMarkerLayer !== "undefined" && gateMarkerLayer) {
-    control.addOverlay(gateMarkerLayer, "Gates");
-  }
+  // Gate markers are created after routing completes; the routing build adds
+  // them to this shared layer control when available.
 
   const errors = [];
 
