@@ -1205,11 +1205,10 @@ function build(
 function gateSvg() {
   return `
     <svg class="security-guard-symbol" viewBox="0 0 44 44" aria-hidden="true" focusable="false">
-      <circle class="security-guard-symbol__background" cx="22" cy="22" r="20"/>
-      <circle class="security-guard-symbol__head" cx="22" cy="14" r="5"/>
-      <path class="security-guard-symbol__cap" d="M15.5 12.5a6.5 6.5 0 0 1 13 0v1h-13z"/>
-      <path class="security-guard-symbol__body" d="M11.5 34c.5-7.2 4.1-11 10.5-11s10 3.8 10.5 11v2h-21z"/>
-      <path class="security-guard-symbol__badge" d="M22 25.5l2.2 2.2-2.2 2.2-2.2-2.2z"/>
+      <path class="security-guard-symbol__body" d="M3.5 41c.6-12.8 6.8-20 18.5-20s17.9 7.2 18.5 20z"/>
+      <circle class="security-guard-symbol__head" cx="22" cy="14.5" r="6"/>
+      <path class="security-guard-symbol__cap" d="M13.5 13a8.5 8.5 0 0 1 17 0v1.5h-17z"/>
+      <path class="security-guard-symbol__badge" d="M22 25l3 3-3 3-3-3z"/>
     </svg>
   `;
 }
@@ -1225,9 +1224,9 @@ function createGateIcon(selected = false) {
     `,
 
     iconSize: [44, 44],
-    iconAnchor: [22, 49],
-    popupAnchor: [0, -46],
-    tooltipAnchor: [0, -47]
+    iconAnchor: [22, 22],
+    popupAnchor: [0, -22],
+    tooltipAnchor: [0, 22]
   });
 }
 
@@ -1990,8 +1989,8 @@ async function init() {
 
         marker.bindTooltip(label, {
           permanent: true,
-          direction: "top",
-          offset: [0, -8],
+          direction: "bottom",
+          offset: [0, 4],
           className: "laar-gate-label"
         });
 
