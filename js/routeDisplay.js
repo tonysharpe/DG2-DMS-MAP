@@ -110,6 +110,8 @@ function showRouteSummary(destination, start, metres, seconds, roadNames, liveMo
 /* CLEAR RESULT — USED BY live-location.js */
 
 function clearRoute() {
+  window.laarRouteAvailable = false;
+  document.dispatchEvent(new CustomEvent("laar-route-state-change"));
   if (startConnectorLayer) {
     map.removeLayer(startConnectorLayer);
     startConnectorLayer = null;
