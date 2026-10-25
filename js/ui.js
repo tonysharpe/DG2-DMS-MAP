@@ -13,6 +13,10 @@
       // Always return the planner to its initial position when opening or
       // collapsing it after a route has been calculated.
       panel.scrollTop = 0;
+      // The live-routing controls are available only when the planner is tucked
+      // away. CSS positions the visible card above the bottom edge of the map.
+      const journeyControls = document.getElementById("journeyControls");
+      if (journeyControls) journeyControls.hidden = Boolean(expanded);
     }
     panel.classList.toggle("mobile-panel-collapsed", !expanded && mobileQuery.matches);
     toggle.setAttribute("aria-expanded", String(expanded));
