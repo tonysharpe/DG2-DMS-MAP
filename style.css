@@ -3391,3 +3391,21 @@ body > aside .primary-button:active:not(:disabled) {
 .map-legend .diriyah-legend-note {
   display: none !important;
 }
+
+
+/* Map-key-only road samples: major roads use the map casing and center colors. */
+.map-legend .map-key-major-road {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 7px;
+  background: var(--map-major-road-outline);
+}
+.map-legend .map-key-major-road > span {
+  display: block;
+  width: 100%;
+  height: 3px;
+  background: var(--map-major-road);
+}
