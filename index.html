@@ -53,7 +53,7 @@
   ></script>
 <script
     defer
-    src="js/location.js?v=hide-route-button-1"
+    src="js/location.js?v=live-routing-panel-1"
   ></script>
 
   <script
@@ -66,7 +66,7 @@
     src="js/mapLayers.js?v=hide-route-button-1"
   ></script>
 
-  <script defer src="js/routeDisplay.js?v=live-route-start-closer-1"></script>
+  <script defer src="js/routeDisplay.js?v=live-routing-panel-1"></script>
   <script defer src="js/map.js?v=hide-route-button-1"></script>
 </head>
 
@@ -314,19 +314,18 @@
 
   <!-- Compact live-routing controls float over the map, not the route panel. -->
       <div id="journeyControls" class="journey-controls" hidden>
-        <p id="journeyStage" class="journey-stage" role="status">Route preview ready</p>
+        <p id="journeyStage" class="journey-stage">Live Routing</p>
         <div class="journey-actions">
-          <button id="startLiveRoute" type="button" class="primary-button">Start route</button>
-          <button id="stopLiveRoute" type="button" class="stop-routing-button" hidden>Stop routing</button>
+          <button id="startLiveRoute" type="button" class="primary-button">Start</button>
+          <button id="stopLiveRoute" type="button" class="stop-routing-button" hidden>Stop</button>
         </div>
-        <div class="journey-footnote">GPS location stays on until you select Stop location.</div>
         <div id="journeyGuidance" class="journey-guidance" hidden aria-live="polite">
           <span id="journeyDirectionArrow" class="journey-direction-arrow" aria-hidden="true">↑</span>
           <span id="journeyDirectionText">Waiting for heading…</span>
         </div>
       </div>
 
-  <script defer src="js/ui.js?v=mobile-routing-popup-1"></script>
+  <script defer src="js/ui.js?v=live-routing-panel-1"></script>
   <script defer src="js/main.js?v=project-structure-1"></script>
 
 </body>
