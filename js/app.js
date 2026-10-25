@@ -1278,8 +1278,8 @@ function addMapLegend() {
 
     container.innerHTML = `
       <div class="map-legend__title">Map key</div>
-      <div class="map-legend__row"><span style="display:inline-block;width:30px;border-top:7px solid var(--map-main-road)"></span><span>Main road</span></div>
-      <div class="map-legend__row"><span style="display:inline-block;width:30px;border-top:7px solid var(--map-public-road)"></span><span>Public road</span></div>
+      <div class="map-legend__row"><span style="display:inline-block;width:30px;border-top:7px solid var(--map-main-road)"></span><span>Main Road</span></div>
+      <div class="map-legend__row"><span style="display:inline-block;width:30px;border-top:7px solid var(--map-public-road)"></span><span>Local Road</span></div>
       <div class="map-legend__row"><span style="display:inline-block;width:30px;border-top:7px solid var(--map-haul-road)"></span><span>Haul road</span></div>
       <div class="map-legend__row">
         <span class="legend-gate">${gateSvg()}</span>
@@ -1295,7 +1295,7 @@ function addMapLegend() {
       </div>
       <div class="map-legend__row">
         <span class="legend-area"></span>
-        <span>Selected LAAR</span>
+        <span>Destination</span>
       </div>
       <div class="map-legend__row">
         <span class="legend-route"></span>
