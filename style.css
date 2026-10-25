@@ -3393,19 +3393,19 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
-/* Map-key-only road samples: major roads use the map casing and center colors. */
+/* Map-key-only major road sample mirrors the map casing (6px) and road line (4px). */
 .map-legend .map-key-major-road {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 30px;
   width: 30px;
-  height: 7px;
+  height: 6px;
   background: var(--map-major-road-outline);
 }
 .map-legend .map-key-major-road > span {
   display: block;
   width: 100%;
-  height: 3px;
+  height: 4px;
   background: var(--map-major-road);
 }
