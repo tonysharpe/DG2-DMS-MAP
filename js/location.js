@@ -400,64 +400,6 @@ function followLiveLocation() {
   calculate();
 }
 
-function refreshLiveLocationForRoute(callback) {
-  if ($("startMode")?.value !== "live" ||
-      !window.matchMedia("(min-width: 761px)").matches ||
-      !navigator.geolocation) {
-    callback();
-    return;
-  }
-
-  locationStatus("Refreshing your location before calculating the route…");
-  navigator.geolocation.getCurrentPosition(
-    position => {
-      const {latitude, longitude, accuracy} = position.coords;
-      if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
-          !Number.isFinite(accuracy) || accuracy < 0) {
-        locationStatus("The browser returned an invalid location. Try selecting the LAAR again.");
-        return;
-      }
-
-      livePosition = {
-        latitude,
-        longitude,
-        accuracy,
-        timestamp: position.timestamp,
-        point: xy([longitude, latitude])
-      };
-
-      const latlng = [latitude, longitude];
-      if (liveLocationMarker) {
-        liveLocationMarker.setLatLng(latlng);
-      } else {
-        liveLocationMarker = L.marker(latlng, {
-          icon: L.divIcon({
-            className: "laar-live-heading-marker",
-            html: '<span class="laar-live-heading-arrow" aria-hidden="true"></span><span class="laar-live-heading-core" aria-hidden="true"></span>',
-            iconSize: [32, 42],
-            iconAnchor: [16, 22]
-          }),
-          zIndexOffset: 1000,
-          keyboard: false
-        }).addTo(map);
-        liveLocationMarker.bindTooltip("My live location", {direction: "top"});
-      }
-
-      updateJourneyGuidance();
-      callback();
-    },
-    error => {
-      const messages = {
-        1: "Location permission was denied. Allow location in your browser's site settings, then retry.",
-        2: "Your location is currently unavailable. Check device location services and retry.",
-        3: "The location request timed out. Wait for another update or retry."
-      };
-      locationStatus(messages[error.code] || "Location error: " + error.message);
-    },
-    {enableHighAccuracy: true, timeout: 20000, maximumAge: 0}
-  );
-}
-
 function startLiveLocation() {
   if ($("startMode").value !== "live") $("startMode").value = "live";
   removeMapClickOrigin();
@@ -676,7 +618,9 @@ function prepareRoutingStart() {
   if (startMode === "live" && !livePosition) {
     throw new Error("Your location is not available. Start live location and allow access.");
   }
-  if (startMode === "live" && Date.now() - livePosition.timestamp > LIVE_LOCATION_MAX_AGE) {
+  if (startMode === "live" &&
+      !window.matchMedia("(min-width: 761px)").matches &&
+      Date.now() - livePosition.timestamp > LIVE_LOCATION_MAX_AGE) {
     throw new Error("Your location reading is older than 60 seconds. Wait for a new reading or retry live location.");
   }
   const snapshot = startMode === "map"
