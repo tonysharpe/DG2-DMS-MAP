@@ -3385,3 +3385,9 @@ body > aside .primary-button:active:not(:disabled) {
 .map-legend__title {
   margin-bottom: 6px;
 }
+
+
+/* Remove the obsolete road-visibility note from the map key. */
+.map-legend .diriyah-legend-note {
+  display: none !important;
+}
