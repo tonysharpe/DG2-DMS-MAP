@@ -35,17 +35,10 @@
     }
   }
 
-  document.addEventListener("laar-route-ready", function () {
-    if (!mobileQuery.matches) return;
-    setExpanded(false);
-    panel.scrollTop = 0;
-    // Let the bottom sheet finish sliding away before Leaflet measures
-    // the full-screen map and refits the complete route.
-    window.setTimeout(function () {
-      panel.scrollTop = 0;
-      document.dispatchEvent(new CustomEvent("laar-mobile-layout-settled"));
-    }, 260);
-  });
+  // Panel visibility is controlled only by the Show Menu / Hide Menu button.
+  // Route recalculations must not collapse the panel automatically; doing so
+  // can make the destination selector flash between the sheet and full map.
+
 
   toggle.addEventListener("click", function () {
     const expanded = toggle.getAttribute("aria-expanded") === "true";
