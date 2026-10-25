@@ -1334,8 +1334,11 @@ function searchKey(value) {
 
 
 function destinationCategory(item) {
-  const type = String(item?.type || "").trim();
-  return ["WAN", "LAAR", "Office"].includes(type) ? type : "Other";
+  const type = String(item?.type || "").trim().toUpperCase();
+  if (type === "WAN") return "WAN";
+  if (type === "LAAR") return "LAAR";
+  if (type === "OFFICE") return "Office";
+  return "Other";
 }
 
 function renderDestinationOptions() {
@@ -2055,9 +2058,23 @@ async function init() {
     });
     document.querySelectorAll('input[name="destinationType"]').forEach(radio => {
       radio.addEventListener("change", () => {
+        if (!radio.checked) return;
         $("end").value = "";
         $("destinationSearch").value = "";
         clearRoute();
+
+        // Rebuild from the canonical locations list so changing destination
+        // type never leaves the selector using a stale or incomplete list.
+        destinationOptions = locations.flatMap((location, index) =>
+          location.kind === "destination" ? [{
+            index,
+            name: location.name,
+            type: location.type,
+            valid: location.valid,
+            hasPolygon: destinationAreas.has(location.name)
+          }] : []
+        );
+
         renderDestinationOptions();
         refreshShareControls();
         status("Select a " + radio.value + " destination.");
