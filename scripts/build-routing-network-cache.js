@@ -37,7 +37,8 @@ const { chromium } = require("playwright");
       }
     };
     fs.writeFileSync("data/routing-network-cache.json", JSON.stringify(output, (_key, value) =>
-      typeof value === "number" && !Number.isFinite(value)\n        ? (value === Infinity ? "__INF__" : value === -Infinity ? "__-INF__" : "__NAN__")
+      typeof value === "number" && !Number.isFinite(value)
+        ? (value === Infinity ? "__INF__" : value === -Infinity ? "__-INF__" : "__NAN__")
         : value));
     console.log("Generated routing cache:", {
       signature: output.inputsSignature,
