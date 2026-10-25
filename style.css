@@ -3466,3 +3466,53 @@ body > aside .primary-button:active:not(:disabled) {
   top: 50%;
   transform: translate(-50%, -50%);
 }
+
+
+/* Initial application loading overlay. */
+.map-loading-dialog {
+  position: fixed;
+  z-index: 10000;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 190px;
+  padding: 16px 20px;
+  color: #243447;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid #d7dde5;
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(20, 35, 50, 0.18);
+  font-size: 15px;
+  font-weight: 600;
+  transform: translate(-50%, -50%);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 350ms ease, visibility 350ms ease;
+}
+.map-loading-dialog.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.map-loading-dialog__spinner {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  border: 2px solid #d5dce5;
+  border-top-color: #7189a8;
+  border-radius: 50%;
+  animation: map-loading-spin 800ms linear infinite;
+}
+@keyframes map-loading-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-loading-dialog,
+  .map-loading-dialog__spinner {
+    transition: none;
+    animation: none;
+  }
+}
