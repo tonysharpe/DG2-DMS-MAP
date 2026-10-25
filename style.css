@@ -3678,3 +3678,16 @@ body > #journeyControls.journey-controls {
     font-size: 12px;
   }
 }
+
+/* The menu toggle is always enabled and blue, regardless of generic disabled-button styles. */
+#panelToggle.mobile-panel-toggle,
+#panelToggle.mobile-panel-toggle:disabled,
+#panelToggle.mobile-panel-toggle:disabled:hover,
+#panelToggle.mobile-panel-toggle:disabled:active {
+  background: #1a73e8 !important;
+  border-color: #1a73e8 !important;
+  color: #fff !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
