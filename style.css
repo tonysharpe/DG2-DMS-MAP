@@ -3782,3 +3782,22 @@ body > #journeyControls.journey-controls {
     pointer-events: none !important;
   }
 }
+
+
+/* Start keeps the same green appearance when disabled; disabled affects clicks only. */
+.header-actions .live-route-toggle:not(.is-stop),
+.header-actions .live-route-toggle:not(.is-stop):disabled,
+.header-actions .live-route-toggle:not(.is-stop):disabled:hover,
+.header-actions .live-route-toggle:not(.is-stop):disabled:active {
+  background: #218739 !important;
+  border-color: #218739 !important;
+  color: #fff !important;
+  opacity: 1 !important;
+}
+.header-actions .live-route-toggle.is-stop,
+.header-actions .live-route-toggle.is-stop:disabled {
+  background: #c62828 !important;
+  border-color: #c62828 !important;
+  color: #fff !important;
+  opacity: 1 !important;
+}
