@@ -185,7 +185,7 @@ function refreshVehicleRoads() {
   displayedRoadLayer.eachLayer(layer => { if (layer.isPopupOpen()) layer.closePopup(); });
 }
 
-function changeVehicle() {
+async function changeVehicle() {
   clearRoute();
   if ($("startMode")?.value === "map" && typeof removeMapClickOrigin === "function") {
     removeMapClickOrigin();
@@ -195,7 +195,7 @@ function changeVehicle() {
   const previousName = selectedDestination()?.name;
   try {
     const { j, r, g, d, metadata } = networkInputs;
-    build(j, r, g, d, metadata);
+    await build(j, r, g, d, metadata);
     destinationOptions = locations.flatMap((location, index) => location.kind === "destination" ? [{
       index, name: location.name, type: location.type, valid: location.valid,
       hasPolygon: destinationAreas.has(location.name)
@@ -836,10 +836,11 @@ function nearestJunction(point) {
 }
 
 
-function connectJunctionsToRoadLinks() {
+async function connectJunctionsToRoadLinks() {
   const connections = [];
 
-  for (const road of roads) {
+  for (let roadIndex = 0; roadIndex < roads.length; roadIndex++) {
+    const road = roads[roadIndex];
     const roadLength = road.ms[road.ms.length - 1];
 
     for (const [nodeId, point] of junctionNodes) {
@@ -889,6 +890,12 @@ function connectJunctionsToRoadLinks() {
     }
 
     road.cuts.sort((a, b) => a.m - b.m);
+
+    // Yield periodically so map layers can render while network connections
+    // are calculated instead of blocking the browser for several seconds.
+    if ((roadIndex + 1) % 5 === 0) {
+      await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
+    }
   }
 
   console.table(connections);
@@ -898,7 +905,7 @@ function connectJunctionsToRoadLinks() {
 
 /* BUILD BASE GRAPH */
 
-function build(
+async function build(
   junctionData,
   roadData,
   gateData,
@@ -1062,7 +1069,7 @@ function build(
 
   window.recordMapLoadTiming?.("Build: process road features and match endpoints", roadProcessingStartedAt);
   const interiorConnectionStartedAt = performance.now();
-  interiorConnections = connectJunctionsToRoadLinks();
+  interiorConnections = await connectJunctionsToRoadLinks();
   window.recordMapLoadTiming?.("Build: connect junctions to road links", interiorConnectionStartedAt);
 
   status("Building network: attaching destinations and gates…");
@@ -2010,6 +2017,8 @@ async function init() {
     map.invalidateSize({ pan: false, animate: false });
     map.fitBounds(siteBounds, { padding: [20, 20], animate: false });
     window.recordMapLoadTiming?.("Prepare and render initial boundary and road geometry", visibleGeometryStartedAt);
+    window.initialMapGeometryReady = true;
+    document.dispatchEvent(new Event("laar-initial-map-rendered"));
 
     // Let the browser paint the map before fetching/building the routing graph.
     const paintWaitStartedAt = performance.now();
@@ -2040,7 +2049,7 @@ async function init() {
     vehicleMode = $("vehicleType").value;
     const networkBuildStartedAt = performance.now();
     const invalidAccessCount = reportAccessData(r);
-    build(j, r, g, d, metadata);
+    await build(j, r, g, d, metadata);
     window.recordMapLoadTiming?.("Build routing network", networkBuildStartedAt);
 
     const reviewed =
