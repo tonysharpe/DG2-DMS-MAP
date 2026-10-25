@@ -20,7 +20,7 @@
     }
     panel.classList.toggle("mobile-panel-collapsed", !expanded && mobileQuery.matches);
     toggle.setAttribute("aria-expanded", String(expanded));
-    toggle.textContent = expanded ? "Hide" : "Show";
+    toggle.textContent = expanded ? "Hide Menu" : "Show Menu";
   }
 
   function syncViewport() {
@@ -29,7 +29,7 @@
     } else {
       panel.classList.remove("mobile-panel-collapsed");
       toggle.setAttribute("aria-expanded", "false");
-      toggle.textContent = "Hide";
+      toggle.textContent = "Hide Menu";
     }
   }
 
