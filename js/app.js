@@ -197,7 +197,7 @@ function changeVehicle() {
     const { j, r, g, d, metadata } = networkInputs;
     build(j, r, g, d, metadata);
     destinationOptions = locations.flatMap((location, index) => location.kind === "destination" ? [{
-      index, name: location.name, valid: location.valid,
+      index, name: location.name, type: location.type, valid: location.valid,
       hasPolygon: destinationAreas.has(location.name)
     }] : []);
     $("end").value = "";
@@ -221,7 +221,7 @@ function changeVehicle() {
     refreshVehicleRoads();
     refreshShareControls();
     if (selectedDestination()) calculate();
-    else status(vehicleMode + ": " + roads.length + " eligible roads. Select a LAAR.");
+    else status(vehicleMode + ": " + roads.length + " eligible roads. Select a destination.");
   } catch (error) {
     roads = [];
     adjacency = new Map();
@@ -1034,6 +1034,16 @@ function build(
 
     for (const feature of features(data, filename)) {
       const name = nameOf(feature.properties, filename);
+      const destinationType = kind === "destination"
+        ? String(feature.properties?.type ?? "").trim()
+        : "";
+
+      if (kind === "destination" && !["WAN", "LAAR", "Office"].includes(destinationType)) {
+        throw new Error(
+          "Destination " + name + " has invalid type '" + destinationType +
+          "'. Expected WAN, LAAR, or Office."
+        );
+      }
 
       if (usedNames.has(name)) {
         if (kind === "destination") {
@@ -1084,7 +1094,7 @@ function build(
 
       if (!road || !Number.isFinite(best.offset)) {
         locations.push({
-          name, kind, point, node: null, offset: Infinity, valid: false,
+          name, kind, type: destinationType, point, node: null, offset: Infinity, valid: false,
           snapType: "unavailable",
           nearestRoadType: nearestMappedRoad
             ? roadField(nearestMappedRoad.candidate.properties, "type")
@@ -1115,6 +1125,7 @@ function build(
       locations.push({
         name,
         kind,
+        type: destinationType,
         point,
         node: cut.node,
         offset: best.offset,
@@ -1323,11 +1334,8 @@ function searchKey(value) {
 
 
 function destinationCategory(item) {
-  const name = String(item?.name || "");
-  if (/\\bWAN\\b/i.test(name)) return "WAN";
-  if (/\\bOffice\\b/i.test(name)) return "Office";
-  if (/\\bLAAR\\b/i.test(name)) return "LAAR";
-  return "Other";
+  const type = String(item?.type || "").trim();
+  return ["WAN", "LAAR", "Office"].includes(type) ? type : "Other";
 }
 
 function renderDestinationOptions() {
@@ -1402,7 +1410,7 @@ function refreshShareControls() {
 
   $("shareStatus").textContent = destination
     ? "Copy a link to " + destination.name + "."
-    : "Select a LAAR to create a link.";
+    : "Select a destination to create a link.";
 }
 
 
@@ -2020,6 +2028,7 @@ async function init() {
         destinationOptions.push({
           index,
           name: location.name,
+          type: location.type,
           valid: location.valid,
           hasPolygon
         });
@@ -2095,7 +2104,7 @@ async function init() {
         $("start").selectedIndex = -1;
         updateDestinationUrl();
         refreshShareControls();
-        status("Select a LAAR destination.");
+        status("Select a destination.");
       } else {
         calculate();
       }
