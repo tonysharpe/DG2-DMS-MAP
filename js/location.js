@@ -318,6 +318,20 @@ function stopLiveRoute() {
   if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
   if ($("stopLiveRoute")) $("stopLiveRoute").hidden = true;
   syncHeaderLiveRouteButton();
+
+  // Once live-following stops, frame the entire route preview again.
+  if (map && routeLayer && typeof routeLayer.getBounds === "function") {
+    const bounds = routeLayer.getBounds();
+    if (bounds.isValid()) {
+      map.invalidateSize({ pan: false });
+      map.fitBounds(bounds.pad(0.12), {
+        padding: [24, 24],
+        maxZoom: 16,
+        animate: false
+      });
+    }
+  }
+
   locationStatus("Routing stopped. Your location is still being tracked; start the route again or use Stop location to turn GPS off.");
 }
 
