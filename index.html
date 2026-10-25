@@ -18,7 +18,7 @@
     content="#FFFFFF"
   >
 
-  <title>LAAR Navigation</title>
+  <title>Diriyah 2 Map</title>
 
 
   <!-- STYLESHEETS -->
@@ -77,14 +77,26 @@
     <!-- HEADER -->
 
     <header class="site-header">
-      <h1>LAAR Navigation</h1>
+      <h1>Diriyah 2 Map</h1>
       <button id="panelToggle" class="mobile-panel-toggle" type="button" aria-expanded="false" aria-controls="navigationPanel">Plan route</button>
     </header>
 
 
+    <!-- ROUTE BUTTON -->
+
+    <button
+      id="route"
+      type="button"
+      class="primary-button"
+      disabled
+    >
+      Show Route
+    </button>
+
+
     <!-- VEHICLE -->
     <section class="control-section" aria-labelledby="vehicleHeading">
-      <h2 id="vehicleHeading">Vehicle Type</h2>
+      <h2 id="vehicleHeading">Vehicle Type:</h2>
       <select id="vehicleType" hidden disabled aria-hidden="true" tabindex="-1">
         <option value="truck" selected>Truck</option>
         <option value="bus">Bus</option>
@@ -106,7 +118,7 @@
 
     <!-- START LOCATION -->
     <section class="control-section" aria-labelledby="startingHeading">
-      <h2 id="startingHeading">Start Location</h2>
+      <h2 id="startingHeading">Site location</h2>
       <fieldset class="radio-options start-options" aria-label="Start location">
         <legend class="visually-hidden">Start location</legend>
         <label><input type="radio" name="startModeChoice" value="gate" checked> Access Gate</label>
@@ -118,13 +130,6 @@
         <option value="live">Current Location</option>
         <option value="map">Set on Map</option>
       </select>
-      <label for="start">Selected gate</label>
-      <select id="start" disabled></select>
-      <div class="button-row">
-        <button id="locate" type="button" disabled>Locate me</button>
-        <button id="stopLocation" type="button" disabled>Stop</button>
-      </div>
-      <p id="locationStatus" class="location-status" role="status" aria-live="polite">Location off.</p>
     </section>
 
     <!-- DESTINATION -->
@@ -145,17 +150,6 @@
         <option value="" selected>Select destination…</option>
       </select>
     </section>
-
-    <!-- ROUTE BUTTON -->
-
-    <button
-      id="route"
-      type="button"
-      class="primary-button"
-      disabled
-    >
-      Show route
-    </button>
 
 
     <!-- ROUTE SUMMARY -->
@@ -290,6 +284,14 @@
     </p>
 
 
+
+      <label for="start">Selected gate</label>
+      <select id="start" disabled></select>
+      <div class="button-row">
+        <button id="locate" type="button" disabled>Locate me</button>
+        <button id="stopLocation" type="button" disabled>Stop</button>
+      </div>
+      <p id="locationStatus" class="location-status" role="status" aria-live="polite">Location off.</p>
 
     <noscript>
       <p class="setup-status">
