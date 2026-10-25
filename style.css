@@ -3817,3 +3817,25 @@ body > #journeyControls.journey-controls {
     display: none !important;
   }
 }
+
+
+/* Destination reachability diagnostics within Development Features. */
+.diagnostics-section {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color);
+}
+.diagnostics-section h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+.unreachable-destinations {
+  margin: 8px 0 0;
+  padding-left: 22px;
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+.unreachable-destinations li {
+  margin: 0 0 4px;
+}
