@@ -310,7 +310,6 @@
     setOptionText("startMode", "gate", "Best gate");
     setOptionText("startMode", "live", "My location");
 
-    setText("route", "Show Route");
     setText("locate", "Locate me");
     setText("stopLocation", "Stop");
     setText("copyLink", "Copy link");
