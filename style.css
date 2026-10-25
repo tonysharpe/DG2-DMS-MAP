@@ -3516,3 +3516,73 @@ body > aside .primary-button:active:not(:disabled) {
     animation: none;
   }
 }
+
+
+/* Compact live-routing panel: fixed title, small Start/Stop controls. */
+body > #journeyControls.journey-controls {
+  left: 12px !important;
+  right: auto !important;
+  bottom: 12px !important;
+  top: auto !important;
+  width: 220px !important;
+  max-width: calc(100vw - 24px) !important;
+  max-height: none !important;
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  gap: 6px !important;
+}
+#journeyControls .journey-stage {
+  margin: 0 0 6px !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+}
+#journeyControls .journey-actions {
+  display: flex;
+  gap: 6px;
+}
+#journeyControls .journey-actions button {
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 4px 12px !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  border-radius: 6px !important;
+}
+#journeyControls #startLiveRoute {
+  background: #218739 !important;
+  border-color: #1b702f !important;
+  color: #fff !important;
+}
+#journeyControls #stopLiveRoute {
+  background: #c62828 !important;
+  border-color: #a91f1f !important;
+  color: #fff !important;
+}
+#journeyControls .journey-footnote {
+  display: none !important;
+}
+@media (max-width: 760px) {
+  body > #journeyPopupToggle.journey-popup-toggle {
+    display: none !important;
+  }
+  body > #journeyControls.journey-controls,
+  body:has(#navigationPanel:not(.mobile-panel-collapsed)) > #journeyControls.journey-controls,
+  body:has(#navigationPanel.mobile-panel-collapsed) > #journeyControls.journey-controls:not([hidden]) {
+    display: block !important;
+    position: fixed !important;
+    left: max(0px, env(safe-area-inset-left)) !important;
+    right: max(0px, env(safe-area-inset-right)) !important;
+    bottom: max(0px, env(safe-area-inset-bottom)) !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: 35vh !important;
+    margin: 0 !important;
+    padding: 8px 12px !important;
+    border-radius: 10px 10px 0 0 !important;
+  }
+  body > #journeyControls.journey-controls[hidden] {
+    display: none !important;
+  }
+}
