@@ -84,7 +84,7 @@
 
     <header class="site-header">
       <h1>Diriyah 2 Map</h1>
-      <button id="panelToggle" class="mobile-panel-toggle" type="button" aria-expanded="false" aria-controls="navigationPanel">Plan route</button>
+      <div class="header-actions"><button id="panelToggle" class="mobile-panel-toggle" type="button" aria-expanded="true" aria-controls="navigationPanel">Hide</button><button id="liveRouteToggle" class="live-route-toggle" type="button" disabled>Start</button></div>
     </header>
 <!-- VEHICLE -->
     <section class="control-section" aria-labelledby="vehicleHeading">
@@ -301,31 +301,20 @@
     aria-label="Interactive LAAR navigation map"
   ></main>
 
-  <!-- Mobile shortcut for opening the live-routing popup. -->
-  <button id="journeyPopupToggle" class="journey-popup-toggle" type="button"
-    aria-label="Open live routing controls" aria-controls="journeyControls" aria-expanded="false" title="Live routing">
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M12 2.8a6.2 6.2 0 0 0-6.2 6.2c0 4.5 6.2 12.2 6.2 12.2S18.2 13.5 18.2 9A6.2 6.2 0 0 0 12 2.8Z"></path>
-      <circle cx="12" cy="9" r="2.1"></circle>
-      <path d="M3 5.5h2.2M18.8 5.5H21M3 17.5h3M18 17.5h3"></path>
-    </svg>
-    <span>Live route</span>
-  </button>
+  <!-- Live route action buttons are in the navigation panel header. -->
+  <div id="journeyControls" class="journey-controls" hidden>
+    <p id="journeyStage" class="journey-stage">Live Routing</p>
+    <div class="journey-actions">
+      <button id="startLiveRoute" type="button" class="primary-button">Start</button>
+      <button id="stopLiveRoute" type="button" class="stop-routing-button" hidden>Stop</button>
+    </div>
+    <div id="journeyGuidance" class="journey-guidance" hidden aria-live="polite">
+      <span id="journeyDirectionArrow" class="journey-direction-arrow" aria-hidden="true">↑</span>
+      <span id="journeyDirectionText">Waiting for heading…</span>
+    </div>
+  </div>
 
-  <!-- Compact live-routing controls float over the map, not the route panel. -->
-      <div id="journeyControls" class="journey-controls" hidden>
-        <p id="journeyStage" class="journey-stage">Live Routing</p>
-        <div class="journey-actions">
-          <button id="startLiveRoute" type="button" class="primary-button">Start</button>
-          <button id="stopLiveRoute" type="button" class="stop-routing-button" hidden>Stop</button>
-        </div>
-        <div id="journeyGuidance" class="journey-guidance" hidden aria-live="polite">
-          <span id="journeyDirectionArrow" class="journey-direction-arrow" aria-hidden="true">↑</span>
-          <span id="journeyDirectionText">Waiting for heading…</span>
-        </div>
-      </div>
-
-  <script defer src="js/ui.js?v=planner-routing-visibility-2"></script>
+  <script defer src="js/ui.js?v=header-show-live-toggle-1"></script>
   <script defer src="js/main.js?v=project-structure-1"></script>
 
 </body>
