@@ -1706,7 +1706,7 @@ function calculate(collapseMobilePanelOnSuccess = false) {
     );
     // Showing a live route is a preview only. Activate camera-following only
     // after the user presses Start route; keep it active during a real reroute.
-    liveNavigationActive = liveMode && journeyStartConfirmed;
+    liveNavigationActive = liveMode;
 
     status(
       "Route ready for " + destination.name + ".\n" +
@@ -1759,7 +1759,7 @@ function hideMapLoadingDialog() {
 async function init() {
   try {
     const required = [
-      "vehicleType", "map", "status", "start", "end", "route", "clear", "fit",
+      "vehicleType", "map", "status", "start", "end", "clear", "fit",
       "startMode", "locate", "stopLocation", "locationStatus",
       "destinationSearch", "searchStatus", "copyLink",
       "shareStatus", "shareFallback", "shareLink",
@@ -1774,7 +1774,7 @@ async function init() {
     }
 
     const controlIds = [
-      "vehicleType", "start", "end", "route", "clear", "fit", "startMode",
+      "vehicleType", "start", "end", "clear", "fit", "startMode",
       "locate", "stopLocation", "destinationSearch", "copyLink"
     ];
 
@@ -2091,7 +2091,6 @@ async function init() {
 
     $("destinationSearch").disabled = false;
     $("end").disabled = false;
-    $("route").disabled = false;
     $("clear").disabled = false;
     $("fit").disabled = false;
 
@@ -2224,7 +2223,7 @@ async function init() {
 
   } catch (error) {
     for (const id of [
-      "vehicleType", "start", "end", "route", "clear", "fit", "startMode",
+      "vehicleType", "start", "end", "clear", "fit", "startMode",
       "locate", "stopLocation", "destinationSearch", "copyLink"
     ]) {
       if ($(id)) $(id).disabled = true;
