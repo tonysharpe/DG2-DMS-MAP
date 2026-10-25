@@ -922,6 +922,7 @@ function build(
 
   status("Building network: junctions and roads…");
 
+  const junctionLoadStartedAt = performance.now();
   for (
     const feature of features(junctionData, "data/junctions.geojson")
   ) {
@@ -937,6 +938,8 @@ function build(
     junctionNodes.set(id, point);
   }
 
+  window.recordMapLoadTiming?.("Build: load junction nodes", junctionLoadStartedAt);
+  const roadProcessingStartedAt = performance.now();
   const roadIds = new Set();
   const endpointErrors = [];
   let skippedRoadParts = 0;
@@ -1057,10 +1060,14 @@ function build(
 
   // Empty vehicle networks remain switchable but cannot produce routes.
 
+  window.recordMapLoadTiming?.("Build: process road features and match endpoints", roadProcessingStartedAt);
+  const interiorConnectionStartedAt = performance.now();
   interiorConnections = connectJunctionsToRoadLinks();
+  window.recordMapLoadTiming?.("Build: connect junctions to road links", interiorConnectionStartedAt);
 
   status("Building network: attaching destinations and gates…");
 
+  const locationAttachmentStartedAt = performance.now();
   const datasets = [
     ["gate", gateData, "data/gates.geojson"],
     ["destination", destinationData, "data/destinations.geojson"]
@@ -1184,6 +1191,8 @@ function build(
     }
   }
 
+  window.recordMapLoadTiming?.("Build: attach gates and destinations to roads", locationAttachmentStartedAt);
+  const adjacencyStartedAt = performance.now();
   for (const id of nodes.keys()) adjacency.set(id, []);
 
   // Intentional shared-position IDs join without duplicating road distance.
@@ -1244,6 +1253,7 @@ function build(
       }
     }
   }
+  window.recordMapLoadTiming?.("Build: create directed road edges", adjacencyStartedAt);
 }
 
 
