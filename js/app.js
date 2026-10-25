@@ -2165,7 +2165,11 @@ async function init() {
       if (matching.length === 1) {
         event.preventDefault();
         $("end").value = String(matching[0].index);
-        calculate();
+        if (typeof refreshLiveLocationForRoute === "function") {
+          refreshLiveLocationForRoute(() => calculate());
+        } else {
+          calculate();
+        }
       }
     };
 
@@ -2178,6 +2182,8 @@ async function init() {
         updateDestinationUrl();
         refreshShareControls();
         status("Select a destination.");
+      } else if (typeof refreshLiveLocationForRoute === "function") {
+        refreshLiveLocationForRoute(() => calculate());
       } else {
         calculate();
       }
