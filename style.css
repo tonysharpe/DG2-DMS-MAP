@@ -711,7 +711,7 @@ body > aside .primary-button:active:not(:disabled) {
  * Leaflet controls its map positioning.
  */
 
-/* Circular white gate markers with a minimal orange security guard. */
+/* White circular gate markers with a compact orange security guard. */
 .laar-gate-marker {
   position: relative;
   display: flex;
@@ -722,10 +722,10 @@ body > aside .primary-button:active:not(:disabled) {
   padding: 0;
   background: #FFFFFF !important;
   color: #F28C28;
-  border: 2px solid #F28C28;
-  border-radius: 50%;
+  border: 1px solid #D5E1E9;
+  border-radius: 50% !important;
   overflow: hidden;
-  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 2px 7px rgba(21, 43, 66, 0.12);
   transition: box-shadow 150ms ease, border-color 150ms ease;
 }
 .laar-gate-marker::after { content: none !important; }
@@ -733,48 +733,74 @@ body > aside .primary-button:active:not(:disabled) {
   display: block;
   width: 100%;
   height: 100%;
-  overflow: visible;
+  overflow: hidden;
 }
-.security-guard-symbol__background { fill: #FFFFFF; }
 .security-guard-symbol__head,
 .security-guard-symbol__cap,
 .security-guard-symbol__body { fill: #F28C28; }
 .security-guard-symbol__badge { fill: #FFFFFF; }
 .laar-gate-icon:hover .laar-gate-marker {
   background: #FFFFFF !important;
-  border-color: #E87816;
-  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.24);
+  border-color: #D5E1E9 !important;
+  box-shadow: 0 2px 7px rgba(21, 43, 66, 0.12);
 }
 .laar-gate-marker.is-selected,
 .laar-gate-icon:hover .laar-gate-marker.is-selected {
   background: #FFFFFF !important;
-  border-color: #E87816;
-  box-shadow: 0 0 0 3px rgba(242, 140, 40, 0.22), 0 3px 9px rgba(0, 0, 0, 0.2);
+  color: #F28C28 !important;
+  border-color: #D5E1E9 !important;
+  outline: none !important;
+  box-shadow: 0 2px 7px rgba(21, 43, 66, 0.12);
 }
-.laar-gate-marker.is-selected,
-.laar-gate-icon:hover .laar-gate-marker.is-selected {
-  background-color: var(--teal);
-
-  outline: 3px solid rgba(8, 127, 115, 0.35);
-  outline-offset: 3px;
-
-  box-shadow: 0 6px 18px rgba(8, 127, 115, 0.25);
-}
-
-.laar-gate-marker.is-selected::after,
-.laar-gate-icon:hover .laar-gate-marker.is-selected::after {
-  background: var(--teal);
-}
-
-.laar-gate-icon:focus-visible {
-  outline: none;
-}
-
 .laar-gate-icon:focus-visible .laar-gate-marker {
-  outline: 3px solid #43c7ee;
-  outline-offset: 4px;
+  outline: 2px solid #F28C28 !important;
+  outline-offset: 2px;
 }
 
+/* Permanent gate names sit directly beneath the matching icon. */
+.leaflet-tooltip.laar-gate-label {
+  margin-top: 0;
+  padding: 5px 9px;
+  background: rgba(255, 255, 255, 0.97) !important;
+  color: var(--navy) !important;
+  border: 1px solid #D5E1E9 !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 7px rgba(21, 43, 66, 0.12) !important;
+  font-family: var(--font-main);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.3;
+  white-space: nowrap !important;
+}
+.leaflet-tooltip-bottom.laar-gate-label::before {
+  border-bottom-color: #D5E1E9 !important;
+}
+
+/* The map key uses the same white circular guard symbol, never a dark disc. */
+.map-legend .legend-gate,
+.map-legend .legend-gate--selected {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: #FFFFFF !important;
+  border: 1px solid #D5E1E9 !important;
+  border-radius: 50% !important;
+  outline: none !important;
+  box-shadow: 0 2px 7px rgba(21, 43, 66, 0.12);
+  overflow: hidden;
+}
+.map-legend .legend-gate .security-guard-symbol {
+  width: 100%;
+  height: 100%;
+}
+.map-legend .legend-gate--selected {
+  border-color: #D5E1E9 !important;
+  box-shadow: 0 2px 7px rgba(21, 43, 66, 0.12);
+}
 
 /* =========================================================
    12. CSS-ONLY VEHICLE BOOM BARRIER
