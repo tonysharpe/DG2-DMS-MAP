@@ -2170,9 +2170,10 @@ async function init() {
         : "")
     );
 
-    // Always start with a clean interface. Shared-link destinations are not
-    // restored automatically on refresh or launch.
-    $("startMode").value = "gate";
+    // Start in live-location mode so the user's current position is shown
+    // automatically on launch. The browser may ask for location permission.
+    // Shared-link destinations are not restored automatically on refresh.
+    $("startMode").value = "live";
     $("start").selectedIndex = -1;
     $("end").value = "";
     $("destinationSearch").value = "";
@@ -2182,11 +2183,13 @@ async function init() {
     updateDestinationUrl();
     clearRoute();
     refreshShareControls();
-    locationStatus("Location off.");
+    locationStatus("Requesting your current location…");
     status(
       "Vehicle: " + vehicleMode + ". " + roads.length + " eligible roads. " +
-      "Select a LAAR to begin."
+      "Waiting for your current location."
     );
+    $("locate").disabled = false;
+    startLiveLocation();
 
   } catch (error) {
     for (const id of [
