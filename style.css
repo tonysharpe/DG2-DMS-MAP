@@ -3368,3 +3368,9 @@ body > aside .primary-button:active:not(:disabled) {
   width: 75% !important;
   height: 75% !important;
 }
+
+
+/* Gate labels now sit above the marker, centered with minimal separation. */
+.leaflet-container .leaflet-tooltip-top.laar-gate-label::before {
+  border-top-color: #D5E1E9 !important;
+}
