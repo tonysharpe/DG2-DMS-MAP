@@ -3649,3 +3649,32 @@ body > #journeyControls.journey-controls {
   .header-actions { display: contents; }
   .header-actions .live-route-toggle { display: none; }
 }
+
+/* Keep the paired header controls aligned and identical in size. */
+.header-actions .mobile-panel-toggle,
+.header-actions .live-route-toggle {
+  box-sizing: border-box;
+  width: 112px;
+  min-width: 112px;
+  height: 38px;
+  min-height: 38px;
+  padding: 6px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+}
+.header-actions .mobile-panel-toggle:disabled {
+  opacity: 1;
+  cursor: pointer;
+}
+@media (max-width: 760px) {
+  .header-actions .mobile-panel-toggle,
+  .header-actions .live-route-toggle {
+    width: 112px;
+    min-width: 112px;
+    height: 38px;
+    min-height: 38px;
+    font-size: 12px;
+  }
+}
