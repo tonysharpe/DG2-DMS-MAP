@@ -3567,11 +3567,14 @@ body > #journeyControls.journey-controls {
   display: none !important;
 }
 @media (max-width: 760px) {
+  /* Keep live-routing controls out of the way while destination selection is open. */
   body > #journeyPopupToggle.journey-popup-toggle {
     display: none !important;
   }
   body > #journeyControls.journey-controls,
-  body:has(#navigationPanel:not(.mobile-panel-collapsed)) > #journeyControls.journey-controls,
+  body:has(#navigationPanel:not(.mobile-panel-collapsed)) > #journeyControls.journey-controls {
+    display: none !important;
+  }
   body:has(#navigationPanel.mobile-panel-collapsed) > #journeyControls.journey-controls:not([hidden]) {
     display: block !important;
     position: fixed !important;
