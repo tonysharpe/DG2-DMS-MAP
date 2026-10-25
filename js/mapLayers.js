@@ -160,6 +160,7 @@ function themeColor(property) {
   }
 
   async function fetchLayerData(definition) {
+    const startedAt = performance.now();
     const response = await fetch(definition.file, {
       cache: "default"
     });
@@ -177,6 +178,7 @@ function themeColor(property) {
       throw new Error("Expected GeoJSON features");
     }
 
+    window.recordMapLoadTiming?.("Load and parse background " + definition.file, startedAt);
     return data;
   }
 
@@ -279,6 +281,7 @@ function themeColor(property) {
   }
 
   let ready = false;
+  const routingWaitStartedAt = performance.now();
 
   for (let attempt = 0; attempt < 600; attempt++) {
     const destinationSelect = document.getElementById("end");
@@ -305,6 +308,9 @@ function themeColor(property) {
     );
     return;
   }
+
+  window.recordMapLoadTiming?.("Wait for routing initialisation before background layers", routingWaitStartedAt);
+  const backgroundRenderStartedAt = performance.now();
 
   pane("siteBaseLayers", 210);
   pane("siteBackground", 250);
@@ -352,6 +358,7 @@ function themeColor(property) {
     }
   }
 
+  window.recordMapLoadTiming?.("Render background map layers", backgroundRenderStartedAt);
   if (errors.length) {
     warning(
       "Background warnings:\n" +
