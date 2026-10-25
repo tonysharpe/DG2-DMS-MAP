@@ -172,8 +172,8 @@
           </div>
 
           <div class="map-legend__row">
-            <span class="diriyah-swatch diriyah-swatch--public" aria-hidden="true"></span>
-            <span>Public Road</span>
+            <span class="diriyah-swatch diriyah-swatch--minor" aria-hidden="true"></span>
+            <span>Minor Roads</span>
           </div>
 
           <div class="map-legend__row">
