@@ -3601,3 +3601,45 @@ body > #journeyControls.journey-controls {
     display: none !important;
   }
 }
+
+/* Header controls: planner visibility and live-route start/stop. */
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+.header-actions .mobile-panel-toggle,
+.header-actions .live-route-toggle {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid #1a73e8;
+  border-radius: 8px;
+  background: #1a73e8;
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.header-actions .live-route-toggle {
+  border-color: #218739;
+  background: #218739;
+}
+.header-actions .live-route-toggle.is-stop {
+  border-color: #c62828;
+  background: #c62828;
+}
+.header-actions .live-route-toggle:disabled {
+  border-color: #aeb4bb;
+  background: #d9dde2;
+  color: #646b73;
+  cursor: not-allowed;
+  opacity: 1;
+}
+@media (max-width: 760px) {
+  body > aside .site-header { gap: 8px; }
+  .header-actions { gap: 5px; }
+  .header-actions .mobile-panel-toggle,
+  .header-actions .live-route-toggle { padding: 7px 9px; font-size: 12px; }
+  body > #journeyControls.journey-controls { display: none !important; }
+}
