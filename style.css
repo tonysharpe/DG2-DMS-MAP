@@ -2211,16 +2211,16 @@ select:disabled {
 .diriyah-swatch--minor,
 .diriyah-swatch--local,
 .diriyah-swatch--public {
-  border-color: var(--public-road);
+  border-color: var(--map-public-road);
 }
 
 .diriyah-swatch--haul {
-  border-color: var(--haul-road);
+  border-color: var(--map-haul-road);
 }
 
 .diriyah-swatch--route {
-  border-color: var(--route-red);
-  border-top-width: 10px;
+  border-color: var(--map-route);
+  border-top-width: 7px;
 }
 
 .diriyah-area-key {
@@ -2611,7 +2611,8 @@ body > aside .primary-button:active:not(:disabled) {
   box-shadow: 0 1px 5px rgba(60, 64, 67, 0.24);
   color: #202124;
 }
-.diriyah-swatch--main { border-color: #F9D776; }
+.diriyah-swatch--main,
+.diriyah-swatch--major { border-color: var(--map-major-road); }
 .diriyah-swatch--public { border-color: #FFFFFF; filter: drop-shadow(0 0 1px #9AA0A6); }
 .diriyah-swatch--haul { border-color: #F6B26B; }
 .diriyah-swatch--route { border-color: #4285F4; }
