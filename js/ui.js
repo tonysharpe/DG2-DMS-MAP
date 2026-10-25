@@ -20,7 +20,7 @@
     }
     panel.classList.toggle("mobile-panel-collapsed", !expanded && mobileQuery.matches);
     toggle.setAttribute("aria-expanded", String(expanded));
-    toggle.textContent = expanded ? "Hide controls" : "Plan route";
+    toggle.textContent = expanded ? "Hide" : "Show";
   }
 
   function syncViewport() {
@@ -29,7 +29,7 @@
     } else {
       panel.classList.remove("mobile-panel-collapsed");
       toggle.setAttribute("aria-expanded", "false");
-      toggle.textContent = "Plan route";
+      toggle.textContent = "Hide";
     }
   }
 
@@ -86,57 +86,26 @@
 })();
 
 
-/* Mobile live-routing popup: the persistent map-pin button opens/closes the card. */
+
+/* Header live-route button delegates to the existing location handlers. */
 (function () {
-  const button = document.getElementById("journeyPopupToggle");
-  const card = document.getElementById("journeyControls");
-  const mobileQuery = window.matchMedia("(max-width: 760px)");
-  if (!button || !card) return;
-
-  function setOpen(open) {
-    const shouldOpen = Boolean(open && mobileQuery.matches && !card.hidden || open && mobileQuery.matches);
-    card.classList.toggle("mobile-popup-open", shouldOpen);
-    button.setAttribute("aria-expanded", String(shouldOpen));
-    button.setAttribute("aria-label", shouldOpen ? "Close live routing controls" : "Open live routing controls");
-    button.setAttribute("title", shouldOpen ? "Close live route" : "Live route");
-    button.classList.toggle("is-open", shouldOpen);
-    if (shouldOpen) card.hidden = false;
+  const button = document.getElementById("liveRouteToggle");
+  const start = document.getElementById("startLiveRoute");
+  const stop = document.getElementById("stopLiveRoute");
+  if (!button || !start || !stop) return;
+  function sync() {
+    const running = start.hidden && !stop.hidden;
+    button.textContent = running ? "Stop" : "Start";
+    button.classList.toggle("is-stop", running);
+    button.disabled = !running && !window.laarRouteAvailable;
   }
-
   button.addEventListener("click", function () {
-    // Toggle the popup independently of its contents. Closing never stops a route.
-    setOpen(!card.classList.contains("mobile-popup-open"));
+    if (button.disabled) return;
+    (button.textContent === "Stop" ? stop : start).click();
+    sync();
   });
-
-  card.addEventListener("click", function (event) {
-    if (event.target.closest("#startLiveRoute, #stopLiveRoute")) {
-      // Keep the popup open while starting/stopping a live journey.
-      setOpen(true);
-    }
-  });
-
-  // The routing UI can hide the card when start mode changes; keep the launcher
-  // state accurate so the next tap always opens it and the following tap closes it.
-  const visibilityObserver = new MutationObserver(function () {
-    if (card.hidden && card.classList.contains("mobile-popup-open")) setOpen(false);
-  });
-  visibilityObserver.observe(card, {attributes: true, attributeFilter: ["hidden"]});
-
-  document.addEventListener("laar-route-ready", function () {
-    if (mobileQuery.matches) setOpen(false);
-  });
-
-  function syncViewport() {
-    if (!mobileQuery.matches) {
-      card.classList.remove("mobile-popup-open");
-      button.setAttribute("aria-expanded", "false");
-      button.setAttribute("aria-label", "Open live routing controls");
-      button.classList.remove("is-open");
-    } else {
-      setOpen(false);
-    }
-  }
-  if (typeof mobileQuery.addEventListener === "function") mobileQuery.addEventListener("change", syncViewport);
-  else mobileQuery.addListener(syncViewport);
-  syncViewport();
+  document.addEventListener("laar-route-state-change", sync);
+  start.addEventListener("click", sync);
+  stop.addEventListener("click", sync);
+  sync();
 })();
