@@ -581,7 +581,7 @@ function initialiseLocationControls() {
   };
   $("locate").onclick = startLiveLocation;
   $("stopLocation").onclick = () => stopLiveLocation();
-  $("route").textContent = "Show / update LAAR route";
+  $("route").textContent = "Show Route";
   window.addEventListener("pagehide", () => stopLiveLocation(false));
 }
 
