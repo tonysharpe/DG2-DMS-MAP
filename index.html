@@ -30,7 +30,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=mobile-only-header-buttons-1"
+    href="style.css?v=unreachable-destination-diagnostics-1"
   >
 <!-- LIBRARIES -->
 
@@ -58,7 +58,7 @@
 
   <script
     defer
-    src="js/routing.js?v=project-structure-1"
+    src="js/routing.js?v=unreachable-destination-diagnostics-1"
   ></script>
 
   <script
@@ -148,6 +148,13 @@
       <input id="destinationSearch" type="search" placeholder="Type to search…" autocomplete="off"
         aria-describedby="searchStatus" disabled>
       <p id="searchStatus" class="field-help" aria-live="polite"></p>
+
+      <section class="diagnostics-section" aria-labelledby="diagnosticsHeading">
+        <h3 id="diagnosticsHeading">Diagnostics</h3>
+        <p class="field-help">Destinations that cannot be reached with the selected vehicle and start location:</p>
+        <p id="diagnosticsStatus" class="field-help" aria-live="polite">Checking destination access…</p>
+        <ul id="unreachableDestinations" class="unreachable-destinations"></ul>
+      </section>
     </section>
 
 <!-- ROUTE SUMMARY -->
