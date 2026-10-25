@@ -3520,34 +3520,38 @@ body > aside .primary-button:active:not(:disabled) {
 
 /* Compact live-routing panel: fixed title, small Start/Stop controls. */
 body > #journeyControls.journey-controls {
-  left: 12px !important;
-  right: auto !important;
+  left: auto !important;
+  right: 12px !important;
   bottom: 12px !important;
   top: auto !important;
-  width: 220px !important;
+  width: 154px !important;
   max-width: calc(100vw - 24px) !important;
   max-height: none !important;
-  padding: 10px 12px !important;
-  border-radius: 10px !important;
-  gap: 6px !important;
+  padding: 7px 8px !important;
+  border-radius: 8px !important;
+  gap: 5px !important;
+  text-align: center !important;
 }
 #journeyControls .journey-stage {
-  margin: 0 0 6px !important;
-  font-size: 13px !important;
+  margin: 0 0 5px !important;
+  font-size: 12px !important;
   line-height: 1.2 !important;
   font-weight: 700 !important;
+  text-align: center !important;
 }
 #journeyControls .journey-actions {
   display: flex;
-  gap: 6px;
+  justify-content: center;
+  gap: 5px;
 }
 #journeyControls .journey-actions button {
-  min-height: 30px !important;
-  height: 30px !important;
-  padding: 4px 12px !important;
-  font-size: 12px !important;
+  min-width: 0 !important;
+  min-height: 26px !important;
+  height: 26px !important;
+  padding: 3px 8px !important;
+  font-size: 11px !important;
   line-height: 1 !important;
-  border-radius: 6px !important;
+  border-radius: 5px !important;
 }
 #journeyControls #startLiveRoute {
   background: #218739 !important;
