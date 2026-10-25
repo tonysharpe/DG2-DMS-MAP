@@ -80,6 +80,17 @@ function showRouteSummary(destination, start, metres, seconds, roadNames, liveMo
   $("summaryTime").textContent =
     (seconds / 60).toFixed(1) + " min";
 
+  if ($("journeyControls")) $("journeyControls").hidden = $("startMode")?.value !== "live";
+  // A reroute during an active journey must not reset the Start/Stop controls.
+  if (!liveNavigationActive) {
+    if ($("journeyStage")) {
+      $("journeyStage").textContent = "Route preview ready. Start when you are ready.";
+    }
+    if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
+    if ($("stopLiveRoute")) $("stopLiveRoute").hidden = true;
+    if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
+  }
+
   $("routeDetails").textContent =
     "Roads: " +
     (roadNames.length ? roadNames.join(" → ") : "Same network node") +
