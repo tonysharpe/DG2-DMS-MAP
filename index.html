@@ -30,7 +30,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=collapsed-height-no-transform-1"
+    href="style.css?v=custom-laar-picker-1"
   >
 <!-- LIBRARIES -->
 
@@ -49,7 +49,7 @@
 
   <script
     defer
-    src="js/app.js?v=live-routing-panel-1"
+    src="js/app.js?v=custom-laar-picker-1"
   ></script>
 <script
     defer
@@ -137,8 +137,10 @@
       <input id="destinationSearch" type="search" placeholder="Type to search…" autocomplete="off"
         aria-describedby="searchStatus" disabled>
       <p id="searchStatus" class="field-help" aria-live="polite"></p>
-      <label for="end">Available destinations</label>
-      <select id="end" disabled>
+      <label for="destinationPickerToggle">Available destinations</label>
+      <button id="destinationPickerToggle" class="destination-picker-toggle" type="button" aria-expanded="false" aria-controls="destinationPickerList" disabled>Select destination…</button>
+      <div id="destinationPickerList" class="destination-picker-list" role="listbox" aria-label="Available destinations" hidden></div>
+      <select id="end" disabled aria-hidden="true" tabindex="-1">
         <option value="" selected>Select destination…</option>
       </select>
     </section>
