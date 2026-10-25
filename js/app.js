@@ -1848,14 +1848,71 @@ async function init() {
 
     status("Loading network files…");
 
-    const [r, j, g, d, metadata, areas, boundary] = await Promise.all([
+    // Load and render the visible map geometry first. Routing inputs are fetched
+    // afterwards so graph construction cannot delay the first useful map frame.
+    const [r, areas, boundary] = await Promise.all([
       load(ROADS_FILE),
+      load("data/destination_areas.geojson"),
+      load("data/boundary.geojson")
+    ]);
+
+
+    L.geoJSON(boundary, {
+      interactive: false,
+      style: {
+        color: "#F8E0DE",
+        weight: 1,
+        opacity: 1,
+        fillColor: "#F8E0DE",
+        fillOpacity: 1
+      }
+    }).addTo(map);
+
+    const roadTypeOrder = { local: 0, minor: 1, major: 2, main: 2, public: 3, haul: 4 };
+    const orderedRoadData = {
+      ...r,
+      features: [...(r.features || [])].sort((a, b) => {
+        const typeA = String(a.properties?.type || "").trim().toLowerCase();
+        const typeB = String(b.properties?.type || "").trim().toLowerCase();
+        return (roadTypeOrder[typeA] ?? -1) - (roadTypeOrder[typeB] ?? -1);
+      })
+    };
+
+    L.geoJSON(orderedRoadData, {
+      pane: "roadCasingPane",
+      smoothFactor: 1.5,
+      interactive: false,
+      style: roadCasingStyle
+    }).addTo(map);
+
+    let roadLayer = L.geoJSON(orderedRoadData, {
+      smoothFactor: 1.5,
+      style: roadStyle,
+      onEachFeature: bindRoadPopup
+    }).addTo(map);
+    displayedRoadLayer = roadLayer;
+
+    siteBounds = roadLayer.getBounds();
+    if (!siteBounds.isValid()) throw new Error("Invalid map extent.");
+    if (destinationAreas.size) {
+      const areaBounds = L.geoJSON({
+        type: "FeatureCollection",
+        features: [...destinationAreas.values()].flat()
+      }).getBounds();
+      if (areaBounds.isValid()) siteBounds.extend(areaBounds);
+    }
+
+    map.invalidateSize({ pan: false, animate: false });
+    map.fitBounds(siteBounds, { padding: [20, 20], animate: false });
+
+    // Let the browser paint the map before fetching/building the routing graph.
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    const [j, g, d, metadata] = await Promise.all([
       load("data/junctions.geojson"),
       load("data/gates.geojson"),
       load("data/destinations.geojson"),
-      load("data/meta.json", true),
-      load("data/destination_areas.geojson"),
-      load("data/boundary.geojson")
+      load("data/meta.json", true)
     ]);
 
     if (
@@ -1875,18 +1932,6 @@ async function init() {
     build(j, r, g, d, metadata);
     loadDestinationAreas(areas);
 
-    // Render the site boundary with the supplied solid pale-pink fill.
-    L.geoJSON(boundary, {
-      interactive: false,
-      style: {
-        color: "#F8E0DE",
-        weight: 1,
-        opacity: 1,
-        fillColor: "#F8E0DE",
-        fillOpacity: 1
-      }
-    }).addTo(map);
-
     const reviewed =
       metadata?.network_reviewed_at ??
       metadata?.routing?.network_reviewed_at;
@@ -1898,49 +1943,7 @@ async function init() {
         ? "Not recorded"
         : String(reviewed);
 
-    const roadTypeOrder = { local: 0, minor: 1, major: 2, main: 2, public: 3, haul: 4 };
-    const orderedRoadData = {
-      ...r,
-      features: [...(r.features || [])].sort((a, b) => {
-        const typeA = String(a.properties?.type || "").trim().toLowerCase();
-        const typeB = String(b.properties?.type || "").trim().toLowerCase();
-        return (roadTypeOrder[typeA] ?? -1) - (roadTypeOrder[typeB] ?? -1);
-      })
-    };
-
-    // Draw road casings in the same bottom-to-top order as road surfaces.
-    L.geoJSON(orderedRoadData, {
-      pane: "roadCasingPane",
-      smoothFactor: 1.5,
-      interactive: false,
-      style: roadCasingStyle
-    }).addTo(map);
-
-    const roadLayer = L.geoJSON(orderedRoadData, {
-      smoothFactor: 1.5,
-      style: roadStyle,
-      onEachFeature: bindRoadPopup
-    }).addTo(map);
-    displayedRoadLayer = roadLayer;
-
-    // Map clicks are handled by Leaflet's map-level click event; no invisible
-    // interactive overlay is needed, so roads and background layers cannot mask clicks.
-
-    siteBounds = roadLayer.getBounds();
-
-    if (!siteBounds.isValid()) {
-      throw new Error("Invalid map extent.");
-    }
-
-    if (destinationAreas.size) {
-      const bounds = L.geoJSON({
-        type: "FeatureCollection",
-        features: [...destinationAreas.values()].flat()
-      }).getBounds();
-
-      if (bounds.isValid()) siteBounds.extend(bounds);
-    }
-
+    // Road geometry is already visible; map clicks are handled by Leaflet's map-level event.
        const movementBounds = siteBounds.pad(1.0);
     map.setMaxBounds(movementBounds);
     map.setMinZoom(Math.max(0, map.getBoundsZoom(movementBounds) - 1));
