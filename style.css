@@ -3808,3 +3808,12 @@ body > #journeyControls.journey-controls {
   padding-top: 18px;
   border-top: 1px solid var(--border-color);
 }
+
+
+/* Header menu and live-route buttons are mobile-only controls. */
+@media (min-width: 761px) {
+  .header-actions .mobile-panel-toggle,
+  .header-actions .live-route-toggle {
+    display: none !important;
+  }
+}
