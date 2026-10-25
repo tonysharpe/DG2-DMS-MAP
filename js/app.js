@@ -1856,6 +1856,7 @@ async function init() {
       load("data/boundary.geojson")
     ]);
 
+    loadDestinationAreas(areas);
 
     L.geoJSON(boundary, {
       interactive: false,
@@ -1930,7 +1931,6 @@ async function init() {
     vehicleMode = $("vehicleType").value;
     const invalidAccessCount = reportAccessData(r);
     build(j, r, g, d, metadata);
-    loadDestinationAreas(areas);
 
     const reviewed =
       metadata?.network_reviewed_at ??
