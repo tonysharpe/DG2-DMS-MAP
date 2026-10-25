@@ -241,7 +241,6 @@ function stopLiveLocation(showMessage = true) {
   previousHeadingPosition = null;
   liveHeadingDegrees = null;
   if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
-  if ($("journeyStage")) $("journeyStage").textContent = "Journey ended";
   if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
   if ($("stopLiveRoute")) $("stopLiveRoute").hidden = true;
   lastLiveRouteAttemptAt = 0;
@@ -312,7 +311,6 @@ function startLiveRoute() {
 function stopLiveRoute() {
   liveNavigationActive = false;
   journeyStartConfirmed = false;
-  if ($("journeyStage")) $("journeyStage").textContent = "Routing stopped";
   if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
   if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
   if ($("stopLiveRoute")) $("stopLiveRoute").hidden = true;
@@ -326,7 +324,6 @@ function confirmBeginJourney() {
   }
   journeyStartConfirmed = true;
   liveNavigationActive = true;
-  if ($("journeyStage")) $("journeyStage").textContent = "Journey started";
   if ($("journeyGuidance")) $("journeyGuidance").hidden = false;
   if ($("startLiveRoute")) $("startLiveRoute").hidden = true;
   if ($("stopLiveRoute")) $("stopLiveRoute").hidden = false;
@@ -535,10 +532,6 @@ const calculateRouteForJourney = calculate;
 calculate = function () {
   const result = calculateRouteForJourney.apply(this, arguments);
   if ($("startMode")?.value === "live" && routeLayer && !liveNavigationActive) {
-    if ($("journeyStage")) {
-      $("journeyStage").textContent =
-        "Route preview ready. Start when you are ready.";
-    }
   }
   return result;
 };
