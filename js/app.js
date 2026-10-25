@@ -1530,6 +1530,8 @@ function loadDestinationFromUrl() {
 /* ROUTE SUMMARY */
 
 function calculate(collapseMobilePanelOnSuccess = false) {
+  window.laarRouteAvailable = false;
+  document.dispatchEvent(new CustomEvent("laar-route-state-change"));
   clearRoute();
   clearRouteDebugHighlight();
   clearRouteFailureBanner();
@@ -1721,6 +1723,8 @@ function calculate(collapseMobilePanelOnSuccess = false) {
           lineJoin: "round",
           pane: "routePane"
         }).addTo(map);
+        window.laarRouteAvailable = true;
+        document.dispatchEvent(new CustomEvent("laar-route-state-change"));
       }
     }
 
