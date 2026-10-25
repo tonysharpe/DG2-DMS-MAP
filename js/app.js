@@ -199,7 +199,7 @@ function routingDataSignature(inputs) {
   return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
-function exportRoutingNetworkSnapshot() {
+function serializeRoutingNetworkSnapshot() {
   return {
     nodes: [...nodes],
     junctionNodes: [...junctionNodes],
@@ -251,7 +251,7 @@ async function fetchRoutingNetworkCache() {
 window.exportRoutingNetworkSnapshot = () => ({
   inputsSignature: routingInputSignature,
   vehicleMode,
-  snapshot: exportRoutingNetworkSnapshot()
+  snapshot: serializeRoutingNetworkSnapshot()
 });
 
 async function changeVehicle() {
