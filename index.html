@@ -49,7 +49,7 @@
 
   <script
     defer
-    src="js/app.js?v=auto-route-ui-1"
+    src="js/app.js?v=destination-type-2"
   ></script>
 <script
     defer
@@ -63,11 +63,11 @@
 
   <script
     defer
-    src="js/mapLayers.js?v=destination-ready-1"
+    src="js/mapLayers.js?v=central-theme-1"
   ></script>
 
-  <script defer src="js/routeDisplay.js?v=auto-route-ui-1"></script>
-  <script defer src="js/map.js?v=auto-route-ui-1"></script>
+  <script defer src="js/routeDisplay.js?v=live-route-start-closer-1"></script>
+  <script defer src="js/map.js?v=destination-label-1"></script>
 </head>
 
 <body>
@@ -86,7 +86,21 @@
       <h1>Diriyah 2 Map</h1>
       <button id="panelToggle" class="mobile-panel-toggle" type="button" aria-expanded="false" aria-controls="navigationPanel">Plan route</button>
     </header>
-<!-- VEHICLE -->
+
+
+    <!-- ROUTE BUTTON -->
+
+    <button
+      id="route"
+      type="button"
+      class="primary-button"
+      disabled
+    >
+      Show Route
+    </button>
+
+
+    <!-- VEHICLE -->
     <section class="control-section" aria-labelledby="vehicleHeading">
       <h2 id="vehicleHeading">Vehicle Type:</h2>
       <select id="vehicleType" hidden disabled aria-hidden="true" tabindex="-1">
@@ -301,8 +315,32 @@
     aria-label="Interactive LAAR navigation map"
   ></main>
 
+  <!-- Mobile shortcut for opening the live-routing popup. -->
+  <button id="journeyPopupToggle" class="journey-popup-toggle" type="button"
+    aria-label="Open live routing controls" aria-controls="journeyControls" aria-expanded="false" title="Live routing">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 2.8a6.2 6.2 0 0 0-6.2 6.2c0 4.5 6.2 12.2 6.2 12.2S18.2 13.5 18.2 9A6.2 6.2 0 0 0 12 2.8Z"></path>
+      <circle cx="12" cy="9" r="2.1"></circle>
+      <path d="M3 5.5h2.2M18.8 5.5H21M3 17.5h3M18 17.5h3"></path>
+    </svg>
+    <span>Live route</span>
+  </button>
 
-  <script defer src="js/ui.js?v=auto-route-ui-1"></script>
+  <!-- Compact live-routing controls float over the map, not the route panel. -->
+      <div id="journeyControls" class="journey-controls" hidden>
+        <p id="journeyStage" class="journey-stage" role="status">Route preview ready</p>
+        <div class="journey-actions">
+          <button id="startLiveRoute" type="button" class="primary-button">Start route</button>
+          <button id="stopLiveRoute" type="button" class="stop-routing-button" hidden>Stop routing</button>
+        </div>
+        <div class="journey-footnote">GPS location stays on until you select Stop location.</div>
+        <div id="journeyGuidance" class="journey-guidance" hidden aria-live="polite">
+          <span id="journeyDirectionArrow" class="journey-direction-arrow" aria-hidden="true">↑</span>
+          <span id="journeyDirectionText">Waiting for heading…</span>
+        </div>
+      </div>
+
+  <script defer src="js/ui.js?v=mobile-routing-popup-1"></script>
   <script defer src="js/main.js?v=project-structure-1"></script>
 
 </body>
