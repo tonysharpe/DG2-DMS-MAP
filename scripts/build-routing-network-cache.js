@@ -8,7 +8,9 @@ const { chromium } = require("playwright");
   page.on("pageerror", error => console.error("Application page error:", error.message));
 
   try {
-    await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+    const appUrl = new URL(baseUrl);
+    appUrl.searchParams.set("rebuildRoutingCache", "1");
+    await page.goto(appUrl.toString(), { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForFunction(() => window.laarNetworkBuildReady === true, null, { timeout: 300000 });
 
     const truck = await page.evaluate(() => window.exportRoutingNetworkSnapshot());
