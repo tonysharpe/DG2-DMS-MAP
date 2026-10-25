@@ -1199,20 +1199,18 @@ function build(
 }
 
 
-/* MODERN GATE ICONS */
+/* SECURITY GUARD GATE ICON */
 
-/*
- * CSS-only barrier markup.
- * Existing function name retained for legend compatibility.
- */
+/* Shared by map markers and the map legend. */
 function gateSvg() {
   return `
-    <span class="vehicle-barrier" aria-hidden="true">
-      <span class="vehicle-barrier__ground"></span>
-      <span class="vehicle-barrier__cabinet"></span>
-      <span class="vehicle-barrier__arm"></span>
-      <span class="vehicle-barrier__support"></span>
-    </span>
+    <svg class="security-guard-symbol" viewBox="0 0 44 44" aria-hidden="true" focusable="false">
+      <circle class="security-guard-symbol__background" cx="22" cy="22" r="20"/>
+      <circle class="security-guard-symbol__head" cx="22" cy="14" r="5"/>
+      <path class="security-guard-symbol__cap" d="M15.5 12.5a6.5 6.5 0 0 1 13 0v1h-13z"/>
+      <path class="security-guard-symbol__body" d="M11.5 34c.5-7.2 4.1-11 10.5-11s10 3.8 10.5 11v2h-21z"/>
+      <path class="security-guard-symbol__badge" d="M22 25.5l2.2 2.2-2.2 2.2-2.2-2.2z"/>
+    </svg>
   `;
 }
 
