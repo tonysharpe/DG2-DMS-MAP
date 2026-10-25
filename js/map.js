@@ -98,7 +98,7 @@
         opacity: 1,
 
         fillColor: themeColor("--map-area-fill"),
-        fillOpacity: 0.56,
+        fillOpacity: 0.18,
         lineCap: "round",
         lineJoin: "round"
       });
