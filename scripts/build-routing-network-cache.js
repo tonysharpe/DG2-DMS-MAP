@@ -36,7 +36,9 @@ const { chromium } = require("playwright");
         car: car.snapshot
       }
     };
-    fs.writeFileSync("data/routing-network-cache.json", JSON.stringify(output, (_key, value) =>\n      typeof value === "number" && !Number.isFinite(value)\n        ? (value === Infinity ? "__INF__" : value === -Infinity ? "__-INF__" : "__NAN__")\n        : value));
+    fs.writeFileSync("data/routing-network-cache.json", JSON.stringify(output, (_key, value) =>
+      typeof value === "number" && !Number.isFinite(value)\n        ? (value === Infinity ? "__INF__" : value === -Infinity ? "__-INF__" : "__NAN__")
+        : value));
     console.log("Generated routing cache:", {
       signature: output.inputsSignature,
       truckNodes: output.networks.truck.nodes.length,
