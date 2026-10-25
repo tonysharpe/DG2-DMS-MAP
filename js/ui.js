@@ -45,11 +45,8 @@
     setExpanded(!expanded);
   });
 
-  if (typeof mobileQuery.addEventListener === "function") {
-    mobileQuery.addEventListener("change", syncViewport);
-  } else {
-    mobileQuery.addListener(syncViewport);
-  }
+  // Do not auto-toggle the bottom sheet on viewport/media-query changes.
+  // Mobile browser chrome and viewport resizes can otherwise cause visible flashing.
 
   syncViewport();
 })();
