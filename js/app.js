@@ -1737,6 +1737,12 @@ function calculate(collapseMobilePanelOnSuccess = false) {
 }
 
 
+function hideMapLoadingDialog() {
+  const dialog = document.getElementById("mapLoadingDialog");
+  if (dialog) dialog.classList.add("is-hidden");
+}
+
+
 /* INITIALISE */
 
 async function init() {
@@ -2204,6 +2210,7 @@ async function init() {
     );
     $("locate").disabled = false;
     startLiveLocation();
+    hideMapLoadingDialog();
 
   } catch (error) {
     for (const id of [
@@ -2214,6 +2221,7 @@ async function init() {
     }
 
     status("Setup error: " + error.message);
+    hideMapLoadingDialog();
     console.error(error);
   }
 }
