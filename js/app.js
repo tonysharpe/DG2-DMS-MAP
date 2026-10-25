@@ -1759,7 +1759,7 @@ function hideMapLoadingDialog() {
 async function init() {
   try {
     const required = [
-      "vehicleType", "map", "status", "start", "end", "route", "clear", "fit",
+      "vehicleType", "map", "status", "start", "end", "clear", "fit",
       "startMode", "locate", "stopLocation", "locationStatus",
       "destinationSearch", "searchStatus", "copyLink",
       "shareStatus", "shareFallback", "shareLink",
@@ -1774,7 +1774,7 @@ async function init() {
     }
 
     const controlIds = [
-      "vehicleType", "start", "end", "route", "clear", "fit", "startMode",
+      "vehicleType", "start", "end", "clear", "fit", "startMode",
       "locate", "stopLocation", "destinationSearch", "copyLink"
     ];
 
@@ -2091,7 +2091,6 @@ async function init() {
 
     $("destinationSearch").disabled = false;
     $("end").disabled = false;
-    $("route").disabled = false;
     $("clear").disabled = false;
     $("fit").disabled = false;
 
@@ -2127,21 +2126,6 @@ async function init() {
       }
     };
 
-    $("route").onclick = () => {
-      // Show / update is an explicit request for the full route overview.
-      // If navigation was actively following GPS, stop camera-following so
-      // the overview remains visible instead of immediately snapping back.
-      if (liveNavigationActive) {
-        liveNavigationActive = false;
-        journeyStartConfirmed = false;
-        if ($("journeyStage")) $("journeyStage").textContent = "Route preview ready. Start when you are ready.";
-        if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
-        if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
-        if ($("stopLiveRoute")) $("stopLiveRoute").hidden = true;
-      }
-      calculate(true);
-      if (routeLayer) fitSelectedResult();
-    };
     $("copyLink").onclick = copyDestinationLink;
 
     $("clear").onclick = () => {
@@ -2240,7 +2224,7 @@ async function init() {
 
   } catch (error) {
     for (const id of [
-      "vehicleType", "start", "end", "route", "clear", "fit", "startMode",
+      "vehicleType", "start", "end", "clear", "fit", "startMode",
       "locate", "stopLocation", "destinationSearch", "copyLink"
     ]) {
       if ($(id)) $(id).disabled = true;
