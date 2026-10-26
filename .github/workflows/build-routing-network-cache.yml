@@ -10,7 +10,7 @@ on:
       - "data/destinations.geojson"
       - "data/meta.json"
       - "js/app.js"
-      - "scripts/build-routing-network-cache.js"
+      - "js/build-routing-network-cache.js"
       - ".github/workflows/build-routing-network-cache.yml"
 
 permissions:
@@ -53,7 +53,7 @@ jobs:
           exit 1
 
       - name: Generate routing networks
-        run: node scripts/build-routing-network-cache.js
+        run: node js/build-routing-network-cache.js
 
       - name: Commit generated network
         run: |
