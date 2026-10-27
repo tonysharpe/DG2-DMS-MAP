@@ -64,8 +64,8 @@
 
     function getReachableNodes(context) {
       const reachable = new Set();
-      // The graph is rebuilt for the active vehicle: cars contain public
-      // roads only; trucks contain haul roads with truck=yes only.
+      // The graph is rebuilt for the active vehicle using its matching
+      // roads.geojson access field (car, suv, pickup, minibus, bus or truck).
       // Traverse only actual directed graph edges on that permitted network.
       const permittedRoadIds = new Set(roads.map(road => road.id));
       const queue = [];
