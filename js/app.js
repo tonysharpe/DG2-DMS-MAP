@@ -251,12 +251,11 @@ async function fetchRoutingNetworkCache() {
     if (!response.ok) return null;
     const cache = JSON.parse(await response.text(), (_key, value) =>
       value === "__INF__" ? Infinity : value === "__-INF__" ? -Infinity : value === "__NAN__" ? NaN : value);
+    const supportedVehicles = ["truck", "car", "suv", "pickup", "minibus", "bus"];
     if (cache.schemaVersion !== 1 || cache.inputsSignature !== routingInputSignature ||
-        !cache.networks || !cache.networks.truck || !cache.networks.car) return null;
-    for (const vehicle of ["truck", "car", "suv", "pickup", "minibus", "bus"]) {
-      if (cache.networks[vehicle]) {
-        vehicleNetworkSnapshots.set(vehicle, cloneRoutingSnapshot(cache.networks[vehicle]));
-      }
+        !cache.networks || !supportedVehicles.every(vehicle => cache.networks[vehicle])) return null;
+    for (const vehicle of supportedVehicles) {
+      vehicleNetworkSnapshots.set(vehicle, cloneRoutingSnapshot(cache.networks[vehicle]));
     }
     return cache;
   } catch (error) {
@@ -270,6 +269,73 @@ window.exportRoutingNetworkSnapshot = () => ({
   vehicleMode,
   snapshot: serializeRoutingNetworkSnapshot()
 });
+
+/*
+ * Used by the build-time cache generator running in a headless browser.
+ * It builds each vehicle graph from the same loaded GeoJSON inputs as the app,
+ * then restores the initially displayed network before returning the cache.
+ */
+window.generateAllRoutingNetworksCache = async function () {
+  if (!window.laarNetworkBuildReady || !networkInputs || !routingInputSignature) {
+    throw new Error("The initial routing network is not ready yet.");
+  }
+
+  const vehicles = ["truck", "car", "suv", "pickup", "minibus", "bus"];
+  const originalVehicle = vehicleMode;
+  const originalSnapshot = serializeRoutingNetworkSnapshot();
+  const originalDestinationOptions = destinationOptions;
+  const networks = {};
+  const startedAt = performance.now();
+  window.routingCacheGenerationProgress = { completed: 0, total: vehicles.length, vehicle: null };
+
+  try {
+    for (const vehicle of vehicles) {
+      const vehicleStartedAt = performance.now();
+      vehicleMode = vehicle;
+      window.routingCacheGenerationProgress = {
+        completed: Object.keys(networks).length, total: vehicles.length, vehicle
+      };
+      status("Precomputing vehicle routes: " + vehicle + " (" +
+        (Object.keys(networks).length + 1) + "/" + vehicles.length + ")…");
+
+      const { j, r, g, d, metadata } = networkInputs;
+      await build(j, r, g, d, metadata);
+      const snapshot = cloneRoutingSnapshot(serializeRoutingNetworkSnapshot());
+      networks[vehicle] = snapshot;
+      vehicleNetworkSnapshots.set(vehicle, snapshot);
+      console.info("[Routing cache generation]", {
+        vehicle,
+        durationSeconds: Number(((performance.now() - vehicleStartedAt) / 1000).toFixed(3)),
+        roads: roads.length,
+        nodes: nodes.size,
+        destinations: locations.filter(location => location.kind === "destination").length
+      });
+      window.routingCacheGenerationProgress = {
+        completed: Object.keys(networks).length, total: vehicles.length, vehicle
+      };
+    }
+
+    const cache = {
+      schemaVersion: 1,
+      inputsSignature: routingInputSignature,
+      generatedAt: new Date().toISOString(),
+      vehicles,
+      networks
+    };
+    console.info("[Routing cache generation complete]", {
+      durationSeconds: Number(((performance.now() - startedAt) / 1000).toFixed(3)),
+      vehicles: Object.keys(networks)
+    });
+    return cache;
+  } finally {
+    vehicleMode = originalVehicle;
+    applyRoutingNetworkSnapshot(originalSnapshot);
+    destinationOptions = originalDestinationOptions;
+    window.routingCacheGenerationProgress = {
+      completed: Object.keys(networks).length, total: vehicles.length, vehicle: null
+    };
+  }
+};
 
 async function changeVehicle() {
   if (vehicleChangeInProgress) return;
