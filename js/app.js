@@ -244,22 +244,23 @@ function applyRoutingNetworkSnapshot(snapshot) {
   ignoredDestinationNames = snapshot.ignoredDestinationNames || [];
 }
 
-async function fetchRoutingNetworkCache() {
+async function fetchVehicleRoutingNetwork(vehicle) {
   if (new URLSearchParams(window.location.search).get("rebuildRoutingCache") === "1") return null;
+  if (vehicleNetworkSnapshots.has(vehicle)) return vehicleNetworkSnapshots.get(vehicle);
+  const supportedVehicles = ["truck", "car", "suv", "pickup", "minibus", "bus"];
+  if (!supportedVehicles.includes(vehicle)) return null;
   try {
-    const response = await fetch("data/routing-network-cache.json", { cache: "no-store" });
+    const response = await fetch("data/routing-networks/" + vehicle + ".json", { cache: "no-cache" });
     if (!response.ok) return null;
     const cache = JSON.parse(await response.text(), (_key, value) =>
       value === "__INF__" ? Infinity : value === "__-INF__" ? -Infinity : value === "__NAN__" ? NaN : value);
-    const supportedVehicles = ["truck", "car", "suv", "pickup", "minibus", "bus"];
-    if (cache.schemaVersion !== 1 || cache.inputsSignature !== routingInputSignature ||
-        !cache.networks || !supportedVehicles.every(vehicle => cache.networks[vehicle])) return null;
-    for (const vehicle of supportedVehicles) {
-      vehicleNetworkSnapshots.set(vehicle, cloneRoutingSnapshot(cache.networks[vehicle]));
-    }
-    return cache;
+    if (cache.schemaVersion !== 1 || cache.vehicle !== vehicle ||
+        cache.inputsSignature !== routingInputSignature || !cache.snapshot) return null;
+    const snapshot = cache.snapshot;
+    vehicleNetworkSnapshots.set(vehicle, snapshot);
+    return snapshot;
   } catch (error) {
-    console.info("Generated routing cache unavailable; using the normal network build.", error);
+    console.info("Prebuilt " + vehicle + " routing network unavailable; using the normal network build.", error);
     return null;
   }
 }
@@ -363,18 +364,19 @@ async function changeVehicle() {
     const { j, r, g, d, metadata } = networkInputs;
     const networkStartedAt = performance.now();
     let snapshot = vehicleNetworkSnapshots.get(vehicleMode);
-    if (!snapshot && ["truck", "car"].includes(vehicleMode)) {
-      snapshot = routingNetworkCache?.networks?.[vehicleMode] || null;
-      if (snapshot) networkSource = "prebuilt cache";
+    if (snapshot) {
+      networkSource = "memory cache";
+    } else {
+      const cacheFetchStartedAt = performance.now();
+      snapshot = await fetchVehicleRoutingNetwork(vehicleMode);
+      mark("fetch per-vehicle cache", cacheFetchStartedAt);
+      if (snapshot) networkSource = "prebuilt per-vehicle file";
     }
 
     if (snapshot) {
       applyRoutingNetworkSnapshot(snapshot);
-      if (!vehicleNetworkSnapshots.has(vehicleMode)) {
-        vehicleNetworkSnapshots.set(vehicleMode, cloneRoutingSnapshot(snapshot));
-      }
     } else {
-      networkSource = "built now";
+      networkSource = "built now (cache missing or stale)";
       await build(j, r, g, d, metadata);
       const snapshotCloneStartedAt = performance.now();
       vehicleNetworkSnapshots.set(vehicleMode, cloneRoutingSnapshot(serializeRoutingNetworkSnapshot()));
@@ -2256,17 +2258,14 @@ async function init() {
     vehicleMode = $("vehicleType").value;
     const networkBuildStartedAt = performance.now();
     const invalidAccessCount = reportAccessData(r);
-    routingNetworkCache = await fetchRoutingNetworkCache();
-    const initialCachedNetwork = vehicleNetworkSnapshots.get(vehicleMode) ||
-      (["truck", "car"].includes(vehicleMode) ? routingNetworkCache?.networks?.[vehicleMode] : null);
+    const initialCachedNetwork = await fetchVehicleRoutingNetwork(vehicleMode);
     if (initialCachedNetwork) {
       applyRoutingNetworkSnapshot(initialCachedNetwork);
-      vehicleNetworkSnapshots.set(vehicleMode, cloneRoutingSnapshot(initialCachedNetwork));
-      window.recordMapLoadTiming?.("Load prebuilt routing network", networkBuildStartedAt);
+      window.recordMapLoadTiming?.("Load prebuilt " + vehicleMode + " routing network", networkBuildStartedAt);
     } else {
       await build(j, r, g, d, metadata);
       vehicleNetworkSnapshots.set(vehicleMode, cloneRoutingSnapshot(serializeRoutingNetworkSnapshot()));
-      window.recordMapLoadTiming?.("Build routing network", networkBuildStartedAt);
+      window.recordMapLoadTiming?.("Build routing network fallback (" + vehicleMode + ")", networkBuildStartedAt);
     }
 
     const reviewed =
