@@ -273,21 +273,33 @@ window.exportRoutingNetworkSnapshot = () => ({
 
 async function changeVehicle() {
   if (vehicleChangeInProgress) return;
+  const switchStartedAt = performance.now();
+  const timing = {};
+  const mark = (name, startedAt) => {
+    const endedAt = performance.now();
+    timing[name] = Number(((endedAt - startedAt) / 1000).toFixed(3));
+    window.recordMapLoadTiming?.("Vehicle switch: " + name, startedAt, endedAt);
+  };
   const previousName = selectedDestination()?.name;
   setVehicleUpdating(true);
+  const paintStartedAt = performance.now();
   // Let the browser paint the progress indicator before graph construction starts.
   await new Promise(resolve => requestAnimationFrame(() => resolve()));
+  mark("allow progress dialog to paint", paintStartedAt);
   clearRoute();
   if ($("startMode")?.value === "map" && typeof removeMapClickOrigin === "function") {
     removeMapClickOrigin();
     locationStatus("Vehicle changed. Click the map again within 10 m of a permitted road.");
   }
   vehicleMode = $("vehicleType").value;
+  let networkSource = "memory cache";
   try {
     const { j, r, g, d, metadata } = networkInputs;
+    const networkStartedAt = performance.now();
     let snapshot = vehicleNetworkSnapshots.get(vehicleMode);
     if (!snapshot && ["truck", "car"].includes(vehicleMode)) {
       snapshot = routingNetworkCache?.networks?.[vehicleMode] || null;
+      if (snapshot) networkSource = "prebuilt cache";
     }
 
     if (snapshot) {
@@ -296,11 +308,15 @@ async function changeVehicle() {
         vehicleNetworkSnapshots.set(vehicleMode, cloneRoutingSnapshot(snapshot));
       }
     } else {
+      networkSource = "built now";
       await build(j, r, g, d, metadata);
-      // Keep a prepared graph for this vehicle so future switches do not rebuild it.
+      const snapshotCloneStartedAt = performance.now();
       vehicleNetworkSnapshots.set(vehicleMode, cloneRoutingSnapshot(serializeRoutingNetworkSnapshot()));
+      mark("save network snapshot", snapshotCloneStartedAt);
     }
+    mark("load/build vehicle network (" + networkSource + ")", networkStartedAt);
 
+    const destinationsStartedAt = performance.now();
     destinationOptions = locations.flatMap((location, index) => location.kind === "destination" ? [{
       index, name: location.name, type: location.type, valid: location.valid,
       hasPolygon: destinationAreas.has(location.name)
@@ -321,12 +337,19 @@ async function changeVehicle() {
         else $("end").value = "";
       }
     }
+    mark("prepare and render destination options", destinationsStartedAt);
+
+    const mapRefreshStartedAt = performance.now();
     updateGateHighlights();
     $("start").selectedIndex = -1;
     refreshVehicleRoads();
     refreshShareControls();
+    mark("refresh map and controls", mapRefreshStartedAt);
+
+    const routeStartedAt = performance.now();
     if (selectedDestination()) calculate();
     else status(vehicleMode + ": " + roads.length + " eligible roads. Select a destination.");
+    mark("recalculate selected route", routeStartedAt);
   } catch (error) {
     roads = [];
     adjacency = new Map();
@@ -335,6 +358,16 @@ async function changeVehicle() {
     status("Vehicle network error: " + error.message);
     console.error(error);
   } finally {
+    mark("TOTAL", switchStartedAt);
+    console.info("[Vehicle route diagnostics]", {
+      vehicle: vehicleMode,
+      networkSource,
+      timingsSeconds: timing,
+      eligibleRoads: roads.length,
+      graphNodes: nodes.size,
+      destinations: destinationOptions.length,
+      cachedVehicles: [...vehicleNetworkSnapshots.keys()]
+    });
     setVehicleUpdating(false);
   }
 }
