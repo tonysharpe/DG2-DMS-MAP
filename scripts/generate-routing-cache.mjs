@@ -73,20 +73,21 @@ try {
     timeout: 60000
   });
   await page.waitForFunction(() => window.laarNetworkBuildReady === true, null, { timeout: 180000 });
-  const serializedCache = await page.evaluate(async () => {
+  const result = await page.evaluate(async () => {
     const cache = await window.generateAllRoutingNetworksCache();
-    return JSON.stringify(cache, (_key, value) =>
+    const serialized = JSON.stringify(cache, (_key, value) =>
       value === Infinity ? "__INF__" :
       value === -Infinity ? "__-INF__" :
       Number.isNaN(value) ? "__NAN__" : value);
+    const response = await fetch("/__routing-cache", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: serialized
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Failed to save routing cache.");
+    return result;
   });
-  const response = await fetch(`http://127.0.0.1:${port}/__routing-cache`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: serializedCache
-  });
-  const result = await response.json();
-  if (!response.ok || !result.ok) throw new Error(result.error || "Failed to save routing cache.");
   console.log(`Saved six vehicle networks to data/routing-network-cache.json (${result.bytes} bytes).`);
 } finally {
   await browser?.close();
