@@ -30,7 +30,7 @@ const server = http.createServer((req, res) => {
       try {
         const raw = Buffer.concat(chunks).toString("utf8");
         const parsed = JSON.parse(raw);
-        if (parsed.schemaVersion !== 1 || parsed.vehicle !== vehicle ||
+        if (parsed.schemaVersion !== 2 || parsed.vehicle !== vehicle ||
             !parsed.inputsSignature || !parsed.snapshot ||
             !Array.isArray(parsed.snapshot.nodes) ||
             !Array.isArray(parsed.snapshot.adjacency) ||
@@ -93,7 +93,7 @@ try {
     const results = [];
     for (const vehicle of vehicles) {
       const payload = {
-        schemaVersion: 1,
+        schemaVersion: 2,
         vehicle,
         inputsSignature: cache.inputsSignature,
         generatedAt: cache.generatedAt,
