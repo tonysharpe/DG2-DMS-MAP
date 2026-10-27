@@ -11,6 +11,7 @@ on:
       - "index.html"
       - "data/*.geojson"
       - "data/*.json"
+      - "!data/routing-network-cache.json"
       - "scripts/generate-routing-cache.mjs"
       - ".github/workflows/precompute-routing-cache.yml"
 
