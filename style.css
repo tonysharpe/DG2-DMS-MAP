@@ -3949,3 +3949,25 @@ body > #journeyControls.journey-controls {
     font-size: 9px;
   }
 }
+
+
+/* Non-blocking status shown while preparing a vehicle-specific road network. */
+.vehicle-routing-update-dialog {
+  z-index: 9999;
+  top: 22px;
+  left: 50%;
+  min-width: 0;
+  padding: 11px 16px;
+  font-size: 14px;
+  box-shadow: 0 4px 18px rgba(20, 35, 50, 0.16);
+}
+.vehicle-routing-update-dialog[hidden] {
+  display: none;
+}
+@media (max-width: 520px) {
+  .vehicle-routing-update-dialog {
+    top: 10px;
+    max-width: calc(100vw - 32px);
+    white-space: nowrap;
+  }
+}
