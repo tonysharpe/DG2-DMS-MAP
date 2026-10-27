@@ -1354,8 +1354,9 @@ async function build(
     }
 
     const usableParts = coordinateParts
-      .filter(part => Array.isArray(part) && part.length >= 2)
-      .map((part, sourcePartIndex) => ({
+      .map((part, sourcePartIndex) => ({ part, sourcePartIndex }))
+      .filter(item => Array.isArray(item.part) && item.part.length >= 2)
+      .map(({ part, sourcePartIndex }) => ({
         sourcePartIndex,
         points: part.map(coordinate => xy(validatePosition(coordinate, "Road " + baseId)))
       }))
