@@ -296,8 +296,10 @@ function applyRoutingNetworkSnapshot(snapshot) {
     const startId = idAt(compactRoad.startNode);
     const endId = idAt(compactRoad.endNode);
     if (!startId || !endId) throw new Error("Routing cache has an invalid road endpoint index.");
-    if (junctionNodes.has(startId)) points[0] = junctionNodes.get(startId);
-    if (junctionNodes.has(endId)) points[points.length - 1] = junctionNodes.get(endId);
+    if (nodes.has(startId)) points[0] = nodes.get(startId);
+    else nodes.set(startId, [...points[0]]);
+    if (nodes.has(endId)) points[points.length - 1] = nodes.get(endId);
+    else nodes.set(endId, [...points[points.length - 1]]);
     const measures = [0];
     for (let i = 1; i < points.length; i++) {
       measures.push(measures[i - 1] + dist(points[i - 1], points[i]));
