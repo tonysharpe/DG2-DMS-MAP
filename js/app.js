@@ -73,18 +73,12 @@ function isRoundaboutLink(properties) {
 
 function roadAccess(properties, vehicle = vehicleMode) {
   const type = roadField(properties, "type");
-  const car = roadField(properties, "car");
-  const truck = roadField(properties, "truck");
   const supportedTypes = ["major", "minor", "local", "public", "haul", "main"];
-  if (!supportedTypes.includes(type)) return false;
-  if (vehicle === "truck") return truck === "yes";
-  // The road data currently provides truck/car access flags, not separate
-  // flags for bus, mini bus, pick-up or SUV. Use car access for those classes.
-  if (["bus", "minibus", "pickup", "suv", "car"].includes(vehicle)) {
-    if (type === "haul") return false;
-    return car ? car === "yes" : ["minor", "local", "public", "main"].includes(type);
-  }
-  return false;
+  const vehicleFields = ["car", "suv", "pickup", "minibus", "bus", "truck"];
+  if (!supportedTypes.includes(type) || !vehicleFields.includes(vehicle)) return false;
+  // Each vehicle is permitted only when its matching roads.geojson field is yes.
+  // Missing or blank fields do not grant access.
+  return roadField(properties, vehicle) === "yes";
 }
 
 function roadStyle(feature) {
@@ -264,7 +258,9 @@ async function changeVehicle() {
   const previousName = selectedDestination()?.name;
   try {
     const { j, r, g, d, metadata } = networkInputs;
-    const cachedNetwork = routingNetworkCache?.networks?.[vehicleMode === "truck" ? "truck" : "car"];
+    const cachedNetwork = ["truck", "car"].includes(vehicleMode)
+      ? routingNetworkCache?.networks?.[vehicleMode]
+      : null;
     if (cachedNetwork) {
       applyRoutingNetworkSnapshot(cachedNetwork);
     } else {
@@ -2125,7 +2121,9 @@ async function init() {
     const networkBuildStartedAt = performance.now();
     const invalidAccessCount = reportAccessData(r);
     routingNetworkCache = await fetchRoutingNetworkCache();
-    const initialCachedNetwork = routingNetworkCache?.networks?.[vehicleMode === "truck" ? "truck" : "car"];
+    const initialCachedNetwork = ["truck", "car"].includes(vehicleMode)
+      ? routingNetworkCache?.networks?.[vehicleMode]
+      : null;
     if (initialCachedNetwork) {
       applyRoutingNetworkSnapshot(initialCachedNetwork);
       window.recordMapLoadTiming?.("Load prebuilt routing network", networkBuildStartedAt);
