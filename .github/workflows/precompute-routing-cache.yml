@@ -48,7 +48,7 @@ jobs:
 
       - name: Commit updated routing cache
         run: |
-          if git diff --quiet -- data/routing-networks/; then
+          if [ -z "$(git status --porcelain -- data/routing-networks/)" ]; then
             echo "Per-vehicle routing caches are unchanged."
             exit 0
           fi
