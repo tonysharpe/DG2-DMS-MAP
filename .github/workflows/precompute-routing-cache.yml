@@ -39,9 +39,10 @@ jobs:
           node-version: 22
 
       - name: Install Playwright
+        timeout-minutes: 8
         run: |
-          npm install --no-save playwright
-          npx playwright install --with-deps chromium
+          npm install --no-save --no-audit --no-fund playwright
+          npx playwright install chromium
 
       - name: Generate all six vehicle networks
         run: node scripts/generate-routing-cache.mjs
