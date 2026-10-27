@@ -3860,21 +3860,24 @@ body > #journeyControls.journey-controls {
 }
 
 
-/* Vehicle type selector: icon-only buttons with a blue selected state. */
+/* Vehicle type selector: compact icon tiles with labels underneath. */
 .vehicle-options {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
   margin-top: 8px;
 }
 .vehicle-options label {
   box-sizing: border-box;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 3px;
   min-width: 0;
-  min-height: 48px;
-  padding: 8px;
+  min-height: 64px;
+  margin: 0;
+  padding: 6px 3px 5px;
   border: 1px solid #d8dfe7;
   border-radius: 8px;
   background: #fff;
@@ -3883,8 +3886,8 @@ body > #journeyControls.journey-controls {
   transition: background-color 120ms ease, border-color 120ms ease;
 }
 .vehicle-options label:has(input:checked) {
-  background: #1a73e8;
-  border-color: #1a73e8;
+  background: #e6eef5;
+  border-color: #a9bfd2;
   color: #111;
 }
 .vehicle-options input[type="radio"] {
@@ -3899,15 +3902,26 @@ body > #journeyControls.journey-controls {
   border: 0;
 }
 .vehicle-options label:focus-within {
-  outline: 2px solid #1a73e8;
+  outline: 2px solid #8aa9c2;
   outline-offset: 2px;
 }
 .vehicle-options .vehicle-icon {
   display: block;
   width: 38px;
-  height: 30px;
+  height: 27px;
+  margin: 0;
   color: #111;
   flex: 0 0 auto;
+}
+.vehicle-options .vehicle-label {
+  display: block;
+  margin: 0;
+  color: #303841;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
 }
 @media (max-width: 480px) {
   .vehicle-options {
@@ -3915,11 +3929,14 @@ body > #journeyControls.journey-controls {
     gap: 6px;
   }
   .vehicle-options label {
-    min-height: 44px;
-    padding: 6px;
+    min-height: 60px;
+    padding: 5px 2px 4px;
   }
   .vehicle-options .vehicle-icon {
     width: 34px;
-    height: 27px;
+    height: 25px;
+  }
+  .vehicle-options .vehicle-label {
+    font-size: 9px;
   }
 }
