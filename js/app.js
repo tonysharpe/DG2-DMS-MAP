@@ -363,20 +363,19 @@ function applyRoutingNetworkSnapshot(snapshot) {
     const baseId = rawId !== undefined && rawId !== null && String(rawId).trim() !== ""
       ? String(rawId).trim()
       : "R_" + String(featureIndex + 1).padStart(4, "0");
-    const usableParts = coordinateParts.map((part, sourcePartIndex) => ({
-      sourcePartIndex,
-      points: Array.isArray(part) ? part.map(coordinate => {
-        try { return xy(validatePosition(coordinate, "Road " + baseId)); }
-        catch { return null; }
-      }) : []
-    })).filter(part => part.points.length >= 2 && part.points.every(Boolean));
+    const usableParts = coordinateParts.map((part, sourcePartIndex) => {
+      if (!Array.isArray(part) || part.length < 2) return null;
+      const points = part.map(coordinate =>
+        xy(validatePosition(coordinate, "Road " + baseId)));
+      let geometryLength = 0;
+      for (let i = 1; i < points.length; i++) {
+        geometryLength += dist(points[i - 1], points[i]);
+      }
+      return Number.isFinite(geometryLength) && geometryLength > 0
+        ? { sourcePartIndex, points } : null;
+    }).filter(Boolean);
     for (let partIndex = 0; partIndex < usableParts.length; partIndex++) {
       const part = usableParts[partIndex];
-      let geometryLength = 0;
-      for (let i = 1; i < part.points.length; i++) {
-        geometryLength += dist(part.points[i - 1], part.points[i]);
-      }
-      if (!Number.isFinite(geometryLength) || geometryLength <= 0) continue;
       allRoadCandidates.push({
         id: usableParts.length > 1 ? baseId + "_P" + (partIndex + 1) : baseId,
         sourceFeatureIndex: featureIndex,
