@@ -99,12 +99,36 @@
       </select>
       <fieldset class="radio-options vehicle-options" aria-label="Vehicle type">
         <legend class="visually-hidden">Vehicle type</legend>
-        <label><input type="radio" name="vehicleTypeChoice" value="truck" checked> Truck</label>
-        <label><input type="radio" name="vehicleTypeChoice" value="bus"> Bus</label>
-        <label><input type="radio" name="vehicleTypeChoice" value="minibus"> Mini Bus</label>
-        <label><input type="radio" name="vehicleTypeChoice" value="pickup"> Pick-up</label>
-        <label><input type="radio" name="vehicleTypeChoice" value="suv"> Site Car</label>
-        <label><input type="radio" name="vehicleTypeChoice" value="car"> Private Car</label>
+        <label title="Truck" aria-label="Truck">
+          <input type="radio" name="vehicleTypeChoice" value="truck" checked>
+          <svg class="vehicle-icon" viewBox="0 0 48 32" aria-hidden="true" focusable="false"><path d="M3 6h25v18H3zM28 13h9l7 7v4H28z" fill="currentColor"/><path d="M32 15v5h8l-5-5z" fill="#fff"/><circle cx="12" cy="25" r="4" fill="currentColor"/><circle cx="36" cy="25" r="4" fill="currentColor"/><circle cx="12" cy="25" r="1.5" fill="#fff"/><circle cx="36" cy="25" r="1.5" fill="#fff"/></svg>
+          <span class="visually-hidden">Truck</span>
+        </label>
+        <label title="Bus" aria-label="Bus">
+          <input type="radio" name="vehicleTypeChoice" value="bus">
+          <svg class="vehicle-icon" viewBox="0 0 48 32" aria-hidden="true" focusable="false"><path d="M5 5h34a4 4 0 0 1 4 4v15H3V9a4 4 0 0 1 2-4z" fill="currentColor"/><path d="M7 9h7v7H7zm10 0h7v7h-7zm10 0h7v7h-7zm10 0h3v7h-3z" fill="#fff"/><circle cx="11" cy="25" r="4" fill="currentColor"/><circle cx="36" cy="25" r="4" fill="currentColor"/><circle cx="11" cy="25" r="1.5" fill="#fff"/><circle cx="36" cy="25" r="1.5" fill="#fff"/></svg>
+          <span class="visually-hidden">Bus</span>
+        </label>
+        <label title="Mini Bus" aria-label="Mini Bus">
+          <input type="radio" name="vehicleTypeChoice" value="minibus">
+          <svg class="vehicle-icon" viewBox="0 0 48 32" aria-hidden="true" focusable="false"><path d="M7 7h25a5 5 0 0 1 4 2l7 9v6H4V11a4 4 0 0 1 3-4z" fill="currentColor"/><path d="M9 10h8v7H8zm11 0h8v7h-8zm11 0h2l5 7h-7z" fill="#fff"/><circle cx="12" cy="25" r="4" fill="currentColor"/><circle cx="36" cy="25" r="4" fill="currentColor"/><circle cx="12" cy="25" r="1.5" fill="#fff"/><circle cx="36" cy="25" r="1.5" fill="#fff"/></svg>
+          <span class="visually-hidden">Mini Bus</span>
+        </label>
+        <label title="Pick-up" aria-label="Pick-up">
+          <input type="radio" name="vehicleTypeChoice" value="pickup">
+          <svg class="vehicle-icon" viewBox="0 0 48 32" aria-hidden="true" focusable="false"><path d="M4 17h18V9h9l8 8h5v7H4z" fill="currentColor"/><path d="M25 11h5l5 6H25z" fill="#fff"/><path d="M4 17h16v4H4z" fill="currentColor"/><circle cx="12" cy="25" r="4" fill="currentColor"/><circle cx="36" cy="25" r="4" fill="currentColor"/><circle cx="12" cy="25" r="1.5" fill="#fff"/><circle cx="36" cy="25" r="1.5" fill="#fff"/></svg>
+          <span class="visually-hidden">Pick-up</span>
+        </label>
+        <label title="Site Car" aria-label="Site Car">
+          <input type="radio" name="vehicleTypeChoice" value="suv">
+          <svg class="vehicle-icon" viewBox="0 0 48 32" aria-hidden="true" focusable="false"><path d="M5 17l4-8h24l8 8 3 2v5H4v-5z" fill="currentColor"/><path d="M12 11h9v6H9zm12 0h7l5 6H24z" fill="#fff"/><circle cx="12" cy="25" r="4" fill="currentColor"/><circle cx="36" cy="25" r="4" fill="currentColor"/><circle cx="12" cy="25" r="1.5" fill="#fff"/><circle cx="36" cy="25" r="1.5" fill="#fff"/></svg>
+          <span class="visually-hidden">Site Car</span>
+        </label>
+        <label title="Private Car" aria-label="Private Car">
+          <input type="radio" name="vehicleTypeChoice" value="car">
+          <svg class="vehicle-icon" viewBox="0 0 48 32" aria-hidden="true" focusable="false"><path d="M6 18l5-8a5 5 0 0 1 4-2h14a6 6 0 0 1 5 3l5 7 4 2v5H4v-5z" fill="currentColor"/><path d="M14 11h7v6H10zm10 0h5a3 3 0 0 1 3 2l2 4H24z" fill="#fff"/><circle cx="12" cy="25" r="4" fill="currentColor"/><circle cx="36" cy="25" r="4" fill="currentColor"/><circle cx="12" cy="25" r="1.5" fill="#fff"/><circle cx="36" cy="25" r="1.5" fill="#fff"/></svg>
+          <span class="visually-hidden">Private Car</span>
+        </label>
       </fieldset>
     </section>
 
