@@ -275,6 +275,8 @@ async function changeVehicle() {
   if (vehicleChangeInProgress) return;
   const previousName = selectedDestination()?.name;
   setVehicleUpdating(true);
+  // Let the browser paint the progress indicator before graph construction starts.
+  await new Promise(resolve => requestAnimationFrame(() => resolve()));
   clearRoute();
   if ($("startMode")?.value === "map" && typeof removeMapClickOrigin === "function") {
     removeMapClickOrigin();
