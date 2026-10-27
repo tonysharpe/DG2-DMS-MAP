@@ -40,7 +40,7 @@ const server = http.createServer((req, res) => {
         }
         fs.mkdirSync(cacheDirectory, { recursive: true });
         const cachePath = path.join(cacheDirectory, vehicle + ".json");
-        fs.writeFileSync(cachePath, raw + "\\n");
+        fs.writeFileSync(cachePath, raw + "\n");
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify({ ok: true, vehicle, bytes: Buffer.byteLength(raw) }));
       } catch (error) {
