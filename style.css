@@ -3858,3 +3858,68 @@ body > #journeyControls.journey-controls {
   margin-bottom: 4px;
   font-variant-numeric: tabular-nums;
 }
+
+
+/* Vehicle type selector: icon-only buttons with a blue selected state. */
+.vehicle-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.vehicle-options label {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 48px;
+  padding: 8px;
+  border: 1px solid #d8dfe7;
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.vehicle-options label:has(input:checked) {
+  background: #1a73e8;
+  border-color: #1a73e8;
+  color: #111;
+}
+.vehicle-options input[type="radio"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.vehicle-options label:focus-within {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+.vehicle-options .vehicle-icon {
+  display: block;
+  width: 38px;
+  height: 30px;
+  color: #111;
+  flex: 0 0 auto;
+}
+@media (max-width: 480px) {
+  .vehicle-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .vehicle-options label {
+    min-height: 44px;
+    padding: 6px;
+  }
+  .vehicle-options .vehicle-icon {
+    width: 34px;
+    height: 27px;
+  }
+}
