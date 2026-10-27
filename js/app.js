@@ -43,6 +43,24 @@ let networkInputs = null;
 let displayedRoadLayer = null;
 let routingNetworkCache = null;
 let routingInputSignature = null;
+const vehicleNetworkSnapshots = new Map();
+let vehicleChangeInProgress = false;
+
+function cloneRoutingSnapshot(snapshot) {
+  return typeof structuredClone === "function"
+    ? structuredClone(snapshot)
+    : JSON.parse(JSON.stringify(snapshot));
+}
+
+function setVehicleUpdating(isUpdating) {
+  vehicleChangeInProgress = isUpdating;
+  const dialog = $("vehicleRoutingUpdateDialog");
+  if (dialog) dialog.hidden = !isUpdating;
+  document.querySelectorAll('input[name="vehicleTypeChoice"]').forEach(input => {
+    input.disabled = isUpdating;
+  });
+  if ($("vehicleType")) $("vehicleType").disabled = isUpdating;
+}
 
 function setMapClickHitAreaEnabled(enabled) {
   if (!map) return;
@@ -235,6 +253,11 @@ async function fetchRoutingNetworkCache() {
       value === "__INF__" ? Infinity : value === "__-INF__" ? -Infinity : value === "__NAN__" ? NaN : value);
     if (cache.schemaVersion !== 1 || cache.inputsSignature !== routingInputSignature ||
         !cache.networks || !cache.networks.truck || !cache.networks.car) return null;
+    for (const vehicle of ["truck", "car", "suv", "pickup", "minibus", "bus"]) {
+      if (cache.networks[vehicle]) {
+        vehicleNetworkSnapshots.set(vehicle, cloneRoutingSnapshot(cache.networks[vehicle]));
+      }
+    }
     return cache;
   } catch (error) {
     console.info("Generated routing cache unavailable; using the normal network build.", error);
@@ -249,23 +272,33 @@ window.exportRoutingNetworkSnapshot = () => ({
 });
 
 async function changeVehicle() {
+  if (vehicleChangeInProgress) return;
+  const previousName = selectedDestination()?.name;
+  setVehicleUpdating(true);
   clearRoute();
   if ($("startMode")?.value === "map" && typeof removeMapClickOrigin === "function") {
     removeMapClickOrigin();
     locationStatus("Vehicle changed. Click the map again within 10 m of a permitted road.");
   }
   vehicleMode = $("vehicleType").value;
-  const previousName = selectedDestination()?.name;
   try {
     const { j, r, g, d, metadata } = networkInputs;
-    const cachedNetwork = ["truck", "car"].includes(vehicleMode)
-      ? routingNetworkCache?.networks?.[vehicleMode]
-      : null;
-    if (cachedNetwork) {
-      applyRoutingNetworkSnapshot(cachedNetwork);
+    let snapshot = vehicleNetworkSnapshots.get(vehicleMode);
+    if (!snapshot && ["truck", "car"].includes(vehicleMode)) {
+      snapshot = routingNetworkCache?.networks?.[vehicleMode] || null;
+    }
+
+    if (snapshot) {
+      applyRoutingNetworkSnapshot(snapshot);
+      if (!vehicleNetworkSnapshots.has(vehicleMode)) {
+        vehicleNetworkSnapshots.set(vehicleMode, cloneRoutingSnapshot(snapshot));
+      }
     } else {
       await build(j, r, g, d, metadata);
+      // Keep a prepared graph for this vehicle so future switches do not rebuild it.
+      vehicleNetworkSnapshots.set(vehicleMode, cloneRoutingSnapshot(serializeRoutingNetworkSnapshot()));
     }
+
     destinationOptions = locations.flatMap((location, index) => location.kind === "destination" ? [{
       index, name: location.name, type: location.type, valid: location.valid,
       hasPolygon: destinationAreas.has(location.name)
@@ -299,6 +332,8 @@ async function changeVehicle() {
     refreshVehicleRoads();
     status("Vehicle network error: " + error.message);
     console.error(error);
+  } finally {
+    setVehicleUpdating(false);
   }
 }
 
@@ -2121,14 +2156,15 @@ async function init() {
     const networkBuildStartedAt = performance.now();
     const invalidAccessCount = reportAccessData(r);
     routingNetworkCache = await fetchRoutingNetworkCache();
-    const initialCachedNetwork = ["truck", "car"].includes(vehicleMode)
-      ? routingNetworkCache?.networks?.[vehicleMode]
-      : null;
+    const initialCachedNetwork = vehicleNetworkSnapshots.get(vehicleMode) ||
+      (["truck", "car"].includes(vehicleMode) ? routingNetworkCache?.networks?.[vehicleMode] : null);
     if (initialCachedNetwork) {
       applyRoutingNetworkSnapshot(initialCachedNetwork);
+      vehicleNetworkSnapshots.set(vehicleMode, cloneRoutingSnapshot(initialCachedNetwork));
       window.recordMapLoadTiming?.("Load prebuilt routing network", networkBuildStartedAt);
     } else {
       await build(j, r, g, d, metadata);
+      vehicleNetworkSnapshots.set(vehicleMode, cloneRoutingSnapshot(serializeRoutingNetworkSnapshot()));
       window.recordMapLoadTiming?.("Build routing network", networkBuildStartedAt);
     }
 
