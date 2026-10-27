@@ -212,16 +212,53 @@ function routingDataSignature(inputs) {
 }
 
 function serializeRoutingNetworkSnapshot() {
+  const nodeIds = [...nodes.keys()];
+  const nodeIndex = new Map(nodeIds.map((id, index) => [id, index]));
+  const roadIndex = new Map(roads.map((road, index) => [road.id, index]));
+
   return {
-    nodes: [...nodes],
-    junctionNodes: [...junctionNodes],
-    adjacency: [...adjacency],
-    generatedEndpointIds: [...generatedEndpointIds],
-    roads,
-    allRoadCandidates,
-    locations,
-    roadConnections,
-    interiorConnections,
+    nodes: nodeIds,
+    generatedEndpointIds: [...generatedEndpointIds]
+      .map(id => nodeIndex.get(id))
+      .filter(Number.isInteger),
+    roads: roads.map(road => ({
+      id: road.id,
+      sourceFeatureIndex: road.sourceFeatureIndex,
+      sourcePartIndex: road.sourcePartIndex,
+      startNode: nodeIndex.get(road.startNode),
+      endNode: nodeIndex.get(road.endNode),
+      name: road.name,
+      length: road.length,
+      direction: road.direction,
+      roundabout: road.roundabout,
+      speedKmh: road.speedKmh,
+      type: road.type,
+      truck: road.truck,
+      cuts: road.cuts.map(cut => [cut.m, nodeIndex.get(cut.node)])
+    })),
+    adjacency: [...adjacency].map(([from, edges]) => [
+      nodeIndex.get(from),
+      edges.map(edge => {
+        const index = roadIndex.has(edge.roadId) ? roadIndex.get(edge.roadId) : -1;
+        if (edge.topologyConnection) {
+          return [nodeIndex.get(edge.to), edge.length, edge.seconds, edge.weight, index, null, null, 1];
+        }
+        const road = index >= 0 ? roads[index] : null;
+        if (!road) throw new Error("Routing edge refers to an unknown road link.");
+        const fromMatch = nearest(edge.pts[0], road.pts);
+        const toMatch = nearest(edge.pts[edge.pts.length - 1], road.pts);
+        return [nodeIndex.get(edge.to), edge.length, edge.seconds, edge.weight, index,
+          fromMatch.m, toMatch.m, 0];
+      })
+    ]),
+    locations: locations.map(location => {
+      const compact = { ...location };
+      delete compact.point;
+      compact.nodeIndex = compact.node === null || compact.node === undefined
+        ? null : nodeIndex.get(compact.node);
+      delete compact.node;
+      return compact;
+    }),
     ignoredDestinationNames
   };
 }
@@ -229,18 +266,155 @@ function serializeRoutingNetworkSnapshot() {
 function applyRoutingNetworkSnapshot(snapshot) {
   if (!snapshot || !Array.isArray(snapshot.nodes) ||
       !Array.isArray(snapshot.adjacency) || !Array.isArray(snapshot.roads) ||
-      !Array.isArray(snapshot.locations)) {
+      !Array.isArray(snapshot.locations) || !networkInputs) {
     throw new Error("Generated routing network has an invalid structure.");
   }
-  nodes = new Map(snapshot.nodes);
-  junctionNodes = new Map(snapshot.junctionNodes || []);
-  adjacency = new Map(snapshot.adjacency);
-  generatedEndpointIds = new Set(snapshot.generatedEndpointIds || []);
-  roads = snapshot.roads;
-  allRoadCandidates = snapshot.allRoadCandidates || [];
-  locations = snapshot.locations;
-  roadConnections = snapshot.roadConnections || [];
-  interiorConnections = snapshot.interiorConnections || [];
+
+  const nodeIds = snapshot.nodes;
+  const idAt = index => Number.isInteger(index) && index >= 0 ? nodeIds[index] : undefined;
+  const sourceRoadFeatures = features(networkInputs.r, ROADS_FILE);
+  const sourceJunctionFeatures = features(networkInputs.j, "data/junctions.geojson");
+  const junctionEntries = sourceJunctionFeatures.map(feature => [
+    nameOf(feature.properties, "Junction"),
+    xy(pointOf(feature, "Junction " + nameOf(feature.properties, "Junction")))
+  ]);
+  junctionNodes = new Map(junctionEntries);
+  nodes = new Map(junctionEntries);
+  generatedEndpointIds = new Set((snapshot.generatedEndpointIds || []).map(idAt).filter(Boolean));
+
+  roads = snapshot.roads.map(compactRoad => {
+    const feature = sourceRoadFeatures[compactRoad.sourceFeatureIndex];
+    const geometry = feature?.geometry;
+    const parts = geometry?.type === "LineString" ? [geometry.coordinates] :
+      geometry?.type === "MultiLineString" ? geometry.coordinates : [];
+    const sourcePart = parts[compactRoad.sourcePartIndex];
+    if (!feature || !Array.isArray(sourcePart) || sourcePart.length < 2) {
+      throw new Error("Routing cache refers to a missing source road link.");
+    }
+    const points = sourcePart.map(coordinate =>
+      xy(validatePosition(coordinate, "Road " + compactRoad.id)));
+    const startId = idAt(compactRoad.startNode);
+    const endId = idAt(compactRoad.endNode);
+    if (!startId || !endId) throw new Error("Routing cache has an invalid road endpoint index.");
+    if (junctionNodes.has(startId)) points[0] = junctionNodes.get(startId);
+    if (junctionNodes.has(endId)) points[points.length - 1] = junctionNodes.get(endId);
+    const measures = [0];
+    for (let i = 1; i < points.length; i++) {
+      measures.push(measures[i - 1] + dist(points[i - 1], points[i]));
+    }
+    const road = {
+      id: compactRoad.id,
+      sourceFeatureIndex: compactRoad.sourceFeatureIndex,
+      sourcePartIndex: compactRoad.sourcePartIndex,
+      name: compactRoad.name,
+      startNode: startId,
+      endNode: endId,
+      pts: points,
+      ms: measures,
+      length: compactRoad.length,
+      direction: compactRoad.direction,
+      roundabout: compactRoad.roundabout,
+      speedKmh: compactRoad.speedKmh,
+      properties: feature.properties || {},
+      type: compactRoad.type,
+      truck: compactRoad.truck,
+      cuts: compactRoad.cuts.map(cut => ({ m: cut[0], node: idAt(cut[1]) }))
+    };
+    if (road.cuts.some(cut => !cut.node)) throw new Error("Routing cache has an invalid road cut index.");
+    return road;
+  });
+
+  for (const road of roads) {
+    if (!nodes.has(road.startNode)) nodes.set(road.startNode, road.pts[0]);
+    if (!nodes.has(road.endNode)) nodes.set(road.endNode, road.pts[road.pts.length - 1]);
+    for (const cut of road.cuts) {
+      if (!nodes.has(cut.node)) nodes.set(cut.node, at(road, cut.m));
+    }
+  }
+  if (nodeIds.some(id => !nodes.has(id))) {
+    throw new Error("Routing cache could not reconstruct every graph node from source data.");
+  }
+
+  const sourceLocationFeatures = {
+    gate: features(networkInputs.g, "data/gates.geojson"),
+    destination: features(networkInputs.d, "data/destinations.geojson")
+  };
+  const usedLocationIndexes = { gate: new Map(), destination: new Map() };
+  locations = snapshot.locations.map(compactLocation => {
+    const location = { ...compactLocation };
+    const sourceIndex = location.sourceFeatureIndex;
+    const sourceFeature = sourceLocationFeatures[location.kind]?.[sourceIndex];
+    if (!sourceFeature) throw new Error("Routing cache refers to a missing gate or destination.");
+    location.point = xy(pointOf(sourceFeature, location.kind + " " + location.name));
+    location.node = location.nodeIndex === null || location.nodeIndex === undefined
+      ? null : idAt(location.nodeIndex);
+    delete location.nodeIndex;
+    return location;
+  });
+
+  allRoadCandidates = [];
+  for (let featureIndex = 0; featureIndex < sourceRoadFeatures.length; featureIndex++) {
+    const feature = sourceRoadFeatures[featureIndex];
+    const p = feature.properties || {};
+    const geometry = feature.geometry;
+    const coordinateParts = geometry?.type === "LineString" ? [geometry.coordinates] :
+      geometry?.type === "MultiLineString" ? geometry.coordinates : [];
+    const rawId = p.road_id ?? p.id;
+    const baseId = rawId !== undefined && rawId !== null && String(rawId).trim() !== ""
+      ? String(rawId).trim()
+      : "R_" + String(featureIndex + 1).padStart(4, "0");
+    const usableParts = coordinateParts.map((part, sourcePartIndex) => ({
+      sourcePartIndex,
+      points: Array.isArray(part) ? part.map(coordinate => {
+        try { return xy(validatePosition(coordinate, "Road " + baseId)); }
+        catch { return null; }
+      }) : []
+    })).filter(part => part.points.length >= 2 && part.points.every(Boolean));
+    for (let partIndex = 0; partIndex < usableParts.length; partIndex++) {
+      const part = usableParts[partIndex];
+      let geometryLength = 0;
+      for (let i = 1; i < part.points.length; i++) {
+        geometryLength += dist(part.points[i - 1], part.points[i]);
+      }
+      if (!Number.isFinite(geometryLength) || geometryLength <= 0) continue;
+      allRoadCandidates.push({
+        id: usableParts.length > 1 ? baseId + "_P" + (partIndex + 1) : baseId,
+        sourceFeatureIndex: featureIndex,
+        sourcePartIndex: part.sourcePartIndex,
+        properties: p,
+        pts: part.points
+      });
+    }
+  }
+
+  adjacency = new Map(nodeIds.map(id => [id, []]));
+  for (const [fromIndex, compactEdges] of snapshot.adjacency) {
+    const from = idAt(fromIndex);
+    if (!from || !adjacency.has(from)) throw new Error("Routing cache has an invalid adjacency node index.");
+    const edges = compactEdges.map(compactEdge => {
+      const [toIndex, length, seconds, weight, roadIndex, fromM, toM, topologyFlag] = compactEdge;
+      const to = idAt(toIndex);
+      const road = Number.isInteger(roadIndex) && roadIndex >= 0 ? roads[roadIndex] : null;
+      if (!to || !adjacency.has(to) || !road) throw new Error("Routing cache has an invalid edge reference.");
+      let points = [];
+      if (!topologyFlag) {
+        const low = Math.min(fromM, toM);
+        const high = Math.max(fromM, toM);
+        points = section(road, low, high);
+        if (fromM > toM) points.reverse();
+      }
+      return {
+        to, length, seconds, weight, pts: points, name: road.name,
+        roadId: road.id, ...(topologyFlag ? { topologyConnection: true } : {})
+      };
+    });
+    adjacency.set(from, edges);
+  }
+
+  roadConnections = roads.map(road => ({
+    road_id: road.id, start_node: road.startNode, end_node: road.endNode
+  }));
+  interiorConnections = [];
   ignoredDestinationNames = snapshot.ignoredDestinationNames || [];
 }
 
@@ -254,7 +428,7 @@ async function fetchVehicleRoutingNetwork(vehicle) {
     if (!response.ok) return null;
     const cache = JSON.parse(await response.text(), (_key, value) =>
       value === "__INF__" ? Infinity : value === "__-INF__" ? -Infinity : value === "__NAN__" ? NaN : value);
-    if (cache.schemaVersion !== 1 || cache.vehicle !== vehicle ||
+    if (cache.schemaVersion !== 2 || cache.vehicle !== vehicle ||
         cache.inputsSignature !== routingInputSignature || !cache.snapshot) return null;
     const snapshot = cache.snapshot;
     vehicleNetworkSnapshots.set(vehicle, snapshot);
@@ -317,7 +491,7 @@ window.generateAllRoutingNetworksCache = async function () {
     }
 
     const cache = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       inputsSignature: routingInputSignature,
       generatedAt: new Date().toISOString(),
       vehicles,
@@ -1180,7 +1354,8 @@ async function build(
 
     const usableParts = coordinateParts
       .filter(part => Array.isArray(part) && part.length >= 2)
-      .map(part => ({
+      .map((part, sourcePartIndex) => ({
+        sourcePartIndex,
         points: part.map(coordinate => xy(validatePosition(coordinate, "Road " + baseId)))
       }))
       .map(part => {
@@ -1205,7 +1380,10 @@ async function build(
       roadIds.add(id);
 
       const points = part.points;
-      allRoadCandidates.push({ id, properties: p, pts: points });
+      allRoadCandidates.push({
+        id, sourceFeatureIndex: featureIndex, sourcePartIndex: part.sourcePartIndex,
+        properties: p, pts: points
+      });
       if (!roadAccess(p)) continue;
 
       const separation = dist(points[0], points[points.length - 1]);
@@ -1251,7 +1429,8 @@ async function build(
       }
 
       roads.push({
-        id, name: p.Name || p.name || id,
+        id, sourceFeatureIndex: featureIndex, sourcePartIndex: part.sourcePartIndex,
+        name: p.Name || p.name || id,
         startNode: start.id, endNode: end.id,
         pts: points, ms: measures, length, direction, roundabout,
         speedKmh, properties: p,
@@ -1291,7 +1470,9 @@ async function build(
   for (const [kind, data, filename] of datasets) {
     const usedNames = new Set();
 
-    for (const feature of features(data, filename)) {
+    const sourceFeatures = features(data, filename);
+    for (let sourceFeatureIndex = 0; sourceFeatureIndex < sourceFeatures.length; sourceFeatureIndex++) {
+      const feature = sourceFeatures[sourceFeatureIndex];
       const name = nameOf(feature.properties, filename);
       const destinationType = kind === "destination"
         ? String(feature.properties?.type ?? "").trim()
@@ -1353,7 +1534,7 @@ async function build(
 
       if (!road || !Number.isFinite(best.offset)) {
         locations.push({
-          name, kind, type: destinationType, point, node: null, offset: Infinity, valid: false,
+          name, kind, type: destinationType, sourceFeatureIndex, point, node: null, offset: Infinity, valid: false,
           snapType: "unavailable",
           nearestRoadType: nearestMappedRoad
             ? roadField(nearestMappedRoad.candidate.properties, "type")
@@ -1385,6 +1566,7 @@ async function build(
         name,
         kind,
         type: destinationType,
+        sourceFeatureIndex,
         point,
         node: cut.node,
         offset: best.offset,
