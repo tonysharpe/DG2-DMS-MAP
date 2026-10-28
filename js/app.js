@@ -943,9 +943,7 @@ async function connectJunctionsToRoadLinks() {
     const roadLength = road.ms[road.ms.length - 1];
     const roadMatches = matchesByRoad.get(road.id) || new Map();
 
-    for (const [nodeId] of junctionNodes) {
-      const match = roadMatches.get(nodeId);
-      if (!match) continue;
+    for (const [nodeId, match] of roadMatches) {
       const generated = generatedEndpointIds.has(nodeId);
       const tolerance = generated
         ? GENERATED_NODE_TO_LINK_TOLERANCE
