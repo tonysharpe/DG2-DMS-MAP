@@ -1,0 +1,47 @@
+name: Build routing network
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "data/roads.geojson"
+      - "data/junctions.geojson"
+      - "scripts/build-routing-network.cjs"
+      - "package.json"
+      - ".github/workflows/build-routing-network.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backend-routing-network
+  cancel-in-progress: true
+
+jobs:
+  build-routing-network:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install build dependency
+        run: npm install --no-save --no-package-lock --no-audit --no-fund
+      - name: Build shared routing network
+        run: npm run build:routing-network
+      - name: Commit generated network
+        run: |
+          if git diff --quiet -- data/routing-network.json; then
+            echo "Routing network is already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/routing-network.json
+          git commit -m "Build backend routing network"
+          git push
