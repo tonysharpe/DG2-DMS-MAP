@@ -1077,9 +1077,9 @@ async function build(
         id, sourceFeatureIndex: featureIndex, sourcePartIndex: part.sourcePartIndex,
         properties: p, pts: points
       });
-      if (!roadAccess(p)) continue;
 
       const topologyLink = prebuiltRoutingLinks?.get(featureIndex + ":" + part.sourcePartIndex);
+      if (topologyLink ? topologyLink.access?.[vehicleMode] !== "yes" : !roadAccess(p)) continue;
       if (topology && !topologyLink) {
         throw new Error("Backend routing topology is missing road part " + featureIndex + ":" + part.sourcePartIndex + ".");
       }
