@@ -1,0 +1,11 @@
+{
+  "type": "FeatureCollection",
+  "name": "snap_check",
+  "metadata": {
+    "description": "Diagnostic points for road-link endpoints that required snapping to connect links.",
+    "status": "template_not_populated",
+    "coordinate_reference_system": "OGC:CRS84 (WGS 84 longitude, latitude)",
+    "generation_note": "Populate from the routing-network build process; actual snap locations have not yet been calculated from source road data."
+  },
+  "features": []
+}
