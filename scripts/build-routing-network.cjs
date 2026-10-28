@@ -182,6 +182,7 @@ for (const vertex of shapeVertices) {
       if (seenConnectedPairs.has(pairKey)) continue;
       seenConnectedPairs.add(pairKey);
       topologyConnections.push({
+        road_id: vertex.linkId,
         node: vertex.id,
         connected_node: other.id,
         offset_m: Number(distance.toFixed(4)),
