@@ -121,12 +121,13 @@ for (let featureIndex = 0; featureIndex < roadFeatures.length; featureIndex++) {
       vehicle,
       SUPPORTED_TYPES.has(type) && field(properties, vehicle) === "yes" ? "yes" : "no"
     ]));
-    const cuts = [];
-    for (let i = 0; i < measures.length; i++) {
-      const previous = cuts[cuts.length - 1];
-      if (previous && Math.abs(previous.m - measures[i]) <= 0.0001) continue;
-      cuts.push({ m: measures[i], node: vertexNodes[i].id });
-    }
+    // Shape vertices describe the source geometry, not routing junctions.
+    // Initially split only at road-part endpoints. Internal vertices become
+    // cuts only when a shape point on another road connects at that location.
+    const cuts = [
+      { m: measures[0], node: vertexNodes[0].id },
+      { m: measures[measures.length - 1], node: vertexNodes[vertexNodes.length - 1].id }
+    ];
     links.push({
       id,
       sourceFeatureIndex: featureIndex,
@@ -201,7 +202,26 @@ for (const vertex of shapeVertices) {
   }
 }
 
-const nodeEntries = [...nodes].map(([id, point]) => ({ id, xy: point, generated: true }));
+// Promote only cross-road shape-point connections to internal link cuts.
+const vertexById = new Map(shapeVertices.map(vertex => [vertex.id, vertex]));
+const linkById = new Map(links.map(link => [link.id, link]));
+for (const connection of topologyConnections) {
+  for (const nodeId of [connection.node, connection.connected_node]) {
+    const vertex = vertexById.get(nodeId);
+    if (!vertex) continue;
+    const link = linkById.get(vertex.linkId);
+    if (!link) continue;
+    const measure = link.measures[vertex.vertexIndex];
+    if (!link.cuts.some(cut => Math.abs(cut.m - measure) <= 0.0001)) {
+      link.cuts.push({ m: measure, node: vertex.id });
+    }
+  }
+}
+for (const link of links) link.cuts.sort((a, b) => a.m - b.m);
+
+const nodeEntries = [...nodes]
+  .filter(([id]) => links.some(link => link.cuts.some(cut => cut.node === id)))
+  .map(([id, point]) => ({ id, xy: point, generated: true }));
 const output = {
   schemaVersion: 1,
   generatedAt: new Date().toISOString(),
