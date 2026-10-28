@@ -6,17 +6,14 @@ const proj4 = require("proj4");
 
 const ROOT = path.resolve(__dirname, "..");
 const INPUT_ROADS = path.join(ROOT, "data/roads.geojson");
-const INPUT_JUNCTIONS = path.join(ROOT, "data/junctions.geojson");
 const OUTPUT = path.join(ROOT, "data/routing-network.json");
 const NODES_GEOJSON_OUTPUT = path.join(ROOT, "data/routing-network-nodes.geojson");
 const LINKS_GEOJSON_OUTPUT = path.join(ROOT, "data/routing-network-links.geojson");
+const CHECK_NODES_GEOJSON_OUTPUT = path.join(ROOT, "data/routing-network-check-nodes.geojson");
 const UTM = "+proj=utm +zone=38 +datum=WGS84 +units=m +no_defs";
 const toLonLat = coordinates => proj4(UTM, "EPSG:4326", coordinates);
-const ENDPOINT_TOLERANCE = 0.01;
-const AUTO_NODE_MERGE_TOLERANCE = 0.01;
-const JUNCTION_TO_LINK_TOLERANCE = 1.0;
-const GENERATED_NODE_TO_LINK_TOLERANCE = 0.05;
-const ROAD_CUT_TOLERANCE = 0.01;
+const SHAPE_POINT_CONNECT_TOLERANCE = 0.1;
+const CHECK_NODE_MAX_DISTANCE = 5.0;
 const VEHICLES = ["car", "suv", "pickup", "minibus", "bus", "truck"];
 const SUPPORTED_TYPES = new Set(["major", "minor", "local", "public", "haul", "main"]);
 
@@ -46,63 +43,23 @@ const pointOf = (feature, fallback) => {
 };
 const roundabout = p => /\broundabout\b/i.test(field(p, "name")) || /\br[\s_-]*\d+\b/i.test(field(p, "name"));
 
-const junctionData = readJson(INPUT_JUNCTIONS);
 const roadsData = readJson(INPUT_ROADS);
 const nodes = new Map();
-const junctionNodes = new Map();
 const generatedEndpointIds = new Set();
-
-for (const feature of features(junctionData)) {
-  const id = nameOf(feature.properties, "junction");
-  if (junctionNodes.has(id)) throw new Error("Duplicate junction: " + id);
-  const point = xy(pointOf(feature, "Junction " + id));
-  nodes.set(id, point);
-  junctionNodes.set(id, point);
-}
-
-function nearestJunction(point) {
-  let first = null, second = null;
-  for (const [id, junctionPoint] of junctionNodes) {
-    if (generatedEndpointIds.has(id)) continue;
-    const candidate = { id, distance: dist(point, junctionPoint) };
-    if (!first || candidate.distance < first.distance) {
-      second = first; first = candidate;
-    } else if (!second || candidate.distance < second.distance) second = candidate;
-  }
-  if (first && first.distance <= ENDPOINT_TOLERANCE) {
-    return {
-      ...first,
-      ambiguous: second !== null &&
-        second.distance <= ENDPOINT_TOLERANCE &&
-        Math.abs(second.distance - first.distance) <= ENDPOINT_TOLERANCE,
-      generated: false
-    };
-  }
-  let shared = null;
-  for (const id of generatedEndpointIds) {
-    const offset = dist(point, junctionNodes.get(id));
-    if (offset <= AUTO_NODE_MERGE_TOLERANCE && (!shared || offset < shared.distance)) {
-      shared = { id, distance: offset };
-    }
-  }
-  if (shared) return { ...shared, ambiguous: false, generated: true };
-  let number = generatedEndpointIds.size;
-  let id = "__auto_endpoint_" + number;
-  while (nodes.has(id) || junctionNodes.has(id)) {
-    number += 1; id = "__auto_endpoint_" + number;
-  }
-  const endpoint = [...point];
-  nodes.set(id, endpoint);
-  junctionNodes.set(id, endpoint);
-  generatedEndpointIds.add(id);
-  return { id, distance: 0, ambiguous: false, generated: true };
-}
-
 const links = [];
 const linkIds = new Set();
 let skippedParts = 0;
 const roadFeatures = features(roadsData);
+let nextNodeNumber = 1;
 
+function addShapeNode(point, linkId, vertexIndex) {
+  const id = "N_" + String(nextNodeNumber++).padStart(7, "0");
+  nodes.set(id, [...point]);
+  generatedEndpointIds.add(id);
+  return { id, point: [...point], linkId, vertexIndex };
+}
+
+const shapeVertices = [];
 for (let featureIndex = 0; featureIndex < roadFeatures.length; featureIndex++) {
   const feature = roadFeatures[featureIndex];
   const properties = feature.properties || {};
@@ -139,142 +96,130 @@ for (let featureIndex = 0; featureIndex < roadFeatures.length; featureIndex++) {
     linkIds.add(id);
 
     const points = part.points.map(point => [...point]);
-    const start = nearestJunction(points[0]);
-    const end = nearestJunction(points[points.length - 1]);
-    if (start.ambiguous || end.ambiguous) throw new Error(id + ": ambiguous endpoint junction.");
-    if (start.id === end.id && dist(points[0], points[points.length - 1]) > 0.01) {
-      throw new Error(id + ": distinct endpoints collapse to the same node.");
-    }
-    points[0] = [...junctionNodes.get(start.id)];
-    points[points.length - 1] = [...junctionNodes.get(end.id)];
     const measures = [0];
     for (let i = 1; i < points.length; i++) measures.push(measures[i - 1] + dist(points[i - 1], points[i]));
     const geometryLength = measures[measures.length - 1];
+    if (!(geometryLength > 0)) { skippedParts++; continue; }
+
+    const vertexNodes = points.map((point, vertexIndex) => {
+      // A repeated coordinate within a single source line is the same graph node.
+      if (vertexIndex > 0 && dist(points[vertexIndex - 1], point) <= 0.0001) {
+        return shapeVertices.find(v => v.linkId === id && v.vertexIndex === vertexIndex - 1) ||
+          addShapeNode(point, id, vertexIndex);
+      }
+      const vertex = addShapeNode(point, id, vertexIndex);
+      shapeVertices.push(vertex);
+      return vertex;
+    });
+    // Ensure every vertex is registered, including repeated-coordinate vertices.
+    for (const vertex of vertexNodes) {
+      if (!shapeVertices.some(v => v.id === vertex.id)) shapeVertices.push(vertex);
+    }
+
     const type = field(properties, "type");
     const access = Object.fromEntries(VEHICLES.map(vehicle => [
       vehicle,
       SUPPORTED_TYPES.has(type) && field(properties, vehicle) === "yes" ? "yes" : "no"
     ]));
+    const cuts = [];
+    for (let i = 0; i < measures.length; i++) {
+      const previous = cuts[cuts.length - 1];
+      if (previous && Math.abs(previous.m - measures[i]) <= 0.0001) continue;
+      cuts.push({ m: measures[i], node: vertexNodes[i].id });
+    }
     links.push({
       id,
       sourceFeatureIndex: featureIndex,
       sourcePartIndex: part.sourcePartIndex,
-      startNode: start.id,
-      endNode: end.id,
+      startNode: vertexNodes[0].id,
+      endNode: vertexNodes[vertexNodes.length - 1].id,
       points,
       measures,
       geometryLength,
       type,
       access,
-      cuts: [{ m: 0, node: start.id }, { m: geometryLength, node: end.id }]
+      cuts
     });
   }
 }
 
-// Spatially index every link segment once, then calculate junction-to-link cuts
-// against the complete vehicle-independent network.
-const cellSize = 10;
+// Only source shape points can connect. No junction data, projected-on-line
+// cuts, or inferred intersections are used. Nearby points on different links
+// are connected only when their measured separation is <= 0.1 m.
+const cellSize = CHECK_NODE_MAX_DISTANCE;
 const cellKey = (x, y) => Math.floor(x / cellSize) + ":" + Math.floor(y / cellSize);
-const segmentGrid = new Map();
-const addSegment = (x, y, segment) => {
-  const key = cellKey(x, y);
-  let bucket = segmentGrid.get(key);
-  if (!bucket) segmentGrid.set(key, bucket = []);
-  bucket.push(segment);
-};
-for (const link of links) {
-  for (let i = 0; i < link.points.length - 1; i++) {
-    const a = link.points[i], b = link.points[i + 1];
-    const length = link.measures[i + 1] - link.measures[i];
-    if (!length) continue;
-    const segment = { link, a, b, startM: link.measures[i], length };
-    const minX = Math.floor((Math.min(a[0], b[0]) - JUNCTION_TO_LINK_TOLERANCE) / cellSize);
-    const maxX = Math.floor((Math.max(a[0], b[0]) + JUNCTION_TO_LINK_TOLERANCE) / cellSize);
-    const minY = Math.floor((Math.min(a[1], b[1]) - JUNCTION_TO_LINK_TOLERANCE) / cellSize);
-    const maxY = Math.floor((Math.max(a[1], b[1]) + JUNCTION_TO_LINK_TOLERANCE) / cellSize);
-    for (let x = minX; x <= maxX; x++) for (let y = minY; y <= maxY; y++) addSegment(x, y, segment);
-  }
+const vertexGrid = new Map();
+for (const vertex of shapeVertices) {
+  const point = vertex.point;
+  const key = cellKey(point[0], point[1]);
+  let bucket = vertexGrid.get(key);
+  if (!bucket) vertexGrid.set(key, bucket = []);
+  bucket.push(vertex);
 }
-const matchesByLink = new Map();
 const topologyConnections = [];
-for (const [nodeId, point] of junctionNodes) {
-  const bucket = segmentGrid.get(cellKey(point[0], point[1])) || [];
-  const bestByLink = new Map();
-  for (const segment of bucket) {
-    const link = segment.link;
-    if (nodeId === link.startNode || nodeId === link.endNode) continue;
-    const dx = segment.b[0] - segment.a[0], dy = segment.b[1] - segment.a[1];
-    const fraction = Math.max(0, Math.min(1,
-      ((point[0] - segment.a[0]) * dx + (point[1] - segment.a[1]) * dy) /
-      (segment.length * segment.length)
-    ));
-    const q = [segment.a[0] + fraction * dx, segment.a[1] + fraction * dy];
-    const offset = dist(point, q);
-    const match = { offset, m: segment.startM + fraction * segment.length };
-    const previous = bestByLink.get(link.id);
-    if (!previous || match.offset < previous.offset) bestByLink.set(link.id, match);
+const checkNodePairs = new Map();
+const seenConnectedPairs = new Set();
+for (const vertex of shapeVertices) {
+  const [x, y] = vertex.point;
+  const cx = Math.floor(x / cellSize), cy = Math.floor(y / cellSize);
+  const candidates = [];
+  for (let gx = cx - 1; gx <= cx + 1; gx++) {
+    for (let gy = cy - 1; gy <= cy + 1; gy++) {
+      candidates.push(...(vertexGrid.get(gx + ":" + gy) || []));
+    }
   }
-  for (const [linkId, match] of bestByLink) {
-    let matches = matchesByLink.get(linkId);
-    if (!matches) matchesByLink.set(linkId, matches = new Map());
-    matches.set(nodeId, match);
+  const nearestByLink = new Map();
+  for (const other of candidates) {
+    if (other.id === vertex.id || other.linkId === vertex.linkId) continue;
+    const distance = dist(vertex.point, other.point);
+    if (distance > CHECK_NODE_MAX_DISTANCE) continue;
+    const previous = nearestByLink.get(other.linkId);
+    if (!previous || distance < previous.distance) nearestByLink.set(other.linkId, { other, distance });
   }
-}
-for (const link of links) {
-  const matches = matchesByLink.get(link.id) || new Map();
-  for (const [nodeId, match] of matches) {
-    const tolerance = generatedEndpointIds.has(nodeId)
-      ? GENERATED_NODE_TO_LINK_TOLERANCE
-      : JUNCTION_TO_LINK_TOLERANCE;
-    if (!Number.isFinite(match.offset) || match.offset > tolerance) continue;
-    const existing = link.cuts.find(cut => Math.abs(cut.m - match.m) <= ROAD_CUT_TOLERANCE);
-    if (existing) {
-      // Preserve the zero-distance connection when a junction is effectively
-      // at a road endpoint but has a different node ID. Dropping this edge
-      // disconnects the graph even though the geometries meet.
-      if (existing.node !== nodeId) {
-        topologyConnections.push({
-          road_id: link.id,
-          node: nodeId,
-          connected_node: existing.node,
-          offset_m: Number(match.offset.toFixed(3)),
-          shared_position: true
+  for (const { other, distance } of nearestByLink.values()) {
+    const pairKey = [vertex.id, other.id].sort().join("|");
+    if (distance <= SHAPE_POINT_CONNECT_TOLERANCE) {
+      if (seenConnectedPairs.has(pairKey)) continue;
+      seenConnectedPairs.add(pairKey);
+      topologyConnections.push({
+        node: vertex.id,
+        connected_node: other.id,
+        offset_m: Number(distance.toFixed(4)),
+        shared_position: true
+      });
+    } else {
+      const key = [vertex.id, other.id].sort().join("|");
+      if (!checkNodePairs.has(key)) {
+        checkNodePairs.set(key, {
+          a: vertex,
+          b: other,
+          distance
         });
       }
-      continue;
     }
-    if (match.m <= ROAD_CUT_TOLERANCE ||
-        link.geometryLength - match.m <= ROAD_CUT_TOLERANCE) continue;
-    link.cuts.push({ m: match.m, node: nodeId });
-    topologyConnections.push({
-      road_id: link.id,
-      node: nodeId,
-      offset_m: Number(match.offset.toFixed(3))
-    });
   }
-  link.cuts.sort((a, b) => a.m - b.m);
 }
 
+const nodeEntries = [...nodes].map(([id, point]) => ({ id, xy: point, generated: true }));
 const output = {
   schemaVersion: 1,
   generatedAt: new Date().toISOString(),
   source: {
-    roadsSha256: require("node:crypto").createHash("sha256").update(fs.readFileSync(INPUT_ROADS)).digest("hex"),
-    junctionsSha256: require("node:crypto").createHash("sha256").update(fs.readFileSync(INPUT_JUNCTIONS)).digest("hex")
+    roadsSha256: require("node:crypto").createHash("sha256").update(fs.readFileSync(INPUT_ROADS)).digest("hex")
   },
   vehicles: VEHICLES,
-  nodes: [...junctionNodes].map(([id, point]) => ({ id, xy: point, generated: generatedEndpointIds.has(id) })),
+  nodes: nodeEntries,
   links: links.map(({ points, measures, geometryLength, ...link }) => link),
   connections: topologyConnections,
   statistics: {
     topologyConnections: topologyConnections.length,
-    sharedPositionConnections: topologyConnections.filter(connection => connection.shared_position).length,
-    junctionNodes: junctionNodes.size,
-    generatedEndpointNodes: generatedEndpointIds.size,
+    sharedPositionConnections: topologyConnections.length,
+    shapePointNodes: nodeEntries.length,
     links: links.length,
     linksByVehicle: Object.fromEntries(VEHICLES.map(vehicle => [
       vehicle, links.filter(link => link.access[vehicle] === "yes").length
     ])),
+    checkNodePairs: checkNodePairs.size,
     skippedParts
   }
 };
@@ -290,7 +235,7 @@ const nodesGeoJson = {
     type: "Feature",
     properties: {
       node_id: node.id,
-      node_kind: node.generated ? "generated_endpoint" : "junction",
+      node_kind: "shape_point",
       generated: node.generated
     },
     geometry: { type: "Point", coordinates: toLonLat(node.xy) }
@@ -359,3 +304,35 @@ fs.writeFileSync(LINKS_GEOJSON_OUTPUT, JSON.stringify(linksGeoJson));
 console.log("Generated", OUTPUT, JSON.stringify(output.statistics));
 console.log("Generated", NODES_GEOJSON_OUTPUT, nodesGeoJson.features.length, "nodes");
 console.log("Generated", LINKS_GEOJSON_OUTPUT, linkFeatures.length, "routing edges");
+console.log("Generated", CHECK_NODES_GEOJSON_OUTPUT, checkNodeFeatures.length, "manual-review shape-point pairs");
+
+
+const checkNodeFeatures = [...checkNodePairs.values()].map((pair, index) => {
+  const midpoint = [
+    (pair.a.point[0] + pair.b.point[0]) / 2,
+    (pair.a.point[1] + pair.b.point[1]) / 2
+  ];
+  return {
+    type: "Feature",
+    properties: {
+      check_id: "CHECK_" + String(index + 1).padStart(5, "0"),
+      road_a: pair.a.linkId,
+      node_a: pair.a.id,
+      vertex_a: pair.a.vertexIndex,
+      road_b: pair.b.linkId,
+      node_b: pair.b.id,
+      vertex_b: pair.b.vertexIndex,
+      distance_m: Number(pair.distance.toFixed(3)),
+      status: "manual_review"
+    },
+    geometry: { type: "Point", coordinates: toLonLat(midpoint) }
+  };
+});
+const checkNodesGeoJson = {
+  type: "FeatureCollection",
+  name: "routing_network_check_nodes",
+  crs: { type: "name", properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  features: checkNodeFeatures
+};
+fs.writeFileSync(CHECK_NODES_GEOJSON_OUTPUT, JSON.stringify(checkNodesGeoJson));
+console.log("Generated", CHECK_NODES_GEOJSON_OUTPUT, checkNodeFeatures.length, "manual-review shape-point pairs");
