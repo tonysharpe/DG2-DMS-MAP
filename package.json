@@ -1,0 +1,10 @@
+{
+  "name": "dg2-dms-map-routing-build",
+  "private": true,
+  "scripts": {
+    "build:routing-network": "node scripts/build-routing-network.cjs"
+  },
+  "devDependencies": {
+    "proj4": "^2.15.0"
+  }
+}
