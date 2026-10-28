@@ -1160,7 +1160,7 @@ async function build(
   window.recordMapLoadTiming?.("Build: process road features and match endpoints", roadProcessingStartedAt);
   const interiorConnectionStartedAt = performance.now();
   if (topology) {
-    interiorConnections = [];
+    interiorConnections = Array.isArray(topology.connections) ? topology.connections : [];
     window.recordMapLoadTiming?.("Build: use backend junction-to-link connections", interiorConnectionStartedAt);
   } else {
     interiorConnections = await connectJunctionsToRoadLinks();
