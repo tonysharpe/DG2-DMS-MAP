@@ -232,6 +232,46 @@ for (const connection of topologyConnections) {
 }
 for (const link of links) link.cuts.sort((a, b) => a.m - b.m);
 
+// Give every connected cross-road shape-point cluster one canonical node ID.
+// This avoids representing a single junction as several nearby nodes joined
+// by synthetic zero-length edges. Only connections already verified within
+// SHAPE_POINT_CONNECT_TOLERANCE participate; no line projections are used.
+const parent = new Map([...nodes.keys()].map(id => [id, id]));
+function findRoot(id) {
+  let root = id;
+  while (parent.get(root) !== root) root = parent.get(root);
+  while (parent.get(id) !== id) {
+    const next = parent.get(id);
+    parent.set(id, root);
+    id = next;
+  }
+  return root;
+}
+function unionNodes(a, b) {
+  const ra = findRoot(a), rb = findRoot(b);
+  if (ra === rb) return;
+  // Stable canonical IDs: keep the first generated node in each cluster.
+  if (ra < rb) parent.set(rb, ra);
+  else parent.set(ra, rb);
+}
+for (const connection of topologyConnections) {
+  unionNodes(connection.node, connection.connected_node);
+}
+const canonicalNodeId = id => findRoot(id);
+for (const vertex of shapeVertices) vertex.id = canonicalNodeId(vertex.id);
+for (const link of links) {
+  link.startNode = canonicalNodeId(link.startNode);
+  link.endNode = canonicalNodeId(link.endNode);
+  for (const cut of link.cuts) cut.node = canonicalNodeId(cut.node);
+}
+const canonicalNodes = new Map();
+for (const [id, point] of nodes) {
+  const canonicalId = canonicalNodeId(id);
+  if (!canonicalNodes.has(canonicalId)) canonicalNodes.set(canonicalId, [...point]);
+}
+nodes.clear();
+for (const [id, point] of canonicalNodes) nodes.set(id, point);
+
 const nodeEntries = [...nodes]
   .filter(([id]) => links.some(link => link.cuts.some(cut => cut.node === id)))
   .map(([id, point]) => ({ id, xy: point, generated: true }));
@@ -244,7 +284,7 @@ const output = {
   vehicles: VEHICLES,
   nodes: nodeEntries,
   links: links.map(({ points, measures, geometryLength, ...link }) => link),
-  connections: topologyConnections,
+  // Connected shape points now share a canonical node ID, so no synthetic\n  // zero-length connection edges are needed by the browser router.\n  connections: [],
   statistics: {
     topologyConnections: topologyConnections.length,
     sharedPositionConnections: topologyConnections.length,
