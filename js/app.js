@@ -14,7 +14,7 @@ function themeNumber(property) {
  *   Leaflet, Proj4, app.js, live-location.js, backgrounds.js
  *
  * Required GeoJSON:
- *   roads, junctions, gates, destinations, destination_areas
+ *   roads, gates, destinations, destination_areas, routing-network.json
  *
  * Naming:
  *   Reads Name first, then name.
