@@ -193,6 +193,7 @@ for (const link of links) {
   }
 }
 const matchesByLink = new Map();
+const topologyConnections = [];
 for (const [nodeId, point] of junctionNodes) {
   const bucket = segmentGrid.get(cellKey(point[0], point[1])) || [];
   const bestByLink = new Map();
@@ -224,9 +225,29 @@ for (const link of links) {
       : JUNCTION_TO_LINK_TOLERANCE;
     if (!Number.isFinite(match.offset) || match.offset > tolerance) continue;
     const existing = link.cuts.find(cut => Math.abs(cut.m - match.m) <= ROAD_CUT_TOLERANCE);
-    if (existing || match.m <= ROAD_CUT_TOLERANCE ||
+    if (existing) {
+      // Preserve the zero-distance connection when a junction is effectively
+      // at a road endpoint but has a different node ID. Dropping this edge
+      // disconnects the graph even though the geometries meet.
+      if (existing.node !== nodeId) {
+        topologyConnections.push({
+          road_id: link.id,
+          node: nodeId,
+          connected_node: existing.node,
+          offset_m: Number(match.offset.toFixed(3)),
+          shared_position: true
+        });
+      }
+      continue;
+    }
+    if (match.m <= ROAD_CUT_TOLERANCE ||
         link.geometryLength - match.m <= ROAD_CUT_TOLERANCE) continue;
     link.cuts.push({ m: match.m, node: nodeId });
+    topologyConnections.push({
+      road_id: link.id,
+      node: nodeId,
+      offset_m: Number(match.offset.toFixed(3))
+    });
   }
   link.cuts.sort((a, b) => a.m - b.m);
 }
@@ -241,7 +262,10 @@ const output = {
   vehicles: VEHICLES,
   nodes: [...junctionNodes].map(([id, point]) => ({ id, xy: point, generated: generatedEndpointIds.has(id) })),
   links: links.map(({ points, measures, geometryLength, ...link }) => link),
+  connections: topologyConnections,
   statistics: {
+    topologyConnections: topologyConnections.length,
+    sharedPositionConnections: topologyConnections.filter(connection => connection.shared_position).length,
     junctionNodes: junctionNodes.size,
     generatedEndpointNodes: generatedEndpointIds.size,
     links: links.length,
