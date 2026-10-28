@@ -41,16 +41,7 @@ const SCALE_BAR_MAX_WIDTH = 100;
 let vehicleMode = "truck";
 let networkInputs = null;
 let displayedRoadLayer = null;
-let routingNetworkCache = null;
-let routingInputSignature = null;
-const vehicleNetworkSnapshots = new Map();
 let vehicleChangeInProgress = false;
-
-function cloneRoutingSnapshot(snapshot) {
-  return typeof structuredClone === "function"
-    ? structuredClone(snapshot)
-    : JSON.parse(JSON.stringify(snapshot));
-}
 
 function setVehicleUpdating(isUpdating) {
   vehicleChangeInProgress = isUpdating;
@@ -199,339 +190,6 @@ function refreshVehicleRoads() {
   displayedRoadLayer.eachLayer(layer => { if (layer.isPopupOpen()) layer.closePopup(); });
 }
 
-function routingDataSignature(inputs) {
-  const text = JSON.stringify([
-    inputs.j, inputs.r, inputs.g, inputs.d, inputs.metadata ?? null
-  ]);
-  let hash = 2166136261;
-  for (let i = 0; i < text.length; i++) {
-    hash ^= text.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  return (hash >>> 0).toString(16).padStart(8, "0");
-}
-
-function serializeRoutingNetworkSnapshot() {
-  const nodeIds = [...nodes.keys()];
-  const nodeIndex = new Map(nodeIds.map((id, index) => [id, index]));
-  const roadIndex = new Map(roads.map((road, index) => [road.id, index]));
-
-  return {
-    nodes: nodeIds,
-    generatedEndpointIds: [...generatedEndpointIds]
-      .map(id => nodeIndex.get(id))
-      .filter(Number.isInteger),
-    roads: roads.map(road => ({
-      id: road.id,
-      sourceFeatureIndex: road.sourceFeatureIndex,
-      sourcePartIndex: road.sourcePartIndex,
-      startNode: nodeIndex.get(road.startNode),
-      endNode: nodeIndex.get(road.endNode),
-      name: road.name,
-      length: road.length,
-      direction: road.direction,
-      roundabout: road.roundabout,
-      speedKmh: road.speedKmh,
-      type: road.type,
-      truck: road.truck,
-      cuts: road.cuts.map(cut => [cut.m, nodeIndex.get(cut.node)])
-    })),
-    adjacency: [...adjacency].map(([from, edges]) => [
-      nodeIndex.get(from),
-      edges.map(edge => {
-        const index = roadIndex.has(edge.roadId) ? roadIndex.get(edge.roadId) : -1;
-        if (edge.topologyConnection) {
-          return [nodeIndex.get(edge.to), edge.length, edge.seconds, edge.weight, index, null, null, 1];
-        }
-        const road = index >= 0 ? roads[index] : null;
-        if (!road) throw new Error("Routing edge refers to an unknown road link.");
-        const fromNode = nodeIds[fromIndex];
-        const toNode = edge.to;
-        let fromM;
-        let toM;
-        for (let cutIndex = 0; cutIndex < road.cuts.length - 1; cutIndex++) {
-          const a = road.cuts[cutIndex];
-          const b = road.cuts[cutIndex + 1];
-          if (a.node === fromNode && b.node === toNode) {
-            fromM = a.m;
-            toM = b.m;
-            break;
-          }
-          if (a.node === toNode && b.node === fromNode) {
-            fromM = b.m;
-            toM = a.m;
-            break;
-          }
-        }
-        if (!Number.isFinite(fromM) || !Number.isFinite(toM)) {
-          throw new Error("Routing edge does not match adjacent road-link cuts.");
-        }
-        return [nodeIndex.get(edge.to), edge.length, edge.seconds, edge.weight, index,
-          fromM, toM, 0];
-      })
-    ]),
-    locations: locations.map(location => {
-      const compact = { ...location };
-      delete compact.point;
-      compact.nodeIndex = compact.node === null || compact.node === undefined
-        ? null : nodeIndex.get(compact.node);
-      delete compact.node;
-      return compact;
-    }),
-    ignoredDestinationNames
-  };
-}
-
-function applyRoutingNetworkSnapshot(snapshot) {
-  if (!snapshot || !Array.isArray(snapshot.nodes) ||
-      !Array.isArray(snapshot.adjacency) || !Array.isArray(snapshot.roads) ||
-      !Array.isArray(snapshot.locations) || !networkInputs) {
-    throw new Error("Generated routing network has an invalid structure.");
-  }
-
-  const nodeIds = snapshot.nodes;
-  const idAt = index => Number.isInteger(index) && index >= 0 ? nodeIds[index] : undefined;
-  const sourceRoadFeatures = features(networkInputs.r, ROADS_FILE);
-  const sourceJunctionFeatures = features(networkInputs.j, "data/junctions.geojson");
-  const junctionEntries = sourceJunctionFeatures.map(feature => [
-    nameOf(feature.properties, "Junction"),
-    xy(pointOf(feature, "Junction " + nameOf(feature.properties, "Junction")))
-  ]);
-  junctionNodes = new Map(junctionEntries);
-  nodes = new Map(junctionEntries);
-  generatedEndpointIds = new Set((snapshot.generatedEndpointIds || []).map(idAt).filter(Boolean));
-
-  roads = snapshot.roads.map(compactRoad => {
-    const feature = sourceRoadFeatures[compactRoad.sourceFeatureIndex];
-    const geometry = feature?.geometry;
-    const parts = geometry?.type === "LineString" ? [geometry.coordinates] :
-      geometry?.type === "MultiLineString" ? geometry.coordinates : [];
-    const sourcePart = parts[compactRoad.sourcePartIndex];
-    if (!feature || !Array.isArray(sourcePart) || sourcePart.length < 2) {
-      throw new Error("Routing cache refers to a missing source road link.");
-    }
-    const points = sourcePart.map(coordinate =>
-      xy(validatePosition(coordinate, "Road " + compactRoad.id)));
-    const startId = idAt(compactRoad.startNode);
-    const endId = idAt(compactRoad.endNode);
-    if (!startId || !endId) throw new Error("Routing cache has an invalid road endpoint index.");
-    if (nodes.has(startId)) points[0] = nodes.get(startId);
-    else nodes.set(startId, [...points[0]]);
-    if (nodes.has(endId)) points[points.length - 1] = nodes.get(endId);
-    else nodes.set(endId, [...points[points.length - 1]]);
-    const measures = [0];
-    for (let i = 1; i < points.length; i++) {
-      measures.push(measures[i - 1] + dist(points[i - 1], points[i]));
-    }
-    const road = {
-      id: compactRoad.id,
-      sourceFeatureIndex: compactRoad.sourceFeatureIndex,
-      sourcePartIndex: compactRoad.sourcePartIndex,
-      name: compactRoad.name,
-      startNode: startId,
-      endNode: endId,
-      pts: points,
-      ms: measures,
-      length: compactRoad.length,
-      direction: compactRoad.direction,
-      roundabout: compactRoad.roundabout,
-      speedKmh: compactRoad.speedKmh,
-      properties: feature.properties || {},
-      type: compactRoad.type,
-      truck: compactRoad.truck,
-      cuts: compactRoad.cuts.map(cut => ({ m: cut[0], node: idAt(cut[1]) }))
-    };
-    if (road.cuts.some(cut => !cut.node)) throw new Error("Routing cache has an invalid road cut index.");
-    return road;
-  });
-
-  for (const road of roads) {
-    if (!nodes.has(road.startNode)) nodes.set(road.startNode, road.pts[0]);
-    if (!nodes.has(road.endNode)) nodes.set(road.endNode, road.pts[road.pts.length - 1]);
-    for (const cut of road.cuts) {
-      if (!nodes.has(cut.node)) nodes.set(cut.node, at(road, cut.m));
-    }
-  }
-  if (nodeIds.some(id => !nodes.has(id))) {
-    throw new Error("Routing cache could not reconstruct every graph node from source data.");
-  }
-
-  const sourceLocationFeatures = {
-    gate: features(networkInputs.g, "data/gates.geojson"),
-    destination: features(networkInputs.d, "data/destinations.geojson")
-  };
-  const usedLocationIndexes = { gate: new Map(), destination: new Map() };
-  locations = snapshot.locations.map(compactLocation => {
-    const location = { ...compactLocation };
-    const sourceIndex = location.sourceFeatureIndex;
-    const sourceFeature = sourceLocationFeatures[location.kind]?.[sourceIndex];
-    if (!sourceFeature) throw new Error("Routing cache refers to a missing gate or destination.");
-    location.point = xy(pointOf(sourceFeature, location.kind + " " + location.name));
-    location.node = location.nodeIndex === null || location.nodeIndex === undefined
-      ? null : idAt(location.nodeIndex);
-    delete location.nodeIndex;
-    return location;
-  });
-
-  allRoadCandidates = [];
-  for (let featureIndex = 0; featureIndex < sourceRoadFeatures.length; featureIndex++) {
-    const feature = sourceRoadFeatures[featureIndex];
-    const p = feature.properties || {};
-    const geometry = feature.geometry;
-    const coordinateParts = geometry?.type === "LineString" ? [geometry.coordinates] :
-      geometry?.type === "MultiLineString" ? geometry.coordinates : [];
-    const rawId = p.road_id ?? p.id;
-    const baseId = rawId !== undefined && rawId !== null && String(rawId).trim() !== ""
-      ? String(rawId).trim()
-      : "R_" + String(featureIndex + 1).padStart(4, "0");
-    const usableParts = coordinateParts.map((part, sourcePartIndex) => {
-      if (!Array.isArray(part) || part.length < 2) return null;
-      const points = part.map(coordinate =>
-        xy(validatePosition(coordinate, "Road " + baseId)));
-      let geometryLength = 0;
-      for (let i = 1; i < points.length; i++) {
-        geometryLength += dist(points[i - 1], points[i]);
-      }
-      return Number.isFinite(geometryLength) && geometryLength > 0
-        ? { sourcePartIndex, points } : null;
-    }).filter(Boolean);
-    for (let partIndex = 0; partIndex < usableParts.length; partIndex++) {
-      const part = usableParts[partIndex];
-      allRoadCandidates.push({
-        id: usableParts.length > 1 ? baseId + "_P" + (partIndex + 1) : baseId,
-        sourceFeatureIndex: featureIndex,
-        sourcePartIndex: part.sourcePartIndex,
-        properties: p,
-        pts: part.points
-      });
-    }
-  }
-
-  adjacency = new Map(nodeIds.map(id => [id, []]));
-  for (const [fromIndex, compactEdges] of snapshot.adjacency) {
-    const from = idAt(fromIndex);
-    if (!from || !adjacency.has(from)) throw new Error("Routing cache has an invalid adjacency node index.");
-    const edges = compactEdges.map(compactEdge => {
-      const [toIndex, length, seconds, weight, roadIndex, fromM, toM, topologyFlag] = compactEdge;
-      const to = idAt(toIndex);
-      const road = Number.isInteger(roadIndex) && roadIndex >= 0 ? roads[roadIndex] : null;
-      if (!to || !adjacency.has(to) || !road) throw new Error("Routing cache has an invalid edge reference.");
-      let points = [];
-      if (!topologyFlag) {
-        const low = Math.min(fromM, toM);
-        const high = Math.max(fromM, toM);
-        points = section(road, low, high);
-        if (fromM > toM) points.reverse();
-      }
-      return {
-        to, length, seconds, weight, pts: points, name: road.name,
-        roadId: road.id, ...(topologyFlag ? { topologyConnection: true } : {})
-      };
-    });
-    adjacency.set(from, edges);
-  }
-
-  roadConnections = roads.map(road => ({
-    road_id: road.id, start_node: road.startNode, end_node: road.endNode
-  }));
-  interiorConnections = [];
-  ignoredDestinationNames = snapshot.ignoredDestinationNames || [];
-}
-
-async function fetchVehicleRoutingNetwork(vehicle) {
-  if (new URLSearchParams(window.location.search).get("rebuildRoutingCache") === "1") return null;
-  if (vehicleNetworkSnapshots.has(vehicle)) return vehicleNetworkSnapshots.get(vehicle);
-  const supportedVehicles = ["truck", "car", "suv", "pickup", "minibus", "bus"];
-  if (!supportedVehicles.includes(vehicle)) return null;
-  try {
-    const response = await fetch("data/routing-networks/" + vehicle + ".json", { cache: "no-cache" });
-    if (!response.ok) return null;
-    const cache = JSON.parse(await response.text(), (_key, value) =>
-      value === "__INF__" ? Infinity : value === "__-INF__" ? -Infinity : value === "__NAN__" ? NaN : value);
-    if (cache.schemaVersion !== 3 || cache.vehicle !== vehicle ||
-        cache.inputsSignature !== routingInputSignature || !cache.snapshot) return null;
-    const snapshot = cache.snapshot;
-    vehicleNetworkSnapshots.set(vehicle, snapshot);
-    return snapshot;
-  } catch (error) {
-    console.info("Prebuilt " + vehicle + " routing network unavailable; using the normal network build.", error);
-    return null;
-  }
-}
-
-window.exportRoutingNetworkSnapshot = () => ({
-  inputsSignature: routingInputSignature,
-  vehicleMode,
-  snapshot: serializeRoutingNetworkSnapshot()
-});
-
-/*
- * Used by the build-time cache generator running in a headless browser.
- * It builds each vehicle graph from the same loaded GeoJSON inputs as the app,
- * then restores the initially displayed network before returning the cache.
- */
-window.generateAllRoutingNetworksCache = async function () {
-  if (!window.laarNetworkBuildReady || !networkInputs || !routingInputSignature) {
-    throw new Error("The initial routing network is not ready yet.");
-  }
-
-  const vehicles = ["truck", "car", "suv", "pickup", "minibus", "bus"];
-  const originalVehicle = vehicleMode;
-  const originalSnapshot = serializeRoutingNetworkSnapshot();
-  const originalDestinationOptions = destinationOptions;
-  const networks = {};
-  const startedAt = performance.now();
-  window.routingCacheGenerationProgress = { completed: 0, total: vehicles.length, vehicle: null };
-
-  try {
-    for (const vehicle of vehicles) {
-      const vehicleStartedAt = performance.now();
-      vehicleMode = vehicle;
-      window.routingCacheGenerationProgress = {
-        completed: Object.keys(networks).length, total: vehicles.length, vehicle
-      };
-      status("Precomputing vehicle routes: " + vehicle + " (" +
-        (Object.keys(networks).length + 1) + "/" + vehicles.length + ")…");
-
-      const { j, r, g, d, metadata } = networkInputs;
-      await build(j, r, g, d, metadata);
-      const snapshot = cloneRoutingSnapshot(serializeRoutingNetworkSnapshot());
-      networks[vehicle] = snapshot;
-      vehicleNetworkSnapshots.set(vehicle, snapshot);
-      console.info("[Routing cache generation]", {
-        vehicle,
-        durationSeconds: Number(((performance.now() - vehicleStartedAt) / 1000).toFixed(3)),
-        roads: roads.length,
-        nodes: nodes.size,
-        destinations: locations.filter(location => location.kind === "destination").length
-      });
-      window.routingCacheGenerationProgress = {
-        completed: Object.keys(networks).length, total: vehicles.length, vehicle
-      };
-    }
-
-    const cache = {
-      schemaVersion: 3,
-      inputsSignature: routingInputSignature,
-      generatedAt: new Date().toISOString(),
-      vehicles,
-      networks
-    };
-    console.info("[Routing cache generation complete]", {
-      durationSeconds: Number(((performance.now() - startedAt) / 1000).toFixed(3)),
-      vehicles: Object.keys(networks)
-    });
-    return cache;
-  } finally {
-    vehicleMode = originalVehicle;
-    applyRoutingNetworkSnapshot(originalSnapshot);
-    destinationOptions = originalDestinationOptions;
-    window.routingCacheGenerationProgress = {
-      completed: Object.keys(networks).length, total: vehicles.length, vehicle: null
-    };
-  }
-};
-
 async function changeVehicle() {
   if (vehicleChangeInProgress) return;
   const switchStartedAt = performance.now();
@@ -553,30 +211,12 @@ async function changeVehicle() {
     locationStatus("Vehicle changed. Click the map again within 10 m of a permitted road.");
   }
   vehicleMode = $("vehicleType").value;
-  let networkSource = "memory cache";
+  let networkSource = "built on demand";
   try {
     const { j, r, g, d, metadata } = networkInputs;
     const networkStartedAt = performance.now();
-    let snapshot = vehicleNetworkSnapshots.get(vehicleMode);
-    if (snapshot) {
-      networkSource = "memory cache";
-    } else {
-      const cacheFetchStartedAt = performance.now();
-      snapshot = await fetchVehicleRoutingNetwork(vehicleMode);
-      mark("fetch per-vehicle cache", cacheFetchStartedAt);
-      if (snapshot) networkSource = "prebuilt per-vehicle file";
-    }
-
-    if (snapshot) {
-      applyRoutingNetworkSnapshot(snapshot);
-    } else {
-      networkSource = "built now (cache missing or stale)";
-      await build(j, r, g, d, metadata);
-      const snapshotCloneStartedAt = performance.now();
-      vehicleNetworkSnapshots.set(vehicleMode, cloneRoutingSnapshot(serializeRoutingNetworkSnapshot()));
-      mark("save network snapshot", snapshotCloneStartedAt);
-    }
-    mark("load/build vehicle network (" + networkSource + ")", networkStartedAt);
+    await build(j, r, g, d, metadata);
+    mark("build selected vehicle network", networkStartedAt);
 
     const destinationsStartedAt = performance.now();
     destinationOptions = locations.flatMap((location, index) => location.kind === "destination" ? [{
@@ -628,7 +268,7 @@ async function changeVehicle() {
       eligibleRoads: roads.length,
       graphNodes: nodes.size,
       destinations: destinationOptions.length,
-      cachedVehicles: [...vehicleNetworkSnapshots.keys()]
+      graphBuild: networkSource
     });
     setVehicleUpdating(false);
   }
@@ -2457,19 +2097,11 @@ async function init() {
 
     window.recordMapLoadTiming?.("Load routing data set", routingDataStartedAt);
     networkInputs = { j, r, g, d, metadata };
-    routingInputSignature = routingDataSignature(networkInputs);
     vehicleMode = $("vehicleType").value;
     const networkBuildStartedAt = performance.now();
     const invalidAccessCount = reportAccessData(r);
-    const initialCachedNetwork = await fetchVehicleRoutingNetwork(vehicleMode);
-    if (initialCachedNetwork) {
-      applyRoutingNetworkSnapshot(initialCachedNetwork);
-      window.recordMapLoadTiming?.("Load prebuilt " + vehicleMode + " routing network", networkBuildStartedAt);
-    } else {
-      await build(j, r, g, d, metadata);
-      vehicleNetworkSnapshots.set(vehicleMode, cloneRoutingSnapshot(serializeRoutingNetworkSnapshot()));
-      window.recordMapLoadTiming?.("Build routing network fallback (" + vehicleMode + ")", networkBuildStartedAt);
-    }
+    await build(j, r, g, d, metadata);
+    window.recordMapLoadTiming?.("Build selected vehicle routing network (" + vehicleMode + ")", networkBuildStartedAt);
 
     const reviewed =
       metadata?.network_reviewed_at ??
