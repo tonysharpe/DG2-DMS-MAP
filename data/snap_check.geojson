@@ -3,9 +3,9 @@
   "name": "snap_check",
   "metadata": {
     "description": "Diagnostic points for road-link endpoints that required snapping to connect links.",
-    "status": "template_not_populated",
+    "status": "blocked_source_data_empty",
     "coordinate_reference_system": "OGC:CRS84 (WGS 84 longitude, latitude)",
-    "generation_note": "Populate from the routing-network build process; actual snap locations have not yet been calculated from source road data."
+    "generation_note": "Snap analysis was attempted against the repository inputs, but data/roads.geojson and data/routing-network.json both contain empty content, so no real snap locations can be calculated. Populate the source road geometry and run the routing-network build before regenerating this file."
   },
   "features": []
 }
