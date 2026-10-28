@@ -337,3 +337,47 @@ const checkNodesGeoJson = {
 fs.writeFileSync(CHECK_NODES_GEOJSON_OUTPUT, JSON.stringify(checkNodesGeoJson));
 console.log("Generated", CHECK_NODES_GEOJSON_OUTPUT, checkNodeFeatures.length, "manual-review shape-point pairs");
 console.log("Generated", CHECK_NODES_GEOJSON_OUTPUT, checkNodeFeatures.length, "manual-review shape-point pairs");
+
+// Export connections whose distinct source shape points were snapped together
+// using the configured 0.1 m topology tolerance. Distances below 0.001 m are
+// excluded from this QA layer as requested; the routing network itself retains
+// every valid connection at or below the configured tolerance.
+const snapCheckFeatures = topologyConnections
+  .filter(connection => connection.offset_m >= 0.001 && connection.offset_m <= SHAPE_POINT_CONNECT_TOLERANCE)
+  .map((connection, index) => {
+    const a = nodes.get(connection.node);
+    const b = nodes.get(connection.connected_node);
+    const midpoint = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    return {
+      type: "Feature",
+      properties: {
+        check_id: "SNAP_" + String(index + 1).padStart(5, "0"),
+        road_id: connection.road_id,
+        node_id: connection.node,
+        connected_node_id: connection.connected_node,
+        offset_m: connection.offset_m,
+        tolerance_m: SHAPE_POINT_CONNECT_TOLERANCE,
+        status: "snapped"
+      },
+      geometry: { type: "Point", coordinates: toLonLat(midpoint) }
+    };
+  });
+const snapCheckGeoJson = {
+  type: "FeatureCollection",
+  name: "snap_check",
+  metadata: {
+    description: "Routing-network shape-point connections snapped within 0.001 m to 0.1 m inclusive.",
+    status: "generated_from_routing_network_build",
+    coordinate_reference_system: "OGC:CRS84 (WGS 84 longitude, latitude)",
+    source: "data/roads.geojson",
+    algorithm: "Uses the actual cross-link topology connections created by the routing-network builder. Includes connections with offset_m >= 0.001 and <= 0.1.",
+    min_distance_m: 0.001,
+    max_distance_m: SHAPE_POINT_CONNECT_TOLERANCE,
+    snapped_connection_count: snapCheckFeatures.length
+  },
+  crs: { type: "name", properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  features: snapCheckFeatures
+};
+fs.writeFileSync(path.join(ROOT, "data/snap_check.geojson"), JSON.stringify(snapCheckGeoJson));
+console.log("Generated data/snap_check.geojson", snapCheckFeatures.length, "snapped connections in requested distance range");
+
