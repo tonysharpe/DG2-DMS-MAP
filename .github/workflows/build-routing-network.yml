@@ -35,7 +35,7 @@ jobs:
         run: npm run build:routing-network
       - name: Commit generated network
         run: |
-          git add data/routing-network.json data/routing-network-nodes.geojson data/routing-network-links.geojson data/routing-network-check-nodes.geojson
+          git add data/routing-network.json data/routing-network-nodes.geojson data/routing-network-links.geojson data/routing-network-check-nodes.geojson data/snap_check.geojson
           if git diff --cached --quiet -- data/routing-network.json data/routing-network-nodes.geojson data/routing-network-links.geojson data/routing-network-check-nodes.geojson; then
             echo "Routing network is already up to date."
             exit 0
