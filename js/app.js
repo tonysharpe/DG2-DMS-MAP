@@ -880,33 +880,81 @@ function nearestJunction(point) {
 
 async function connectJunctionsToRoadLinks() {
   const connections = [];
+  // Index road segments into a 10 m spatial grid. Junctions only need to
+  // inspect segments whose bounding boxes are within the maximum 1 m snap
+  // tolerance, rather than scanning every vertex of every road.
+  const cellSize = 10;
+  const cellKey = (x, y) =>
+    Math.floor(x / cellSize) + ":" + Math.floor(y / cellSize);
+  const segmentGrid = new Map();
+  const addSegmentToCell = (x, y, segment) => {
+    const key = cellKey(x, y);
+    let bucket = segmentGrid.get(key);
+    if (!bucket) segmentGrid.set(key, bucket = []);
+    bucket.push(segment);
+  };
+
+  for (const road of roads) {
+    for (let i = 0; i < road.pts.length - 1; i++) {
+      const a = road.pts[i];
+      const b = road.pts[i + 1];
+      const length = road.ms[i + 1] - road.ms[i];
+      if (!length) continue;
+      const segment = { road, a, b, startM: road.ms[i], length };
+      const minX = Math.floor((Math.min(a[0], b[0]) - JUNCTION_TO_LINK_TOLERANCE) / cellSize);
+      const maxX = Math.floor((Math.max(a[0], b[0]) + JUNCTION_TO_LINK_TOLERANCE) / cellSize);
+      const minY = Math.floor((Math.min(a[1], b[1]) - JUNCTION_TO_LINK_TOLERANCE) / cellSize);
+      const maxY = Math.floor((Math.max(a[1], b[1]) + JUNCTION_TO_LINK_TOLERANCE) / cellSize);
+      for (let x = minX; x <= maxX; x++) {
+        for (let y = minY; y <= maxY; y++) addSegmentToCell(x, y, segment);
+      }
+    }
+  }
+
+  // Find the closest segment on each road for each junction using the index.
+  const matchesByRoad = new Map();
+  for (const [nodeId, point] of junctionNodes) {
+    const bucket = segmentGrid.get(cellKey(point[0], point[1])) || [];
+    const bestByRoad = new Map();
+    for (const segment of bucket) {
+      const road = segment.road;
+      if (nodeId === road.startNode || nodeId === road.endNode) continue;
+      const dx = segment.b[0] - segment.a[0];
+      const dy = segment.b[1] - segment.a[1];
+      const fraction = Math.max(0, Math.min(1,
+        ((point[0] - segment.a[0]) * dx + (point[1] - segment.a[1]) * dy) /
+        (segment.length * segment.length)
+      ));
+      const q = [segment.a[0] + fraction * dx, segment.a[1] + fraction * dy];
+      const offset = dist(point, q);
+      const match = { offset, m: segment.startM + fraction * segment.length, q };
+      const previous = bestByRoad.get(road.id);
+      if (!previous || match.offset < previous.offset) bestByRoad.set(road.id, match);
+    }
+    for (const [roadId, match] of bestByRoad) {
+      const roadMatches = matchesByRoad.get(roadId) || new Map();
+      roadMatches.set(nodeId, match);
+      matchesByRoad.set(roadId, roadMatches);
+    }
+  }
 
   for (let roadIndex = 0; roadIndex < roads.length; roadIndex++) {
     const road = roads[roadIndex];
     const roadLength = road.ms[road.ms.length - 1];
+    const roadMatches = matchesByRoad.get(road.id) || new Map();
 
-    for (const [nodeId, point] of junctionNodes) {
-      if (
-        nodeId === road.startNode ||
-        nodeId === road.endNode
-      ) continue;
-
-      const match = nearest(point, road.pts);
+    for (const [nodeId] of junctionNodes) {
+      const match = roadMatches.get(nodeId);
+      if (!match) continue;
       const generated = generatedEndpointIds.has(nodeId);
-
       const tolerance = generated
         ? GENERATED_NODE_TO_LINK_TOLERANCE
         : JUNCTION_TO_LINK_TOLERANCE;
+      if (!Number.isFinite(match.offset) || match.offset > tolerance) continue;
 
-      if (
-        !Number.isFinite(match.offset) ||
-        match.offset > tolerance
-      ) continue;
-
-      const existing = road.cuts.find(cut => {
-        return Math.abs(cut.m - match.m) <= ROAD_CUT_TOLERANCE;
-      });
-
+      const existing = road.cuts.find(cut =>
+        Math.abs(cut.m - match.m) <= ROAD_CUT_TOLERANCE
+      );
       if (existing) {
         if (existing.node !== nodeId) {
           connections.push({
@@ -917,13 +965,10 @@ async function connectJunctionsToRoadLinks() {
         continue;
       }
 
-      if (
-        match.m <= ROAD_CUT_TOLERANCE ||
-        roadLength - match.m <= ROAD_CUT_TOLERANCE
-      ) continue;
+      if (match.m <= ROAD_CUT_TOLERANCE ||
+          roadLength - match.m <= ROAD_CUT_TOLERANCE) continue;
 
       road.cuts.push({ m: match.m, node: nodeId });
-
       connections.push({
         road_id: road.id,
         node: nodeId,
@@ -932,15 +977,12 @@ async function connectJunctionsToRoadLinks() {
     }
 
     road.cuts.sort((a, b) => a.m - b.m);
-
-    // Yield periodically so map layers can render while network connections
-    // are calculated instead of blocking the browser for several seconds.
-    if ((roadIndex + 1) % 5 === 0) {
+    if ((roadIndex + 1) % 25 === 0) {
       await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
     }
   }
 
-  console.table(connections);
+  console.info("Road-link junction connections:", connections.length);
   return connections;
 }
 
