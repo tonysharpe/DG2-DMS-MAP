@@ -231,6 +231,7 @@ fs.writeFileSync(OUTPUT, JSON.stringify(output));
 const nodesGeoJson = {
   type: "FeatureCollection",
   name: "routing_network_nodes",
+  metadata: { generatedAt: output.generatedAt, sourceRoadsSha256: output.source.roadsSha256 },
   crs: { type: "name", properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" } },
   features: output.nodes.map(node => ({
     type: "Feature",
@@ -298,6 +299,7 @@ for (const link of links) {
 const linksGeoJson = {
   type: "FeatureCollection",
   name: "routing_network_links",
+  metadata: { generatedAt: output.generatedAt, sourceRoadsSha256: output.source.roadsSha256 },
   crs: { type: "name", properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" } },
   features: linkFeatures
 };
