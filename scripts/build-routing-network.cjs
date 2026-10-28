@@ -160,6 +160,16 @@ for (const vertex of shapeVertices) {
 const topologyConnections = [];
 const checkNodePairs = new Map();
 const seenConnectedPairs = new Set();
+
+// Identical source lines (including reversed coordinate order) are duplicate
+// geometries, not junctions at every shared shape vertex. Use projected
+// coordinates rounded to 0.1 mm to avoid floating-point noise.
+const geometryKeyByLink = new Map();
+for (const link of links) {
+  const forward = link.points.map(point => point.map(value => value.toFixed(4)).join(",")).join(";");
+  const reverse = [...link.points].reverse().map(point => point.map(value => value.toFixed(4)).join(",")).join(";");
+  geometryKeyByLink.set(link.id, forward < reverse ? forward : reverse);
+}
 for (const vertex of shapeVertices) {
   const [x, y] = vertex.point;
   const cx = Math.floor(x / cellSize), cy = Math.floor(y / cellSize);
@@ -172,6 +182,9 @@ for (const vertex of shapeVertices) {
   const nearestByLink = new Map();
   for (const other of candidates) {
     if (other.id === vertex.id || other.linkId === vertex.linkId) continue;
+    // Coincident vertices along duplicate full-line geometry do not create
+    // junction cuts; genuine connections to other, non-duplicate roads remain.
+    if (geometryKeyByLink.get(other.linkId) === geometryKeyByLink.get(vertex.linkId)) continue;
     const distance = dist(vertex.point, other.point);
     if (distance > CHECK_NODE_MAX_DISTANCE) continue;
     const previous = nearestByLink.get(other.linkId);
