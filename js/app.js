@@ -1496,8 +1496,25 @@ function destinationCategory(item) {
 function renderDestinationOptions() {
   const previous = $("end").value;
   const query = searchKey($("destinationSearch").value);
-  const category = document.querySelector('input[name="destinationType"]:checked')?.value || "LAAR";
-  const matching = destinationOptions.filter(item => (category === "All" || destinationCategory(item) === category) && searchKey(item.name).includes(query));
+  const categoryControl = document.querySelector('input[name="destinationType"]:checked');
+  const category = categoryControl?.value || "All";
+
+  // Rebuild from every destination in the active location set on each render.
+  // Do not filter by route reachability: route viability is checked only after
+  // the user explicitly selects a destination.
+  destinationOptions = locations.flatMap((location, index) =>
+    location.kind === "destination" ? [{
+      index,
+      name: location.name,
+      type: location.type,
+      valid: location.valid,
+      hasPolygon: destinationAreas.has(location.name)
+    }] : []
+  );
+  const matching = destinationOptions.filter(item =>
+    (category === "All" || destinationCategory(item) === category) &&
+    searchKey(item.name).includes(query)
+  );
   const selected = destinationOptions.find(item => String(item.index) === previous && (category === "All" || destinationCategory(item) === category));
   const visible = [...matching];
   const retained = selected && !visible.some(item => item.index === selected.index);
@@ -2314,20 +2331,10 @@ async function init() {
 
     $("destinationSearch").oninput = renderDestinationOptions;
 
+    // Enter in the search box only filters the list; it must not silently
+    // select a destination or start routing.
     $("destinationSearch").onkeydown = event => {
-      if (event.key !== "Enter") return;
-
-      const query = searchKey($("destinationSearch").value);
-      const category = document.querySelector('input[name="destinationType"]:checked')?.value || "LAAR";
-      const matching = destinationOptions.filter(item =>
-        (category === "All" || destinationCategory(item) === category) && searchKey(item.name).includes(query)
-      );
-
-      if (matching.length === 1) {
-        event.preventDefault();
-        $("end").value = String(matching[0].index);
-        calculate();
-      }
+      if (event.key === "Enter") event.preventDefault();
     };
 
     renderDestinationOptions();
