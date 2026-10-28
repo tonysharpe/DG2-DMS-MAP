@@ -346,7 +346,12 @@ for (const link of links) {
   for (let i = 0; i < cuts.length - 1; i++) {
     const from = cuts[i], to = cuts[i + 1];
     if (!(to.m > from.m)) continue;
-    const coordinates = sectionPoints(link, from.m, to.m).map(toLonLat);
+    const projectedCoordinates = sectionPoints(link, from.m, to.m);
+    // Ensure exported edge endpoints coincide exactly with their canonical
+    // node coordinates after <=0.1 m shape-point clustering.
+    projectedCoordinates[0] = [...nodes.get(from.node)];
+    projectedCoordinates[projectedCoordinates.length - 1] = [...nodes.get(to.node)];
+    const coordinates = projectedCoordinates.map(toLonLat);
     linkFeatures.push({
       type: "Feature",
       properties: {
