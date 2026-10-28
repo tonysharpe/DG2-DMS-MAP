@@ -245,10 +245,29 @@ function serializeRoutingNetworkSnapshot() {
         }
         const road = index >= 0 ? roads[index] : null;
         if (!road) throw new Error("Routing edge refers to an unknown road link.");
-        const fromMatch = nearest(edge.pts[0], road.pts);
-        const toMatch = nearest(edge.pts[edge.pts.length - 1], road.pts);
+        const fromNode = nodeIds[fromIndex];
+        const toNode = edge.to;
+        let fromM;
+        let toM;
+        for (let cutIndex = 0; cutIndex < road.cuts.length - 1; cutIndex++) {
+          const a = road.cuts[cutIndex];
+          const b = road.cuts[cutIndex + 1];
+          if (a.node === fromNode && b.node === toNode) {
+            fromM = a.m;
+            toM = b.m;
+            break;
+          }
+          if (a.node === toNode && b.node === fromNode) {
+            fromM = b.m;
+            toM = a.m;
+            break;
+          }
+        }
+        if (!Number.isFinite(fromM) || !Number.isFinite(toM)) {
+          throw new Error("Routing edge does not match adjacent road-link cuts.");
+        }
         return [nodeIndex.get(edge.to), edge.length, edge.seconds, edge.weight, index,
-          fromMatch.m, toMatch.m, 0];
+          fromM, toM, 0];
       })
     ]),
     locations: locations.map(location => {
@@ -429,7 +448,7 @@ async function fetchVehicleRoutingNetwork(vehicle) {
     if (!response.ok) return null;
     const cache = JSON.parse(await response.text(), (_key, value) =>
       value === "__INF__" ? Infinity : value === "__-INF__" ? -Infinity : value === "__NAN__" ? NaN : value);
-    if (cache.schemaVersion !== 2 || cache.vehicle !== vehicle ||
+    if (cache.schemaVersion !== 3 || cache.vehicle !== vehicle ||
         cache.inputsSignature !== routingInputSignature || !cache.snapshot) return null;
     const snapshot = cache.snapshot;
     vehicleNetworkSnapshots.set(vehicle, snapshot);
@@ -492,7 +511,7 @@ window.generateAllRoutingNetworksCache = async function () {
     }
 
     const cache = {
-      schemaVersion: 2,
+      schemaVersion: 3,
       inputsSignature: routingInputSignature,
       generatedAt: new Date().toISOString(),
       vehicles,
