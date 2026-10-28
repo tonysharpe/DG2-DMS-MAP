@@ -305,7 +305,6 @@ fs.writeFileSync(LINKS_GEOJSON_OUTPUT, JSON.stringify(linksGeoJson));
 console.log("Generated", OUTPUT, JSON.stringify(output.statistics));
 console.log("Generated", NODES_GEOJSON_OUTPUT, nodesGeoJson.features.length, "nodes");
 console.log("Generated", LINKS_GEOJSON_OUTPUT, linkFeatures.length, "routing edges");
-console.log("Generated", CHECK_NODES_GEOJSON_OUTPUT, checkNodeFeatures.length, "manual-review shape-point pairs");
 
 
 const checkNodeFeatures = [...checkNodePairs.values()].map((pair, index) => {
@@ -336,4 +335,5 @@ const checkNodesGeoJson = {
   features: checkNodeFeatures
 };
 fs.writeFileSync(CHECK_NODES_GEOJSON_OUTPUT, JSON.stringify(checkNodesGeoJson));
+console.log("Generated", CHECK_NODES_GEOJSON_OUTPUT, checkNodeFeatures.length, "manual-review shape-point pairs");
 console.log("Generated", CHECK_NODES_GEOJSON_OUTPUT, checkNodeFeatures.length, "manual-review shape-point pairs");
