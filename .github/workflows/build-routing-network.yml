@@ -5,7 +5,6 @@ on:
   push:
     paths:
       - "data/roads.geojson"
-      - "data/junctions.geojson"
       - "scripts/build-routing-network.cjs"
       - "package.json"
       - ".github/workflows/build-routing-network.yml"
@@ -36,8 +35,8 @@ jobs:
         run: npm run build:routing-network
       - name: Commit generated network
         run: |
-          git add data/routing-network.json data/routing-network-nodes.geojson data/routing-network-links.geojson
-          if git diff --cached --quiet -- data/routing-network.json data/routing-network-nodes.geojson data/routing-network-links.geojson; then
+          git add data/routing-network.json data/routing-network-nodes.geojson data/routing-network-links.geojson data/routing-network-check-nodes.geojson
+          if git diff --cached --quiet -- data/routing-network.json data/routing-network-nodes.geojson data/routing-network-links.geojson data/routing-network-check-nodes.geojson; then
             echo "Routing network is already up to date."
             exit 0
           fi
