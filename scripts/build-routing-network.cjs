@@ -8,7 +8,10 @@ const ROOT = path.resolve(__dirname, "..");
 const INPUT_ROADS = path.join(ROOT, "data/roads.geojson");
 const INPUT_JUNCTIONS = path.join(ROOT, "data/junctions.geojson");
 const OUTPUT = path.join(ROOT, "data/routing-network.json");
+const NODES_GEOJSON_OUTPUT = path.join(ROOT, "data/routing-network-nodes.geojson");
+const LINKS_GEOJSON_OUTPUT = path.join(ROOT, "data/routing-network-links.geojson");
 const UTM = "+proj=utm +zone=38 +datum=WGS84 +units=m +no_defs";
+const toLonLat = coordinates => proj4(UTM, "EPSG:4326", coordinates);
 const ENDPOINT_TOLERANCE = 0.01;
 const AUTO_NODE_MERGE_TOLERANCE = 0.01;
 const JUNCTION_TO_LINK_TOLERANCE = 1.0;
@@ -276,4 +279,83 @@ const output = {
   }
 };
 fs.writeFileSync(OUTPUT, JSON.stringify(output));
+
+// Export a WGS84 point layer containing every junction and generated endpoint
+// node, suitable for direct inspection in QGIS.
+const nodesGeoJson = {
+  type: "FeatureCollection",
+  name: "routing_network_nodes",
+  crs: { type: "name", properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  features: output.nodes.map(node => ({
+    type: "Feature",
+    properties: {
+      node_id: node.id,
+      node_kind: node.generated ? "generated_endpoint" : "junction",
+      generated: node.generated
+    },
+    geometry: { type: "Point", coordinates: toLonLat(node.xy) }
+  }))
+};
+fs.writeFileSync(NODES_GEOJSON_OUTPUT, JSON.stringify(nodesGeoJson));
+
+// Export each actual routing edge (the portion between consecutive cuts), not
+// merely the unsplit source road. This lets QGIS show the graph the router uses.
+function pointAt(link, measure) {
+  if (measure <= 0) return [...link.points[0]];
+  if (measure >= link.geometryLength) return [...link.points[link.points.length - 1]];
+  let i = 1;
+  while (i < link.measures.length && link.measures[i] < measure) i++;
+  const startM = link.measures[i - 1], endM = link.measures[i];
+  const fraction = endM === startM ? 0 : (measure - startM) / (endM - startM);
+  return [
+    link.points[i - 1][0] + fraction * (link.points[i][0] - link.points[i - 1][0]),
+    link.points[i - 1][1] + fraction * (link.points[i][1] - link.points[i - 1][1])
+  ];
+}
+function sectionPoints(link, fromM, toM) {
+  const result = [pointAt(link, fromM)];
+  for (let i = 1; i < link.measures.length - 1; i++) {
+    if (link.measures[i] > fromM && link.measures[i] < toM) result.push([...link.points[i]]);
+  }
+  result.push(pointAt(link, toM));
+  return result;
+}
+const linkFeatures = [];
+for (const link of links) {
+  const cuts = [...link.cuts].sort((a, b) => a.m - b.m);
+  for (let i = 0; i < cuts.length - 1; i++) {
+    const from = cuts[i], to = cuts[i + 1];
+    if (!(to.m > from.m)) continue;
+    const coordinates = sectionPoints(link, from.m, to.m).map(toLonLat);
+    linkFeatures.push({
+      type: "Feature",
+      properties: {
+        road_id: link.id,
+        source_feature: link.sourceFeatureIndex,
+        source_part: link.sourcePartIndex,
+        segment_index: i,
+        from_node: from.node,
+        to_node: to.node,
+        road_type: link.type,
+        length_m: Number((to.m - from.m).toFixed(3)),
+        access_car: link.access.car,
+        access_suv: link.access.suv,
+        access_pickup: link.access.pickup,
+        access_minibus: link.access.minibus,
+        access_bus: link.access.bus,
+        access_truck: link.access.truck
+      },
+      geometry: { type: "LineString", coordinates }
+    });
+  }
+}
+const linksGeoJson = {
+  type: "FeatureCollection",
+  name: "routing_network_links",
+  crs: { type: "name", properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  features: linkFeatures
+};
+fs.writeFileSync(LINKS_GEOJSON_OUTPUT, JSON.stringify(linksGeoJson));
 console.log("Generated", OUTPUT, JSON.stringify(output.statistics));
+console.log("Generated", NODES_GEOJSON_OUTPUT, nodesGeoJson.features.length, "nodes");
+console.log("Generated", LINKS_GEOJSON_OUTPUT, linkFeatures.length, "routing edges");
