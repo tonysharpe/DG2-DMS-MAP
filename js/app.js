@@ -40,6 +40,8 @@ const INITIAL_SCALE_BAR_METRES = 800;
 const SCALE_BAR_MAX_WIDTH = 100;
 let vehicleMode = "truck";
 let networkInputs = null;
+let prebuiltRoutingNetwork = null;
+let prebuiltRoutingLinks = null;
 let displayedRoadLayer = null;
 let vehicleChangeInProgress = false;
 
@@ -983,6 +985,10 @@ async function build(
   junctionNodes = new Map();
   adjacency = new Map();
   generatedEndpointIds = new Set();
+  const topology = prebuiltRoutingNetwork?.schemaVersion === 1 ? prebuiltRoutingNetwork : null;
+  prebuiltRoutingLinks = topology
+    ? new Map(topology.links.map(link => [link.sourceFeatureIndex + ":" + link.sourcePartIndex, link]))
+    : null;
 
   roads = [];
   allRoadCandidates = [];
@@ -997,22 +1003,23 @@ async function build(
   status("Building network: junctions and roads…");
 
   const junctionLoadStartedAt = performance.now();
-  for (
-    const feature of features(junctionData, "data/junctions.geojson")
-  ) {
-    const id = nameOf(feature.properties, "Junction");
-
-    if (junctionNodes.has(id)) {
-      throw new Error("Duplicate junction: " + id);
+  if (topology) {
+    for (const node of topology.nodes) {
+      const point = node.xy;
+      nodes.set(node.id, point);
+      junctionNodes.set(node.id, point);
+      if (node.generated) generatedEndpointIds.add(node.id);
     }
-
-    const point = xy(pointOf(feature, "Junction " + id));
-
-    nodes.set(id, point);
-    junctionNodes.set(id, point);
+  } else {
+    for (const feature of features(junctionData, "data/junctions.geojson")) {
+      const id = nameOf(feature.properties, "Junction");
+      if (junctionNodes.has(id)) throw new Error("Duplicate junction: " + id);
+      const point = xy(pointOf(feature, "Junction " + id));
+      nodes.set(id, point);
+      junctionNodes.set(id, point);
+    }
   }
-
-  window.recordMapLoadTiming?.("Build: load junction nodes", junctionLoadStartedAt);
+  window.recordMapLoadTiming?.(topology ? "Build: load backend junction topology" : "Build: load junction nodes", junctionLoadStartedAt);
   const roadProcessingStartedAt = performance.now();
   const roadIds = new Set();
   const endpointErrors = [];
@@ -1072,9 +1079,17 @@ async function build(
       });
       if (!roadAccess(p)) continue;
 
+      const topologyLink = prebuiltRoutingLinks?.get(featureIndex + ":" + part.sourcePartIndex);
+      if (topology && !topologyLink) {
+        throw new Error("Backend routing topology is missing road part " + featureIndex + ":" + part.sourcePartIndex + ".");
+      }
       const separation = dist(points[0], points[points.length - 1]);
-      const start = nearestJunction(points[0]);
-      const end = nearestJunction(points[points.length - 1]);
+      const start = topologyLink
+        ? { id: topologyLink.startNode, ambiguous: false }
+        : nearestJunction(points[0]);
+      const end = topologyLink
+        ? { id: topologyLink.endNode, ambiguous: false }
+        : nearestJunction(points[points.length - 1]);
       if (start.ambiguous || end.ambiguous) {
         endpointErrors.push(id + ": ambiguous endpoint.");
         continue;
@@ -1121,10 +1136,12 @@ async function build(
         pts: points, ms: measures, length, direction, roundabout,
         speedKmh, properties: p,
         type: roadField(p, "type"), truck: roadField(p, "truck"),
-        cuts: [
-          { m: 0, node: start.id },
-          { m: geometryLength, node: end.id }
-        ]
+        cuts: topologyLink
+          ? topologyLink.cuts.map(cut => ({ m: cut.m, node: cut.node }))
+          : [
+              { m: 0, node: start.id },
+              { m: geometryLength, node: end.id }
+            ]
       });
       roadConnections.push({ road_id: id, start_node: start.id, end_node: end.id });
     }
@@ -1142,8 +1159,13 @@ async function build(
 
   window.recordMapLoadTiming?.("Build: process road features and match endpoints", roadProcessingStartedAt);
   const interiorConnectionStartedAt = performance.now();
-  interiorConnections = await connectJunctionsToRoadLinks();
-  window.recordMapLoadTiming?.("Build: connect junctions to road links", interiorConnectionStartedAt);
+  if (topology) {
+    interiorConnections = [];
+    window.recordMapLoadTiming?.("Build: use backend junction-to-link connections", interiorConnectionStartedAt);
+  } else {
+    interiorConnections = await connectJunctionsToRoadLinks();
+    window.recordMapLoadTiming?.("Build: connect junctions to road links", interiorConnectionStartedAt);
+  }
 
   status("Building network: attaching destinations and gates…");
 
@@ -2094,11 +2116,12 @@ async function init() {
     window.recordMapLoadTiming?.("Wait for initial map paint", paintWaitStartedAt);
 
     const routingDataStartedAt = performance.now();
-    const [j, g, d, metadata] = await Promise.all([
+    const [j, g, d, metadata, topology] = await Promise.all([
       load("data/junctions.geojson"),
       load("data/gates.geojson"),
       load("data/destinations.geojson"),
-      load("data/meta.json", true)
+      load("data/meta.json", true),
+      load("data/routing-network.json", true)
     ]);
 
     if (
@@ -2113,10 +2136,13 @@ async function init() {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     window.recordMapLoadTiming?.("Load routing data set", routingDataStartedAt);
+    prebuiltRoutingNetwork = topology?.schemaVersion === 1 ? topology : null;
     networkInputs = { j, r, g, d, metadata };
     vehicleMode = $("vehicleType").value;
     const networkBuildStartedAt = performance.now();
     const invalidAccessCount = reportAccessData(r);
+    if (!prebuiltRoutingNetwork) console.warn("Backend routing network unavailable; using browser graph build.");
+    else console.info("Using backend routing network", prebuiltRoutingNetwork.statistics);
     await build(j, r, g, d, metadata);
     window.recordMapLoadTiming?.("Build selected vehicle routing network (" + vehicleMode + ")", networkBuildStartedAt);
 
