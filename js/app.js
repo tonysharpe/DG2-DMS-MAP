@@ -1159,12 +1159,18 @@ async function build(
 
   window.recordMapLoadTiming?.("Build: process road features and match endpoints", roadProcessingStartedAt);
   const interiorConnectionStartedAt = performance.now();
-  if (topology) {
-    interiorConnections = Array.isArray(topology.connections) ? topology.connections : [];
+  if (topology && Array.isArray(topology.connections) && topology.connections.length > 0) {
+    interiorConnections = topology.connections;
     window.recordMapLoadTiming?.("Build: use backend junction-to-link connections", interiorConnectionStartedAt);
   } else {
+    // Older generated network files may not include the precomputed connection
+    // list yet. Preserve routing correctness by calculating those connections
+    // in the browser until the backend artifact has been regenerated and verified.
     interiorConnections = await connectJunctionsToRoadLinks();
-    window.recordMapLoadTiming?.("Build: connect junctions to road links", interiorConnectionStartedAt);
+    window.recordMapLoadTiming?.(
+      topology ? "Build: fallback junction-to-link connections" : "Build: connect junctions to road links",
+      interiorConnectionStartedAt
+    );
   }
 
   status("Building network: attaching destinations and gates…");
