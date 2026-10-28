@@ -199,7 +199,6 @@ async function changeVehicle() {
     timing[name] = Number(((endedAt - startedAt) / 1000).toFixed(3));
     window.recordMapLoadTiming?.("Vehicle switch: " + name, startedAt, endedAt);
   };
-  const previousName = selectedDestination()?.name;
   setVehicleUpdating(true);
   const paintStartedAt = performance.now();
   // Let the browser paint the progress indicator before graph construction starts.
@@ -223,22 +222,11 @@ async function changeVehicle() {
       index, name: location.name, type: location.type, valid: location.valid,
       hasPolygon: destinationAreas.has(location.name)
     }] : []);
+    // Do not calculate during a vehicle switch. Show all destinations for the
+    // new vehicle and wait for the user to select one explicitly.
     $("end").value = "";
+    $("destinationSearch").value = "";
     renderDestinationOptions();
-    if (previousName) {
-      const selected = destinationOptions.find(item => item.name === previousName);
-      if (selected) {
-        $("destinationSearch").value = "";
-        renderDestinationOptions();
-        // Keep the previous destination only if it survived the active
-        // vehicle's reachability filter in the rendered selector.
-        const remainsSelectable = Array.from($("end").options).some(option =>
-          option.value === String(selected.index)
-        );
-        if (remainsSelectable) $("end").value = String(selected.index);
-        else $("end").value = "";
-      }
-    }
     mark("prepare and render destination options", destinationsStartedAt);
 
     const mapRefreshStartedAt = performance.now();
@@ -248,10 +236,7 @@ async function changeVehicle() {
     refreshShareControls();
     mark("refresh map and controls", mapRefreshStartedAt);
 
-    const routeStartedAt = performance.now();
-    if (selectedDestination()) calculate();
-    else status(vehicleMode + ": " + roads.length + " eligible roads. Select a destination.");
-    mark("recalculate selected route", routeStartedAt);
+    status(vehicleMode + ": " + roads.length + " eligible roads. Select a destination to calculate a route.");
   } catch (error) {
     roads = [];
     adjacency = new Map();
@@ -1490,8 +1475,8 @@ function renderDestinationOptions() {
   const previous = $("end").value;
   const query = searchKey($("destinationSearch").value);
   const category = document.querySelector('input[name="destinationType"]:checked')?.value || "LAAR";
-  const matching = destinationOptions.filter(item => destinationCategory(item) === category && searchKey(item.name).includes(query));
-  const selected = destinationOptions.find(item => String(item.index) === previous && destinationCategory(item) === category);
+  const matching = destinationOptions.filter(item => (category === "All" || destinationCategory(item) === category) && searchKey(item.name).includes(query));
+  const selected = destinationOptions.find(item => String(item.index) === previous && (category === "All" || destinationCategory(item) === category));
   const visible = [...matching];
   const retained = selected && !visible.some(item => item.index === selected.index);
   if (retained) visible.push(selected);
@@ -1507,17 +1492,17 @@ function renderDestinationOptions() {
   end.replaceChildren();
   const placeholder = document.createElement("option");
   placeholder.value = "";
-  placeholder.textContent = matching.length ? "Select " + category + "…" : "No " + category + " matches";
+  placeholder.textContent = matching.length ? "Select destination…" : "No destinations match";
   end.appendChild(placeholder);
   for (const item of visible) {
     const option = document.createElement("option");
     option.value = String(item.index);
-    option.textContent = item.name + (!item.hasPolygon ? " — polygon missing" : "") + (!item.valid ? " — outside snap limit" : "");
+    option.textContent = item.name;
     end.appendChild(option);
   }
   end.value = selected ? previous : "";
   if (pickerToggle) {
-    pickerToggle.textContent = selected ? selected.name : (matching.length ? "Select " + category + "…" : "No " + category + " matches");
+    pickerToggle.textContent = selected ? selected.name : (matching.length ? "Select destination…" : "No destinations match");
     pickerToggle.disabled = end.disabled;
   }
   if (pickerList) {
@@ -1545,7 +1530,7 @@ function renderDestinationOptions() {
       pickerList.appendChild(empty);
     }
   }
-  $("searchStatus").textContent = matching.length + " matching " + category + " destination(s)" + (retained ? ". Current selection retained." : ".");
+  $("searchStatus").textContent = matching.length + " matching destination(s)" + (retained ? ". Current selection retained." : ".");
 }
 
 
@@ -1905,19 +1890,11 @@ function calculate(collapseMobilePanelOnSuccess = false) {
 
   } catch (error) {
     console.error(error);
-    const routeFailure = /No connected road route|No connected route|No valid gate|Cannot reconstruct route|Starting point unavailable|Cannot attach|Cannot identify the road segment/i.test(error.message || "");
-    if (!routeFailure && !liveNavigationActive) fitSelectedResult();
+    const routeFailure = Boolean(selectedDestination());
+    if (!liveNavigationActive) fitSelectedResult();
     if (routeFailure) {
-      const highlightedCount = highlightRouteSearchLinks();
-      showRouteFailureBanner(
-        error.message || "No route could be found."
-      );
-      status(
-        "Routing error: " + error.message +
-        (highlightedCount
-          ? "\nDebug: highlighted " + highlightedCount + " road links examined during the search in red."
-          : "\nDebug: no road links were recorded as examined.")
-      );
+      showRouteFailureBanner("No route found");
+      status("No route found for the selected destination and vehicle.");
     } else {
       status("Routing error: " + error.message);
     }
@@ -2317,7 +2294,7 @@ async function init() {
       const query = searchKey($("destinationSearch").value);
       const category = document.querySelector('input[name="destinationType"]:checked')?.value || "LAAR";
       const matching = destinationOptions.filter(item =>
-        destinationCategory(item) === category && searchKey(item.name).includes(query)
+        (category === "All" || destinationCategory(item) === category) && searchKey(item.name).includes(query)
       );
 
       if (matching.length === 1) {
