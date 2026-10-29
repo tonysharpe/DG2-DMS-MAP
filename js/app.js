@@ -1430,9 +1430,9 @@ function addMapLegend() {
 
     container.innerHTML = `
       <div class="map-legend__title">Map key</div>
-      <div class="map-legend__row"><span class="map-key-major-road"><span></span></span><span>Main Road</span></div>
-      <div class="map-legend__row"><span class="map-key-road map-key-local-road"><span></span></span><span>Minor Roads</span></div>
-      <div class="map-legend__row"><span class="map-key-road map-key-haul-road"><span></span></span><span>Haul road</span></div>
+      <div class="map-legend__row"><span class="map-key-major-road legend-symbol-main-road"><span></span></span><span>Main Road</span></div>
+      <div class="map-legend__row"><span class="map-key-road map-key-local-road legend-symbol-minor-road"><span></span></span><span>Minor Roads</span></div>
+      <div class="map-legend__row"><span class="map-key-road map-key-haul-road legend-symbol-haul-road"><span></span></span><span>Haul road</span></div>
       <div class="map-legend__row">
         <span class="legend-gate">${gateSvg()}</span>
         <span>Site gate</span>
@@ -1446,11 +1446,11 @@ function addMapLegend() {
         <span>Live location</span>
       </div>
       <div class="map-legend__row">
-        <span class="legend-area"></span>
+        <span class="legend-area legend-symbol-destination"></span>
         <span>Destination</span>
       </div>
       <div class="map-legend__row">
-        <span class="legend-route"></span>
+        <span class="legend-route legend-symbol-route"></span>
         <span>Road-network route</span>
       </div>
     `;
