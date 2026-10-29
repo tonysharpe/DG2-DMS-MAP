@@ -100,3 +100,40 @@
   stop.addEventListener("click", sync);
   sync();
 })();
+
+
+/* Desktop-only collapsible Development Features section. */
+(function () {
+  const section = document.querySelector(".development-section");
+  const toggle = document.getElementById("developmentToggle");
+  const content = document.getElementById("developmentContent");
+  const desktopQuery = window.matchMedia("(min-width: 761px)");
+
+  if (!section || !toggle || !content) return;
+
+  function setExpanded(expanded) {
+    // Do not permit expansion at mobile viewport widths.
+    if (!desktopQuery.matches) expanded = false;
+    content.hidden = !expanded;
+    toggle.setAttribute("aria-expanded", String(expanded));
+    toggle.setAttribute("aria-label", (expanded ? "Collapse" : "Expand") + " Development Features");
+    toggle.textContent = expanded ? "−" : "+";
+  }
+
+  toggle.addEventListener("click", function () {
+    if (!desktopQuery.matches) return;
+    setExpanded(toggle.getAttribute("aria-expanded") !== "true");
+  });
+
+  function syncViewport() {
+    if (!desktopQuery.matches) setExpanded(false);
+  }
+
+  if (typeof desktopQuery.addEventListener === "function") {
+    desktopQuery.addEventListener("change", syncViewport);
+  } else if (typeof desktopQuery.addListener === "function") {
+    desktopQuery.addListener(syncViewport);
+  }
+
+  setExpanded(false);
+})();
