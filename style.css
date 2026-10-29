@@ -1,19 +1,43 @@
 /* =====================================================================
    STYLESHEET NAVIGATION
    ---------------------------------------------------------------------
-   01. Original/base theme, reset, page layout and sidebar
-   02. Gate icons, map key and Leaflet presentation
-   03. Responsive layout and reduced-motion behavior
-   04. Current application theme and component styles
-   05. Map theme tokens and map-overlay styles
-   06. Live location, journey guidance and routing controls
-   07. Mobile layout and navigation overrides
-   08. Loading state, diagnostics and vehicle selector
-   09. UNUSED / RETIRED STYLES (at end of file)
+   01. Theme tokens, reset and base typography
+   02. Page shell, sidebar and map layout
+   03. Header and network-date presentation
+   04. Forms, buttons and common controls
+   05. Sidebar panels, route summary and status
+   06. Map container and Leaflet controls
+   07. Gate markers, labels and icon construction
+   08. Gate popups and map-key symbols
+   09. Responsive layout and motion preferences
+   10. Application theme palette and base component system
+   11. Application header, sections and form controls
+   12. Buttons, focus states, help and status feedback
+   13. Route summary and collapsible guidance
+   14. Map popups, gate labels and gate cards
+   15. Legend and small-screen component adjustments
+   16. Selected destination and map-legend behavior
+   17. Map theme tokens and Leaflet overlay styling
+   18. Recenter control and live-location marker
+   19. Live journey overview and direction guidance
+   20. Map-anchored prompts and mobile planner layout
+   21. Live-routing controls and floating panels
+   22. Mobile map stacking, touch and zoom behavior
+   23. Mobile live-route launcher and map controls
+   24. Navigation panel, destination picker and radio groups
+   25. Gate-icon and map-key final overrides
+   26. Application loading overlay and animation
+   27. Live-routing panel layout and Start/Stop controls
+   28. Header menu and mobile navigation controls
+   29. Destination picker and mobile select behavior
+   30. Diagnostics and development-feature output
+   31. Vehicle type selector and responsive tiles
+   32. Loading/update overlay refinements
+   33. UNUSED / RETIRED STYLES (review before deletion)
 
-   Cascade note: active rules are kept in their existing order so later
-   overrides continue to win. Unreferenced custom selectors are collected
-   at the end for review rather than deleted.
+   Sections follow source order, not a rewritten cascade order. Later rules
+   intentionally override earlier rules; keep that order unless testing
+   confirms a safe refactor.
    ===================================================================== */
 
 /* =========================================================
@@ -30,6 +54,9 @@
    ========================================================= */
 
 
+/* ---------------------------------------------------------------------
+   01. THEME TOKENS, RESET AND BASE TYPOGRAPHY
+   --------------------------------------------------------------------- */
 /* =========================================================
    1. THEME
    ========================================================= */
@@ -77,6 +104,9 @@
 }
 
 
+/* ---------------------------------------------------------------------
+   02. PAGE SHELL, SIDEBAR AND MAP LAYOUT
+   --------------------------------------------------------------------- */
 /* =========================================================
    2. BASE RESET
    ========================================================= */
@@ -152,6 +182,9 @@ a {
 }
 
 
+/* ---------------------------------------------------------------------
+   03. HEADER AND NETWORK-DATE PRESENTATION
+   --------------------------------------------------------------------- */
 /* =========================================================
    3. SIDEBAR AND MAP LAYOUT
    ========================================================= */
@@ -200,6 +233,9 @@ body > aside::-webkit-scrollbar-thumb {
 }
 
 
+/* ---------------------------------------------------------------------
+   04. FORMS, BUTTONS AND COMMON CONTROLS
+   --------------------------------------------------------------------- */
 /* =========================================================
    4. HEADER AND NETWORK DATE
    ========================================================= */
@@ -241,6 +277,9 @@ body > aside::-webkit-scrollbar-thumb {
 }
 
 
+/* ---------------------------------------------------------------------
+   05. SIDEBAR PANELS, ROUTE SUMMARY AND STATUS
+   --------------------------------------------------------------------- */
 /* =========================================================
    5. CONTROL SECTIONS AND FORM FIELDS
    ========================================================= */
@@ -337,6 +376,9 @@ body > aside select:disabled {
 }
 
 
+/* ---------------------------------------------------------------------
+   06. MAP CONTAINER AND LEAFLET CONTROLS
+   --------------------------------------------------------------------- */
 /* =========================================================
    6. BUTTONS
    ========================================================= */
@@ -423,6 +465,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   07. GATE MARKERS, LABELS AND ICON CONSTRUCTION
+   --------------------------------------------------------------------- */
 /* =========================================================
    7. STATUS MESSAGES AND NOTES
    ========================================================= */
@@ -462,6 +507,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   08. GATE POPUPS AND MAP-KEY SYMBOLS
+   --------------------------------------------------------------------- */
 /* =========================================================
    8. ROUTE SUMMARY
    ========================================================= */
@@ -583,6 +631,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   09. RESPONSIVE LAYOUT AND MOTION PREFERENCES
+   --------------------------------------------------------------------- */
 /* =========================================================
    9. DESTINATION LINK SHARING
    ========================================================= */
@@ -613,6 +664,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   10. APPLICATION THEME PALETTE AND BASE COMPONENT SYSTEM
+   --------------------------------------------------------------------- */
 /* =========================================================
    10. LEAFLET CONTROLS
    ========================================================= */
@@ -688,6 +742,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   11. APPLICATION HEADER, SECTIONS AND FORM CONTROLS
+   --------------------------------------------------------------------- */
 /* =========================================================
    11. GATE MARKER CONTAINER
    ========================================================= */
@@ -794,6 +851,9 @@ body > aside .primary-button:active:not(:disabled) {
   box-shadow: 0 2px 7px rgba(21, 43, 66, 0.12);
 }
 
+/* ---------------------------------------------------------------------
+   12. BUTTONS, FOCUS STATES, HELP AND STATUS FEEDBACK
+   --------------------------------------------------------------------- */
 /* =========================================================
    12. CSS-ONLY VEHICLE BOOM BARRIER
    ========================================================= */
@@ -873,6 +933,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   13. ROUTE SUMMARY AND COLLAPSIBLE GUIDANCE
+   --------------------------------------------------------------------- */
 /* =========================================================
    14. GATE POPUP CARDS
    ========================================================= */
@@ -1002,6 +1065,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   14. MAP POPUPS, GATE LABELS AND GATE CARDS
+   --------------------------------------------------------------------- */
 /* =========================================================
    15. MAP LEGEND
    ========================================================= */
@@ -1128,6 +1194,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   15. LEGEND AND SMALL-SCREEN COMPONENT ADJUSTMENTS
+   --------------------------------------------------------------------- */
 /* =========================================================
    16. RESPONSIVE LAYOUT
    ========================================================= */
@@ -1259,6 +1328,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   16. SELECTED DESTINATION AND MAP-LEGEND BEHAVIOR
+   --------------------------------------------------------------------- */
 /* =========================================================
    17. REDUCED MOTION
    ========================================================= */
@@ -1539,6 +1611,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   17. APPLICATION PALETTE AND COMPONENT THEME OVERRIDES
+   --------------------------------------------------------------------- */
 /* ================================================================
    DIRIYAH THEME
    Consolidated from diriyah-theme.css
@@ -1770,6 +1845,9 @@ select:disabled {
 }
 
 
+/* ---------------------------------------------------------------------
+   18. HELP TEXT AND ROUTE SUMMARY OVERRIDES
+   --------------------------------------------------------------------- */
 /* HELP TEXT */
 
 .field-help,
@@ -1875,6 +1953,9 @@ select:disabled {
 }
 
 
+/* ---------------------------------------------------------------------
+   19. MAP, LEAFLET CONTROLS AND POPUP STYLING
+   --------------------------------------------------------------------- */
 /* MAP */
 
 #map {
@@ -2006,6 +2087,9 @@ select:disabled {
 }
 
 
+/* ---------------------------------------------------------------------
+   20. LEGEND AND SMALL-SCREEN COMPONENT ADJUSTMENTS
+   --------------------------------------------------------------------- */
 /* LEGEND */
 
 .map-legend {
@@ -2114,6 +2198,9 @@ select:disabled {
 }
 
 
+/* ---------------------------------------------------------------------
+   21. MINIMALIST MAP THEME AND SELECTED DESTINATION
+   --------------------------------------------------------------------- */
 /* MINIMALIST DIRIYAH SYSTEM
    Keep the map quiet; reserve saturated colours for navigation meaning. */
 body > aside {
@@ -2351,6 +2438,9 @@ label[for="destinationSearch"] {
    15 m snap radius of the nearest road permitted for the selected vehicle. */
 
 
+/* ---------------------------------------------------------------------
+   22. MAP THEME TOKENS AND LEAFLET OVERLAY STYLING
+   --------------------------------------------------------------------- */
 /* =========================================================
    SINGLE SOURCE OF TRUTH — SITE AND MAP THEME
    Change palette values here; JavaScript map layers read these
@@ -2518,6 +2608,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   23. RECENTER CONTROL AND LIVE-LOCATION MARKER
+   --------------------------------------------------------------------- */
 /* High-visibility map recenter / live-location control */
 .leaflet-top.leaflet-right { z-index: 1200; }
 .leaflet-top.leaflet-right .leaflet-control { margin-top: 10px; margin-right: 14px; }
@@ -2577,6 +2670,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   24. LIVE JOURNEY OVERVIEW AND DIRECTION GUIDANCE
+   --------------------------------------------------------------------- */
 /* LIVE JOURNEY OVERVIEW AND DIRECTION GUIDANCE */
 .journey-controls {
   margin-top: 14px;
@@ -2621,6 +2717,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   25. MAP-ANCHORED PROMPTS AND MOBILE PLANNER LAYOUT
+   --------------------------------------------------------------------- */
 /* Map-anchored live journey prompts: compact and positioned away from the
    central route corridor. The route overview remains fully visible behind it. */
 .journey-controls {
@@ -2783,6 +2882,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   26. LIVE-ROUTING CONTROLS AND FLOATING PANELS
+   --------------------------------------------------------------------- */
 /* Live-routing controls: clear actions, accessible tap targets, and no overlap. */
 .journey-controls[hidden],
 .journey-controls button[hidden] { display: none !important; }
@@ -2900,6 +3002,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   27. MOBILE MAP STACKING, TOUCH AND ZOOM BEHAVIOR
+   --------------------------------------------------------------------- */
 /* Mobile: reserve pinch-zoom for the map, not the UI panels.
    Vertical scrolling and normal control interaction remain available. */
 @media (max-width: 760px) {
@@ -2968,6 +3073,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   28. MOBILE LIVE-ROUTE LAUNCHER AND MAP CONTROLS
+   --------------------------------------------------------------------- */
 /* Mobile live-routing popup with a persistent, identifiable map-pin launcher. */
 
 @media (max-width: 760px) {
@@ -3073,6 +3181,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   29. NAVIGATION PANEL, DESTINATION PICKER AND RADIO GROUPS
+   --------------------------------------------------------------------- */
 /* Navigation panel radio groups */
 .radio-options {
   display: flex;
@@ -3136,6 +3247,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   30. GATE-ICON AND MAP-KEY FINAL OVERRIDES
+   --------------------------------------------------------------------- */
 /* Final gate-icon overrides: keep the guard and map key light in every theme. */
 .leaflet-container .laar-gate-marker,
 .leaflet-container .laar-gate-icon:hover .laar-gate-marker,
@@ -3295,6 +3409,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   31. APPLICATION LOADING OVERLAY AND ANIMATION
+   --------------------------------------------------------------------- */
 /* Initial application loading overlay. */
 .map-loading-dialog {
   position: fixed;
@@ -3345,6 +3462,9 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
+/* ---------------------------------------------------------------------
+   32. LIVE-ROUTING PANEL, HEADER CONTROLS AND DEVELOPMENT TOOLS
+   --------------------------------------------------------------------- */
 /* Compact live-routing panel: fixed title, small Start/Stop controls. */
 body > #journeyControls.journey-controls {
   left: auto !important;
@@ -3683,6 +3803,9 @@ body > #journeyControls.journey-controls {
 }
 
 
+/* ---------------------------------------------------------------------
+   33. VEHICLE TYPE SELECTOR AND RESPONSIVE TILES
+   --------------------------------------------------------------------- */
 /* Vehicle type selector: compact icon tiles with labels underneath. */
 .vehicle-options {
   display: grid;
