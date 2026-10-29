@@ -3867,6 +3867,85 @@ body > #journeyControls.journey-controls {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--map-location) 30%, transparent);
 }
 
+
+/* Map-key symbol rendering — explicit rules for the current addMapLegend markup.
+   !important prevents older theme overrides from suppressing the samples. */
+.map-legend .legend-symbol-main-road,
+.map-legend .legend-symbol-minor-road,
+.map-legend .legend-symbol-haul-road {
+  display: inline-flex !important;
+  flex: 0 0 30px !important;
+  width: 30px !important;
+  min-width: 30px !important;
+  height: 6px !important;
+  min-height: 6px !important;
+  box-sizing: border-box !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.map-legend .legend-symbol-main-road {
+  background: var(--map-major-road-outline, #7189A8) !important;
+}
+.map-legend .legend-symbol-minor-road,
+.map-legend .legend-symbol-haul-road {
+  background: var(--map-road-outline, #C5C9CE) !important;
+}
+.map-legend .legend-symbol-main-road > span,
+.map-legend .legend-symbol-minor-road > span,
+.map-legend .legend-symbol-haul-road > span {
+  display: block !important;
+  flex: 0 0 100% !important;
+  width: 100% !important;
+  height: 4px !important;
+  min-height: 4px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.map-legend .legend-symbol-main-road > span {
+  background: var(--map-major-road, #92A9C6) !important;
+}
+.map-legend .legend-symbol-minor-road > span {
+  background: var(--map-public-road, #FFFFFF) !important;
+}
+.map-legend .legend-symbol-haul-road > span {
+  background: var(--map-haul-road, #F6B26B) !important;
+}
+.map-legend .legend-symbol-destination {
+  display: inline-block !important;
+  flex: 0 0 26px !important;
+  width: 26px !important;
+  min-width: 26px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  box-sizing: border-box !important;
+  background: color-mix(in srgb, var(--map-area-fill, #8AB4F8) 30%, transparent) !important;
+  border: 2px solid var(--map-area-outline, #1A73E8) !important;
+  border-radius: 4px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.map-legend .legend-symbol-route {
+  display: inline-block !important;
+  flex: 0 0 30px !important;
+  width: 30px !important;
+  min-width: 30px !important;
+  height: 5px !important;
+  min-height: 5px !important;
+  box-sizing: border-box !important;
+  background: var(--map-route, #4285F4) !important;
+  border: 0 !important;
+  border-radius: 4px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
 /* =====================================================================
    UNUSED / RETIRED MAP STYLES — COMMENTED OUT
    These legacy Diriyah swatch/area-key selectors are not used by the current
