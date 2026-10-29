@@ -1431,7 +1431,7 @@ function addMapLegend() {
     container.innerHTML = `
       <div class="map-legend__title">Map key</div>
       <div class="map-legend__row"><svg class="map-key-svg" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#7189A8" stroke-width="6" stroke-linecap="round"/><path d="M3 4 H27" stroke="#92A9C6" stroke-width="4" stroke-linecap="round"/></svg><span>Main Road</span></div>
-      <div class="map-legend__row"><svg class="map-key-svg" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#C5C9CE" stroke-width="5.5" stroke-linecap="round"/><path d="M3 4 H27" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/></svg><span>Minor Roads</span></div>
+      <div class="map-legend__row"><svg class="map-key-svg" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#B0C2D4" stroke-width="5" stroke-linecap="round"/><path d="M3 4 H27" stroke="#D9E1E8" stroke-width="3.5" stroke-linecap="round"/></svg><span>Minor Roads</span></div>
       <div class="map-legend__row"><svg class="map-key-svg" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#7189A8" stroke-width="6" stroke-linecap="round"/><path d="M3 4 H27" stroke="#92A9C6" stroke-width="4" stroke-linecap="round"/></svg><span>Haul road</span></div>
       <div class="map-legend__row">
         <span class="legend-gate">${gateSvg()}</span>
@@ -1446,11 +1446,11 @@ function addMapLegend() {
         <span>Live location</span>
       </div>
       <div class="map-legend__row">
-        <svg class="map-key-svg map-key-destination" width="30" height="20" viewBox="0 0 30 20" aria-hidden="true"><rect x="2" y="2" width="26" height="16" rx="1" fill="#8AB4F8" fill-opacity="0.30" stroke="#1A73E8" stroke-width="2"/></svg>
+        <svg class="map-key-svg map-key-destination" width="30" height="20" viewBox="0 0 30 20" aria-hidden="true"><rect x="2" y="2" width="26" height="16" rx="1" fill="#3388ff" fill-opacity="0.25" stroke="#3388ff" stroke-width="2"/></svg>
         <span>Destination</span>
       </div>
       <div class="map-legend__row">
-        <svg class="map-key-svg map-key-route" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#4285F4" stroke-width="4" stroke-linecap="round"/></svg>
+        <svg class="map-key-svg map-key-route" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#175cd3" stroke-width="6" stroke-linecap="round"/></svg>
         <span>Road-network route</span>
       </div>
     `;
