@@ -167,12 +167,12 @@
 
         <div id="mapLegendContent" class="map-legend__content"${mobileLegend ? " hidden" : ""}>
           <div class="map-legend__row">
-            <span class="map-key-major-road" aria-hidden="true"><span></span></span>
+            <span class="legend-symbol-main-road" aria-hidden="true"><span></span></span>
             <span>Major Roads</span>
           </div>
 
           <div class="map-legend__row">
-            <span class="diriyah-swatch diriyah-swatch--minor" aria-hidden="true"></span>
+            <span class="legend-symbol-minor-road" aria-hidden="true"><span></span></span>
             <span>Minor Roads</span>
           </div>
 
@@ -182,12 +182,12 @@
           </div>
 
           <div class="map-legend__row">
-            <span class="diriyah-swatch diriyah-swatch--route" aria-hidden="true"></span>
+            <span class="legend-symbol-route" aria-hidden="true"></span>
             <span>Route</span>
           </div>
 
           <div class="map-legend__row">
-            <span class="diriyah-area-key" aria-hidden="true"></span>
+            <span class="legend-symbol-destination" aria-hidden="true"></span>
             <span>Destination</span>
           </div>
 
