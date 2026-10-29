@@ -198,7 +198,7 @@ function setMapClickOrigin(latlng) {
     weight: 3,
     fillColor: themeColor("--map-location"),
     fillOpacity: 1,
-    pane: "markerPane"
+    pane: "liveLocationPane"
   }).addTo(map);
   mapClickOriginMarker.bindTooltip("Map origin — snapped to " + selectedRoad.name, { direction: "top" });
 
@@ -462,6 +462,7 @@ function startLiveLocation() {
               iconAnchor: [16, 22]
             }),
             zIndexOffset: 1000,
+            pane: "liveLocationPane",
             keyboard: false
           }).addTo(map);
           liveLocationMarker.bindTooltip("My live location", {direction: "top"});
