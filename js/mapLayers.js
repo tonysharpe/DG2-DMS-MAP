@@ -9,7 +9,7 @@ function themeColor(property) {
     {
       label: "Boundary",
       file: "data/boundary.geojson",
-      pane: "siteBaseLayers",
+      pane: "siteBoundary",
       visible: true,
       interactive: false,
       style: {
@@ -23,7 +23,7 @@ function themeColor(property) {
     {
       label: "Communities",
       file: "data/communities.geojson",
-      pane: "siteBaseLayers",
+      pane: "siteCommunities",
       visible: true,
       interactive: false,
       style: {
@@ -291,7 +291,8 @@ function themeColor(property) {
   }
   window.recordMapLoadTiming?.("Wait for initial map geometry before background layers", mapWaitStartedAt);
 
-  pane("siteBaseLayers", 210);
+  pane("siteBoundary", 200);
+  pane("siteCommunities", 220);
   pane("siteBackground", 250);
   pane("siteReferenceRoadCasings", 290);
   pane("siteReferenceRoads", 300);
@@ -305,7 +306,9 @@ function themeColor(property) {
   ).addTo(map);
   window.laarLayerControl = control;
 
-  if (typeof displayedRoadLayer !== "undefined" && displayedRoadLayer) {
+  if (typeof displayedRoadLayerGroup !== "undefined" && displayedRoadLayerGroup) {
+    control.addOverlay(displayedRoadLayerGroup, "Roads");
+  } else if (typeof displayedRoadLayer !== "undefined" && displayedRoadLayer) {
     control.addOverlay(displayedRoadLayer, "Roads");
   }
   // Gate markers are created after routing completes; the routing build adds
