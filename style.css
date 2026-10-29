@@ -3865,28 +3865,6 @@ body > #journeyControls.journey-controls {
 
 
 
-/* Legacy Diriyah-style swatch class used by the deployed map key.
-   Haul roads intentionally use the same visual style as main roads. */
-.map-legend .diriyah-swatch {
-  display: inline-block !important;
-  flex: 0 0 30px !important;
-  width: 30px !important;
-  min-width: 30px !important;
-  height: 0 !important;
-  min-height: 0 !important;
-  box-sizing: border-box !important;
-  border: 0 !important;
-  border-top: 4px solid var(--map-major-road, #92A9C6) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-.map-legend .diriyah-swatch--main,
-.map-legend .diriyah-swatch--major {
-  border-top-color: var(--map-major-road, #92A9C6) !important;
-}
-
 /* Map-key symbol rendering — explicit rules for the current addMapLegend markup.
    !important prevents older theme overrides from suppressing the samples. */
 .map-legend .legend-symbol-main-road,
@@ -3981,12 +3959,7 @@ body > #journeyControls.journey-controls {
   height: 20px !important;
 }
 
-/* =====================================================================
-   UNUSED / RETIRED MAP STYLES — COMMENTED OUT
-   These legacy Diriyah swatch/area-key selectors are not used by the current
-   HTML or JavaScript. The active map and legend now share --map-* tokens.
-   They are retained for review only and do not affect rendering.
-   ===================================================================== */
+
 /*
 .diriyah-swatch {
   display: inline-block;
@@ -4274,19 +4247,10 @@ body > #journeyControls.journey-controls {
   font-size: 11px;
 }
 
-.diriyah-swatch--major {
-  border-color: var(--map-major-road);
-}
-
 .eyebrow {
   color: var(--public-road);
   letter-spacing: 0.09em;
 }
-
-.diriyah-swatch--main,
-.diriyah-swatch--major { border-color: var(--map-major-road); }
-
-.diriyah-swatch--public { border-color: #FFFFFF; filter: drop-shadow(0 0 1px #9AA0A6); }
 
 .journey-footnote {
   margin-top: 8px;
