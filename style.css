@@ -1,3 +1,21 @@
+/* =====================================================================
+   STYLESHEET NAVIGATION
+   ---------------------------------------------------------------------
+   01. Original/base theme, reset, page layout and sidebar
+   02. Gate icons, map key and Leaflet presentation
+   03. Responsive layout and reduced-motion behavior
+   04. Current application theme and component styles
+   05. Map theme tokens and map-overlay styles
+   06. Live location, journey guidance and routing controls
+   07. Mobile layout and navigation overrides
+   08. Loading state, diagnostics and vehicle selector
+   09. UNUSED / RETIRED STYLES (at end of file)
+
+   Cascade note: active rules are kept in their existing order so later
+   overrides continue to win. Unreferenced custom selectors are collected
+   at the end for review rather than deleted.
+   ===================================================================== */
+
 /* =========================================================
    LAAR NAVIGATION — COMPLETE STYLESHEET
 
@@ -193,17 +211,7 @@ body > aside::-webkit-scrollbar-thumb {
   border-bottom: 1px solid var(--border-color);
 }
 
-.eyebrow {
-  display: block;
-  margin-bottom: 7px;
 
-  color: var(--teal);
-
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  line-height: 1.4;
-}
 
 .site-header h1 {
   margin-bottom: 8px;
@@ -225,23 +233,7 @@ body > aside::-webkit-scrollbar-thumb {
   line-height: 1.6;
 }
 
-.network-date {
-  display: inline-block;
 
-  max-width: 100%;
-  padding: 6px 9px;
-
-  background: #f3f6f9;
-  color: var(--text-secondary);
-
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-small);
-
-  font-size: 11px;
-  line-height: 1.5;
-
-  overflow-wrap: anywhere;
-}
 
 #networkDate {
   color: var(--text-primary);
@@ -806,145 +798,30 @@ body > aside .primary-button:active:not(:disabled) {
    12. CSS-ONLY VEHICLE BOOM BARRIER
    ========================================================= */
 
-.vehicle-barrier {
-  position: relative;
 
-  display: block;
-  flex: 0 0 auto;
 
-  width: 30px;
-  height: 26px;
 
-  margin: 0;
-  padding: 0;
-
-  background: transparent;
-  border: none;
-
-  pointer-events: none;
-}
-
-.vehicle-barrier > span {
-  position: absolute;
-  display: block;
-
-  margin: 0;
-  padding: 0;
-
-  box-sizing: border-box;
-}
 
 /* Ground line. */
-.vehicle-barrier__ground {
-  left: 1px;
-  bottom: 2px;
 
-  width: 28px;
-  height: 2px;
-
-  background: #ffffff;
-  border-radius: 1px;
-}
 
 /* Left-hand mechanism cabinet. */
-.vehicle-barrier__cabinet {
-  z-index: 2;
 
-  left: 3px;
-  bottom: 4px;
-
-  width: 8px;
-  height: 15px;
-
-  background: #ffffff;
-  border-radius: 2px 2px 1px 1px;
-}
 
 /* Blue status indicator on the cabinet. */
-.vehicle-barrier__cabinet::before {
-  content: "";
 
-  position: absolute;
-  top: 4px;
-  left: 2px;
-
-  display: block;
-
-  width: 4px;
-  height: 3px;
-
-  background: #43c7ee;
-  border-radius: 1px;
-}
 
 /* Cabinet access-panel detail. */
-.vehicle-barrier__cabinet::after {
-  content: "";
 
-  position: absolute;
-  left: 2px;
-  bottom: 3px;
-
-  display: block;
-
-  width: 4px;
-  height: 1px;
-
-  background: #9aafbd;
-}
 
 /* Horizontal boom arm with red reflective bands. */
-.vehicle-barrier__arm {
-  z-index: 3;
 
-  left: 7px;
-  top: 7px;
-
-  width: 22px;
-  height: 4px;
-
-  background-color: #ffffff;
-  background-image: repeating-linear-gradient(
-    115deg,
-    #ffffff 0,
-    #ffffff 4px,
-    #ed5a5a 4px,
-    #ed5a5a 7px
-  );
-
-  border-radius: 1px;
-}
 
 /* Right-hand receiving stand. */
-.vehicle-barrier__support {
-  z-index: 1;
 
-  right: 3px;
-  bottom: 4px;
-
-  width: 3px;
-  height: 11px;
-
-  background: #ffffff;
-  border-radius: 1px;
-}
 
 /* Support cap directly beneath the arm. */
-.vehicle-barrier__support::before {
-  content: "";
 
-  position: absolute;
-  top: 0;
-  left: -1px;
-
-  display: block;
-
-  width: 5px;
-  height: 2px;
-
-  background: #ffffff;
-  border-radius: 1px;
-}
 
 
 /* =========================================================
@@ -1082,29 +959,11 @@ body > aside .primary-button:active:not(:disabled) {
   padding: 15px 16px 16px;
 }
 
-.laar-gate-card__badge {
-  display: inline-block;
 
-  max-width: 100%;
-  margin-bottom: 13px;
-  padding: 5px 8px;
 
-  border-radius: 5px;
 
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 1.4;
-}
 
-.laar-gate-card__badge--valid {
-  background: var(--teal-soft);
-  color: var(--teal-dark);
-}
 
-.laar-gate-card__badge--invalid {
-  background: var(--danger-soft);
-  color: var(--danger);
-}
 
 .laar-gate-card__metric {
   display: flex;
@@ -1764,17 +1623,9 @@ aside {
   display: none;
 }
 
-.eyebrow {
-  color: var(--earth-outline);
 
-  font-weight: 700;
-  letter-spacing: 0.13em;
-}
 
-.network-date {
-  color: var(--muted);
-  font-size: 11px;
-}
+
 
 
 /* SECTIONS */
@@ -2204,9 +2055,7 @@ select:disabled {
   border-top: 7px solid;
 }
 
-.diriyah-swatch--major {
-  border-color: var(--map-major-road);
-}
+
 
 .diriyah-swatch--minor,
 .diriyah-swatch--local,
@@ -2274,10 +2123,7 @@ body > aside {
   background: transparent;
   border-bottom: 1px solid var(--line);
 }
-.eyebrow {
-  color: var(--public-road);
-  letter-spacing: 0.09em;
-}
+
 .control-section {
   padding-top: 10px;
   padding-bottom: 10px;
@@ -2635,9 +2481,8 @@ body > aside .primary-button:active:not(:disabled) {
   box-shadow: 0 1px 5px rgba(60, 64, 67, 0.24);
   color: #202124;
 }
-.diriyah-swatch--main,
-.diriyah-swatch--major { border-color: var(--map-major-road); }
-.diriyah-swatch--public { border-color: #FFFFFF; filter: drop-shadow(0 0 1px #9AA0A6); }
+
+
 .diriyah-swatch--haul { border-color: #F6B26B; }
 .diriyah-swatch--route { border-color: #4285F4; }
 .diriyah-area-key {
@@ -2976,12 +2821,7 @@ body > aside .primary-button:active:not(:disabled) {
   background: #FCE8E6;
   border-color: #D93025;
 }
-.journey-footnote {
-  margin-top: 8px;
-  color: var(--text-secondary, #5F6368);
-  font-size: 10px;
-  line-height: 1.35;
-}
+
 @media (max-width: 760px) {
   /* The map card only appears while the planner is collapsed. */
   body:has(#navigationPanel:not(.mobile-panel-collapsed)) .journey-controls {
@@ -3129,41 +2969,11 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* Mobile live-routing popup with a persistent, identifiable map-pin launcher. */
-.journey-popup-toggle { display: none; }
+
 @media (max-width: 760px) {
-  body > #journeyPopupToggle.journey-popup-toggle {
-    position: fixed;
-    z-index: 1100;
-    top: max(14px, env(safe-area-inset-top));
-    right: max(14px, env(safe-area-inset-right));
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    min-height: 46px;
-    padding: 9px 13px;
-    border: 1px solid #244f46;
-    border-radius: 999px;
-    background: #32665B;
-    color: #fff;
-    box-shadow: 0 4px 14px rgba(0,0,0,.24);
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1;
-  }
-  #journeyPopupToggle svg {
-    display: block;
-    width: 21px;
-    height: 21px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  body > #journeyPopupToggle.journey-popup-toggle.is-open {
-    background: #254F46;
-  }
+  
+  
+  
   body > #journeyControls.journey-controls {
     display: none !important;
     position: fixed;
@@ -3225,10 +3035,7 @@ body > aside .primary-button:active:not(:disabled) {
 /* Final mobile map-control placement: live route below the layers control,
    and recenter in Leaflet's left control stack directly below zoom. */
 @media (max-width: 760px) {
-  body > #journeyPopupToggle.journey-popup-toggle {
-    top: calc(max(12px, env(safe-area-inset-top)) + 58px);
-    right: max(12px, env(safe-area-inset-right));
-  }
+  
 
   .leaflet-top.leaflet-left .leaflet-control-zoom {
     margin-top: max(12px, env(safe-area-inset-top)) !important;
@@ -3250,10 +3057,7 @@ body > aside .primary-button:active:not(:disabled) {
 /* Final mobile live-route placement: keep launcher and popup below the
    top-right Leaflet layers control instead of sharing its vertical space. */
 @media (max-width: 760px) {
-  body > #journeyPopupToggle.journey-popup-toggle {
-    top: calc(max(12px, env(safe-area-inset-top)) + 52px) !important;
-    right: max(12px, env(safe-area-inset-right)) !important;
-  }
+  
 
   body > #journeyControls.journey-controls {
     top: calc(max(12px, env(safe-area-inset-top)) + 108px) !important;
@@ -3586,14 +3390,10 @@ body > #journeyControls.journey-controls {
   border-color: #a91f1f !important;
   color: #fff !important;
 }
-#journeyControls .journey-footnote {
-  display: none !important;
-}
+
 @media (max-width: 760px) {
   /* Keep live-routing controls out of the way while destination selection is open. */
-  body > #journeyPopupToggle.journey-popup-toggle {
-    display: none !important;
-  }
+  
   body > #journeyControls.journey-controls,
   body:has(#navigationPanel:not(.mobile-panel-collapsed)) > #journeyControls.journey-controls {
     display: none !important;
@@ -3980,4 +3780,292 @@ body > #journeyControls.journey-controls {
 }
 .vehicle-routing-update-dialog[hidden] {
   display: none;
+}
+
+
+/* =====================================================================
+   UNUSED / RETIRED STYLES
+   No matching selectors were found in the current HTML or JavaScript.
+   Kept here for review; remove after confirming they are no longer needed.
+   Leaflet-owned selectors are excluded because Leaflet creates those elements.
+   ===================================================================== */
+
+/* Unused selectors: .eyebrow; .network-date; .vehicle-barrier; .vehicle-barrier > span; .vehicle-barrier__ground; .vehicle-barrier__cabinet; .vehicle-barrier__cabinet::before; .vehicle-barrier__cabinet::after; .vehicle-barrier__arm; .vehicle-barrier__support; .vehicle-barrier__support::before; .laar-gate-card__badge; .laar-gate-card__badge--valid; .laar-gate-card__badge--invalid; .eyebrow; .network-date; .diriyah-swatch--major; .eyebrow; .diriyah-swatch--main, .diriyah-swatch--major; .diriyah-swatch--public; .journey-footnote; .journey-popup-toggle; #journeyControls .journey-footnote */
+.eyebrow {
+  display: block;
+  margin-bottom: 7px;
+
+  color: var(--teal);
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  line-height: 1.4;
+}
+
+.network-date {
+  display: inline-block;
+
+  max-width: 100%;
+  padding: 6px 9px;
+
+  background: #f3f6f9;
+  color: var(--text-secondary);
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-small);
+
+  font-size: 11px;
+  line-height: 1.5;
+
+  overflow-wrap: anywhere;
+}
+
+.vehicle-barrier {
+  position: relative;
+
+  display: block;
+  flex: 0 0 auto;
+
+  width: 30px;
+  height: 26px;
+
+  margin: 0;
+  padding: 0;
+
+  background: transparent;
+  border: none;
+
+  pointer-events: none;
+}
+
+.vehicle-barrier > span {
+  position: absolute;
+  display: block;
+
+  margin: 0;
+  padding: 0;
+
+  box-sizing: border-box;
+}
+
+.vehicle-barrier__ground {
+  left: 1px;
+  bottom: 2px;
+
+  width: 28px;
+  height: 2px;
+
+  background: #ffffff;
+  border-radius: 1px;
+}
+
+.vehicle-barrier__cabinet {
+  z-index: 2;
+
+  left: 3px;
+  bottom: 4px;
+
+  width: 8px;
+  height: 15px;
+
+  background: #ffffff;
+  border-radius: 2px 2px 1px 1px;
+}
+
+.vehicle-barrier__cabinet::before {
+  content: "";
+
+  position: absolute;
+  top: 4px;
+  left: 2px;
+
+  display: block;
+
+  width: 4px;
+  height: 3px;
+
+  background: #43c7ee;
+  border-radius: 1px;
+}
+
+.vehicle-barrier__cabinet::after {
+  content: "";
+
+  position: absolute;
+  left: 2px;
+  bottom: 3px;
+
+  display: block;
+
+  width: 4px;
+  height: 1px;
+
+  background: #9aafbd;
+}
+
+.vehicle-barrier__arm {
+  z-index: 3;
+
+  left: 7px;
+  top: 7px;
+
+  width: 22px;
+  height: 4px;
+
+  background-color: #ffffff;
+  background-image: repeating-linear-gradient(
+    115deg,
+    #ffffff 0,
+    #ffffff 4px,
+    #ed5a5a 4px,
+    #ed5a5a 7px
+  );
+
+  border-radius: 1px;
+}
+
+.vehicle-barrier__support {
+  z-index: 1;
+
+  right: 3px;
+  bottom: 4px;
+
+  width: 3px;
+  height: 11px;
+
+  background: #ffffff;
+  border-radius: 1px;
+}
+
+.vehicle-barrier__support::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: -1px;
+
+  display: block;
+
+  width: 5px;
+  height: 2px;
+
+  background: #ffffff;
+  border-radius: 1px;
+}
+
+.laar-gate-card__badge {
+  display: inline-block;
+
+  max-width: 100%;
+  margin-bottom: 13px;
+  padding: 5px 8px;
+
+  border-radius: 5px;
+
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.laar-gate-card__badge--valid {
+  background: var(--teal-soft);
+  color: var(--teal-dark);
+}
+
+.laar-gate-card__badge--invalid {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.eyebrow {
+  color: var(--earth-outline);
+
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+.network-date {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.diriyah-swatch--major {
+  border-color: var(--map-major-road);
+}
+
+.eyebrow {
+  color: var(--public-road);
+  letter-spacing: 0.09em;
+}
+
+.diriyah-swatch--main,
+.diriyah-swatch--major { border-color: var(--map-major-road); }
+
+.diriyah-swatch--public { border-color: #FFFFFF; filter: drop-shadow(0 0 1px #9AA0A6); }
+
+.journey-footnote {
+  margin-top: 8px;
+  color: var(--text-secondary, #5F6368);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.journey-popup-toggle { display: none; }
+
+#journeyControls .journey-footnote {
+  display: none !important;
+}
+
+/* Unused selectors: body > #journeyPopupToggle.journey-popup-toggle; #journeyPopupToggle svg; body > #journeyPopupToggle.journey-popup-toggle.is-open; body > #journeyPopupToggle.journey-popup-toggle; body > #journeyPopupToggle.journey-popup-toggle; body > #journeyPopupToggle.journey-popup-toggle */
+@media (max-width: 760px) {
+  body > #journeyPopupToggle.journey-popup-toggle {
+      position: fixed;
+      z-index: 1100;
+      top: max(14px, env(safe-area-inset-top));
+      right: max(14px, env(safe-area-inset-right));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 46px;
+      padding: 9px 13px;
+      border: 1px solid #244f46;
+      border-radius: 999px;
+      background: #32665B;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(0,0,0,.24);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+    }
+  
+  #journeyPopupToggle svg {
+      display: block;
+      width: 21px;
+      height: 21px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  
+  body > #journeyPopupToggle.journey-popup-toggle.is-open {
+      background: #254F46;
+    }
+  
+  body > #journeyPopupToggle.journey-popup-toggle {
+      top: calc(max(12px, env(safe-area-inset-top)) + 58px);
+      right: max(12px, env(safe-area-inset-right));
+    }
+  
+  body > #journeyPopupToggle.journey-popup-toggle {
+      top: calc(max(12px, env(safe-area-inset-top)) + 52px) !important;
+      right: max(12px, env(safe-area-inset-right)) !important;
+    }
+  
+  body > #journeyPopupToggle.journey-popup-toggle {
+      display: none !important;
+    }
 }
