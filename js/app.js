@@ -1432,7 +1432,7 @@ function addMapLegend() {
       <div class="map-legend__title">Map key</div>
       <div class="map-legend__row"><span class="map-key-major-road legend-symbol-main-road"><span></span></span><span>Main Road</span></div>
       <div class="map-legend__row"><span class="map-key-road map-key-local-road legend-symbol-minor-road"><span></span></span><span>Minor Roads</span></div>
-      <div class="map-legend__row"><span class="map-key-road map-key-haul-road legend-symbol-haul-road"><span></span></span><span>Haul road</span></div>
+      <div class="map-legend__row"><span class="diriyah-swatch diriyah-swatch--main legend-symbol-haul-road" aria-hidden="true"></span><span>Haul road</span></div>
       <div class="map-legend__row">
         <span class="legend-gate">${gateSvg()}</span>
         <span>Site gate</span>
