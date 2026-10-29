@@ -43,6 +43,7 @@ let networkInputs = null;
 let prebuiltRoutingNetwork = null;
 let prebuiltRoutingLinks = null;
 let displayedRoadLayer = null;
+let displayedRoadLayerGroup = null;
 let vehicleChangeInProgress = false;
 
 function setVehicleUpdating(isUpdating) {
@@ -2006,10 +2007,13 @@ async function init() {
     });
 
     map.createPane("roadCasingPane");
-    map.getPane("roadCasingPane").style.zIndex = "390";
+    map.getPane("roadCasingPane").style.zIndex = "290";
+
+    map.createPane("siteReferenceRoads");
+    map.getPane("siteReferenceRoads").style.zIndex = "300";
 
     map.createPane("selectedLaarPane");
-    map.getPane("selectedLaarPane").style.zIndex = "410";
+    map.getPane("selectedLaarPane").style.zIndex = "500";
 
     map.createPane("routePane");
     map.getPane("routePane").style.zIndex = "450";
@@ -2017,12 +2021,14 @@ async function init() {
     map.createPane("gateMarkerPane");
     map.getPane("gateMarkerPane").style.zIndex = "670";
 
+    map.createPane("liveLocationPane");
+    map.getPane("liveLocationPane").style.zIndex = "700";
+
     L.control.scale({ imperial: false }).addTo(map);
 
     const pending = new Set([
       ROADS_FILE, "data/gates.geojson",
-      "data/destinations.geojson", "data/meta.json", "data/destination_areas.geojson",
-      "data/boundary.geojson"
+      "data/destinations.geojson", "data/meta.json", "data/destination_areas.geojson"
     ]);
 
     let failed = false;
@@ -2055,25 +2061,13 @@ async function init() {
 
     // Load and render the visible map geometry first. Routing inputs are fetched
     // afterwards so graph construction cannot delay the first useful map frame.
-    const [r, areas, boundary] = await Promise.all([
+    const [r, areas] = await Promise.all([
       load(ROADS_FILE),
-      load("data/destination_areas.geojson"),
-      load("data/boundary.geojson")
+      load("data/destination_areas.geojson")
     ]);
 
     const visibleGeometryStartedAt = performance.now();
     loadDestinationAreas(areas);
-
-    L.geoJSON(boundary, {
-      interactive: false,
-      style: {
-        color: "#F8E0DE",
-        weight: 1,
-        opacity: 1,
-        fillColor: "#F8E0DE",
-        fillOpacity: 1
-      }
-    }).addTo(map);
 
     const roadTypeOrder = { local: 0, minor: 1, major: 2, main: 2, public: 3, haul: 4 };
     const orderedRoadData = {
@@ -2085,19 +2079,21 @@ async function init() {
       })
     };
 
-    L.geoJSON(orderedRoadData, {
+    const roadCasingLayer = L.geoJSON(orderedRoadData, {
       pane: "roadCasingPane",
       smoothFactor: 1.5,
       interactive: false,
       style: roadCasingStyle
-    }).addTo(map);
+    });
 
     let roadLayer = L.geoJSON(orderedRoadData, {
+      pane: "siteReferenceRoads",
       smoothFactor: 1.5,
       style: roadStyle,
       onEachFeature: bindRoadPopup
-    }).addTo(map);
+    });
     displayedRoadLayer = roadLayer;
+    displayedRoadLayerGroup = L.layerGroup([roadCasingLayer, roadLayer]).addTo(map);
 
     siteBounds = roadLayer.getBounds();
     if (!siteBounds.isValid()) throw new Error("Invalid map extent.");
