@@ -1114,24 +1114,20 @@ body > aside .primary-button:active:not(:disabled) {
 .legend-area {
   display: block;
   flex: 0 0 26px;
-
   width: 26px;
   height: 18px;
-
-  background: rgba(215, 129, 195, 0.35);
-
-  border: 2px solid #b23b9a;
+  box-sizing: border-box;
+  background: color-mix(in srgb, var(--map-area-fill) 30%, transparent);
+  border: 2px solid var(--map-area-outline);
   border-radius: 4px;
 }
 
 .legend-route {
   display: block;
   flex: 0 0 26px;
-
   width: 26px;
   height: 5px;
-
-  background: var(--route-color);
+  background: var(--map-route);
   border-radius: 4px;
 }
 
@@ -1771,7 +1767,7 @@ select:disabled {
   a
 ):focus-visible {
   outline:
-    3px solid var(--public-road);
+    3px solid var(--map-public-road);
 
   outline-offset: 3px;
 }
@@ -2217,14 +2213,14 @@ button:not(:disabled):hover {
   border-bottom: 1px solid var(--line);
 }
 .laar-gate-card__eyebrow {
-  color: var(--public-road);
+  color: var(--map-public-road);
 }
 .laar-gate-marker {
   border-radius: 11px;
   box-shadow: 0 2px 6px rgba(48, 44, 40, 0.14);
 }
 .laar-gate-marker.is-selected {
-  background: var(--public-road);
+  background: var(--map-public-road);
   outline: 2px solid rgba(50, 102, 91, 0.18);
   outline-offset: 2px;
   box-shadow: 0 2px 7px rgba(48, 44, 40, 0.14);
@@ -2394,43 +2390,50 @@ label[for="destinationSearch"] {
   --danger: #D93025;
   --danger-soft: #FCE8E6;
 
-  --map-public-road: #FFFFFF;
+  /* Map palette — shared by Leaflet road layers and the map key. */
   --map-major-road: #92A9C6;
   --map-major-road-outline: #7189A8;
+  --map-public-road: #FFFFFF;
   --map-haul-road: #F6B26B;
   --map-unknown-road: #DADCE0;
   --map-road-outline: #C5C9CE;
+  --map-road-width: 4;
+
   --map-route: #4285F4;
+  --map-route-width: 7.5;
+  --map-origin-connector: #AAB9CC;
+
   --map-area-outline: #1A73E8;
   --map-area-fill: #8AB4F8;
-   
+
+  --map-location: #136DF5;
+  --map-location-outline: #FFFFFF;
+  --map-location-focus: #43C7EE;
+
+  /* Site overlay palette — consumed by js/mapLayers.js. */
   --map-masterplan-fill: #DFAF7E;
-  --map-masterplan-fill-opacity: 0.05;
+  --map-masterplan-fill-opacity: 0.25;
   --map-masterplan-stroke: #232323;
-  --map-masterplan-stroke-opacity: 0.15;
+  --map-masterplan-stroke-opacity: 0.75;
   --map-masterplan-stroke-width: 1;
   --map-masterplan-dash-array: 1 3;
   --map-masterplan-line-cap: round;
 
-  --map-boundary-fill: #DFAF7E;
-  --map-boundary-fill-opacity: 0.20;
-  --map-boundary-stroke: #232323;
-  --map-boundary-stroke-opacity: 0.5;
-  --map-boundary-stroke-width: 0;
-  --map-boundary-dash-array: 1 4;
-  --map-boundary-line-cap: round;
-
   --map-communities-fill: #DFAF7E;
-  --map-communities-fill-opacity: 0.05;
+  --map-communities-fill-opacity: 0.25;
   --map-communities-stroke: #232323;
-  --map-communities-stroke-opacity: 0.25;
+  --map-communities-stroke-opacity: 0.75;
   --map-communities-stroke-width: 1;
   --map-communities-dash-array: 1 3;
   --map-communities-line-cap: round;
 
-  --map-local-road: #FFFFFF;
-  --map-road-width: 4;
-  --map-route-width: 7.5;
+  --map-boundary-fill: #DFAF7E;
+  --map-boundary-fill-opacity: 0.5;
+  --map-boundary-stroke: #232323;
+  --map-boundary-stroke-opacity: 0.5;
+  --map-boundary-stroke-width: 2;
+  --map-boundary-dash-array: 1 4;
+  --map-boundary-line-cap: round;
 }
 
 
@@ -2531,13 +2534,7 @@ body > aside .primary-button:active:not(:disabled) {
 .laar-gate-popup a.leaflet-popup-close-button:hover { color: #202124; }
 
 
-/* Remaining map presentation colours, shared by Leaflet overlays and legends. */
-:root {
-  --map-origin-connector: #AAB9CC;
-  --map-location: #136DF5;
-  --map-location-outline: #FFFFFF;
-  --map-location-focus: #43C7EE;
-}
+/* Location and route tokens are defined once in the map palette above. */
 
 
 /* ---------------------------------------------------------------------
@@ -3837,14 +3834,16 @@ body > #journeyControls.journey-controls {
 }
 
 
-/* =====================================================================
-   UNUSED / RETIRED STYLES
-   No matching selectors were found in the current HTML or JavaScript.
-   Kept here for review; remove after confirming they are no longer needed.
-   Leaflet-owned selectors are excluded because Leaflet creates those elements.
-   ===================================================================== */
 
-/* Unused selectors: .eyebrow; .network-date; .vehicle-barrier; .vehicle-barrier > span; .vehicle-barrier__ground; .vehicle-barrier__cabinet; .vehicle-barrier__cabinet::before; .vehicle-barrier__cabinet::after; .vehicle-barrier__arm; .vehicle-barrier__support; .vehicle-barrier__support::before; .laar-gate-card__badge; .laar-gate-card__badge--valid; .laar-gate-card__badge--invalid; .eyebrow; .network-date; .diriyah-swatch--major; .eyebrow; .diriyah-swatch--main, .diriyah-swatch--major; .diriyah-swatch--public; .journey-footnote; .journey-popup-toggle; #journeyControls .journey-footnote */
+
+/* =====================================================================
+   UNUSED / RETIRED STYLES — DISABLED
+   These rules were retained for reference but are not used by the current
+   HTML/JavaScript. They are intentionally commented out and do not affect
+   the rendered application. Review before deleting permanently.
+   =====================================================================
+/*
+/* Unused selectors: .eyebrow; .network-date; .vehicle-barrier; .vehicle-barrier > span; .vehicle-barrier__ground; .vehicle-barrier__cabinet; .vehicle-barrier__cabinet::before; .vehicle-barrier__cabinet::after; .vehicle-barrier__arm; .vehicle-barrier__support; .vehicle-barrier__support::before; .laar-gate-card__badge; .laar-gate-card__badge--valid; .laar-gate-card__badge--invalid; .eyebrow; .network-date; .diriyah-swatch--major; .eyebrow; .diriyah-swatch--main, .diriyah-swatch--major; .diriyah-swatch--public; .journey-footnote; .journey-popup-toggle; #journeyControls .journey-footnote * /
 .eyebrow {
   display: block;
   margin-bottom: 7px;
@@ -4071,7 +4070,7 @@ body > #journeyControls.journey-controls {
   display: none !important;
 }
 
-/* Unused selectors: body > #journeyPopupToggle.journey-popup-toggle; #journeyPopupToggle svg; body > #journeyPopupToggle.journey-popup-toggle.is-open; body > #journeyPopupToggle.journey-popup-toggle; body > #journeyPopupToggle.journey-popup-toggle; body > #journeyPopupToggle.journey-popup-toggle */
+/* Unused selectors: body > #journeyPopupToggle.journey-popup-toggle; #journeyPopupToggle svg; body > #journeyPopupToggle.journey-popup-toggle.is-open; body > #journeyPopupToggle.journey-popup-toggle; body > #journeyPopupToggle.journey-popup-toggle; body > #journeyPopupToggle.journey-popup-toggle * /
 @media (max-width: 760px) {
   body > #journeyPopupToggle.journey-popup-toggle {
       position: fixed;
@@ -4123,3 +4122,5 @@ body > #journeyControls.journey-controls {
       display: none !important;
     }
 }
+
+*/
