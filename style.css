@@ -2403,8 +2403,9 @@ label[for="destinationSearch"] {
   --map-route: #4285F4;
   --map-area-outline: #1A73E8;
   --map-area-fill: #8AB4F8;
+   
   --map-masterplan-fill: #DFAF7E;
-  --map-masterplan-fill-opacity: 0.25;
+  --map-masterplan-fill-opacity: 0.15;
   --map-masterplan-stroke: #232323;
   --map-masterplan-stroke-opacity: 0.75;
   --map-masterplan-stroke-width: 1;
@@ -2412,7 +2413,7 @@ label[for="destinationSearch"] {
   --map-masterplan-line-cap: round;
 
   --map-boundary-fill: #DFAF7E;
-  --map-boundary-fill-opacity: 0.5;
+  --map-boundary-fill-opacity: 0.25;
   --map-boundary-stroke: #232323;
   --map-boundary-stroke-opacity: 0.5;
   --map-boundary-stroke-width: 2;
@@ -2420,7 +2421,7 @@ label[for="destinationSearch"] {
   --map-boundary-line-cap: round;
 
   --map-communities-fill: #DFAF7E;
-  --map-communities-fill-opacity: 0.25;
+  --map-communities-fill-opacity: 0.15;
   --map-communities-stroke: #232323;
   --map-communities-stroke-opacity: 0.75;
   --map-communities-stroke-width: 1;
