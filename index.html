@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Temporary Road Routing</title>
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="style.css?v=route-cache-2">
+  <link rel="stylesheet" href="style.css?v=route-cache-3">
 </head>
 <body>
   <header class="topbar">
@@ -33,10 +33,14 @@
     </aside>
     <section class="map-wrap" aria-label="Route map">
       <div id="map"></div>
-      <div class="map-legend">
-        <span><i class="legend-line"></i> Calculated route</span>
-        <span><i class="legend-dot"></i> Route start</span>
-        <span><i class="legend-end"></i> Route end</span>
+      <div class="map-legend" aria-label="Map key">
+        <span class="map-legend-item"><i class="legend-road legend-road--main" aria-hidden="true"></i> Main roads</span>
+        <span class="map-legend-item"><i class="legend-road legend-road--minor" aria-hidden="true"></i> Minor roads</span>
+        <span class="map-legend-item"><i class="legend-road legend-road--haul" aria-hidden="true"></i> Haul roads</span>
+        <span class="map-legend-item"><i class="legend-line" aria-hidden="true"></i> Calculated route</span>
+        <span class="map-legend-item"><i class="legend-area" aria-hidden="true"></i> Destination</span>
+        <span class="map-legend-item"><i class="legend-dot" aria-hidden="true"></i> Route start</span>
+        <span class="map-legend-item"><i class="legend-end" aria-hidden="true"></i> Route end</span>
       </div>
     </section>
   </main>
@@ -44,6 +48,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://unpkg.com/@tmcw/togeojson@7.1.2/dist/togeojson.umd.js"></script>
   <script src="https://unpkg.com/@turf/turf@7/turf.min.js"></script>
-  <script type="module" src="./js/main.js?v=route-cache-2"></script>
+  <script type="module" src="./js/main.js?v=route-cache-3"></script>
 </body>
 </html>
