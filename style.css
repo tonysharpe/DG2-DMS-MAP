@@ -1112,7 +1112,7 @@ body > aside .primary-button:active:not(:disabled) {
   width: 26px;
   height: 18px;
   box-sizing: border-box;
-  background: color-mix(in srgb, var(--map-area-fill) 30%, transparent);
+  background: color-mix(in srgb, var(--map-area-fill) var(--map-area-fill-opacity), transparent);
   border: 2px solid var(--map-area-outline);
   border-radius: 4px;
 }
@@ -1876,8 +1876,6 @@ select:disabled {
    --------------------------------------------------------------------- */
 /* MAP */
 
-#map {
-}
 
 .leaflet-container {
   font-family:
@@ -2149,8 +2147,6 @@ button:not(:disabled):hover {
   outline-offset: 2px;
   box-shadow: 0 2px 7px rgba(48, 44, 40, 0.14);
 }
-#map {
-}
 @media (max-width: 760px) {
   body > aside {
     padding: 16px 16px;
@@ -2328,6 +2324,7 @@ label[for="destinationSearch"] {
 
   --map-area-outline: #1A73E8;
   --map-area-fill: #8AB4F8;
+  --map-area-fill-opacity: 30%;
 
   --map-location: #136DF5;
   --map-location-outline: #FFFFFF;
@@ -2385,7 +2382,6 @@ label[for="destinationSearch"] {
   --shadow-medium: 0 4px 12px rgba(60, 64, 67, 0.28);
 }
 body > aside { box-shadow: 2px 0 8px rgba(60, 64, 67, 0.12); }
-#map { }
 a { color: #1A73E8; }
 :focus-visible { outline-color: rgba(26, 115, 232, 0.45); }
 body > aside input:focus,
