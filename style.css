@@ -74,9 +74,6 @@
   --teal: #32665B;
   --teal-dark: #254F46;
   --teal-soft: #E8F0EC;
-
-  --route-color: #4285F4;
-
   --danger: #A83F3A;
   --danger-soft: #FAECEA;
 
@@ -218,8 +215,6 @@ body > aside::-webkit-scrollbar-thumb {
 
   width: 100%;
   height: 100%;
-
-  background: #e7edf1;
 }
 
 
@@ -1103,12 +1098,12 @@ body > aside .primary-button:active:not(:disabled) {
   margin-left: 5px;
   margin-right: 5px;
 
-  background: #2188ee;
+  background: var(--map-location);
 
-  border: 3px solid #ffffff;
+  border: 3px solid var(--map-location-outline);
   border-radius: 50%;
 
-  box-shadow: 0 0 0 2px rgba(33, 136, 238, 0.3);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--map-location) 30%, transparent);
 }
 
 .legend-area {
@@ -1562,16 +1557,11 @@ body > aside .primary-button:active:not(:disabled) {
 /* PALETTE */
 
 :root {
-  --diriyah-tan: #D9C7A5;
   --sand: #F5F2EB;
   --paper: #FFFFFF;
   --ink: #302C28;
   --muted: #625E56;
   --line: #E5E1D8;
-  --public-road: #32665B;
-  --haul-road: #E98232;
-  --route-red: #4285F4;
-  --earth-dark: #4285F4;
   --earth-outline: #827E76;
 }
 
@@ -1731,11 +1721,11 @@ button:not(:disabled):hover {
 
 button.primary-button,
 #route {
-  background: var(--earth-dark);
+  background: var(--teal);
   color: var(--paper);
 
   border-color:
-    var(--earth-dark);
+    var(--teal);
 }
 
 button.primary-button:not(:disabled):hover,
@@ -1802,7 +1792,7 @@ select:disabled {
   border: 1px solid var(--line);
 
   border-left:
-    4px solid var(--route-red);
+    4px solid var(--map-route);
 
   border-radius: 10px;
 }
@@ -1887,7 +1877,6 @@ select:disabled {
 /* MAP */
 
 #map {
-  background: #f7f4ed;
 }
 
 .leaflet-container {
@@ -2056,57 +2045,9 @@ select:disabled {
   font-size: 12px;
 }
 
-.diriyah-swatch {
-  display: inline-block;
-
-  flex: 0 0 30px;
-
-  width: 30px;
-  height: 0;
-
-  border-top: 7px solid;
-}
-
 
 .diriyah-swatch--minor,
 .diriyah-swatch--local,
-.diriyah-swatch--public {
-  border-color: var(--map-public-road);
-  filter: drop-shadow(0 0 1px var(--map-road-outline));
-}
-
-.diriyah-swatch--haul {
-  border-color: var(--map-haul-road);
-}
-
-.diriyah-swatch--route {
-  border-color: var(--map-route);
-  border-top-width: 7px;
-}
-
-.diriyah-area-key {
-  flex: 0 0 30px;
-
-  height: 15px;
-
-  border:
-    2px solid var(--earth-outline);
-
-  background:
-    rgba(217, 199, 165, 0.24);
-}
-
-.diriyah-legend-note {
-  margin: 9px 0 0;
-  padding-top: 8px;
-
-  color: var(--muted);
-
-  border-top:
-    1px solid var(--line);
-
-  font-size: 11px;
-}
 
 
 /* SMALL SCREENS */
@@ -2149,16 +2090,16 @@ body > aside {
 .route-summary {
   background: #F7F5F0;
   border: 1px solid var(--line);
-  border-left: 3px solid var(--route-red);
+  border-left: 3px solid var(--map-route);
   border-radius: 9px;
 }
 .metric-value {
-  color: var(--route-red);
+  color: var(--map-route);
 }
 button.primary-button,
 #route {
-  background: var(--route-red);
-  border-color: var(--route-red);
+  background: var(--map-route);
+  border-color: var(--map-route);
   box-shadow: none;
 }
 button.primary-button:not(:disabled):hover,
@@ -2191,23 +2132,6 @@ button:not(:disabled):hover {
   margin: 5px 0;
   font-size: 11px;
 }
-.diriyah-swatch {
-  flex-basis: 26px;
-  width: 26px;
-  border-top-width: 5px;
-}
-.diriyah-swatch--route {
-  border-top-width: 7px;
-}
-.diriyah-area-key {
-  height: 12px;
-  border-width: 1.5px;
-}
-.diriyah-legend-note {
-  margin-top: 7px;
-  padding-top: 6px;
-  font-size: 10px;
-}
 .laar-gate-card__header {
   background: #F5F2EB;
   border-bottom: 1px solid var(--line);
@@ -2226,7 +2150,6 @@ button:not(:disabled):hover {
   box-shadow: 0 2px 7px rgba(48, 44, 40, 0.14);
 }
 #map {
-  background: #F5F2EB;
 }
 @media (max-width: 760px) {
   body > aside {
@@ -2462,7 +2385,7 @@ label[for="destinationSearch"] {
   --shadow-medium: 0 4px 12px rgba(60, 64, 67, 0.28);
 }
 body > aside { box-shadow: 2px 0 8px rgba(60, 64, 67, 0.12); }
-#map { background: #E8EAED; }
+#map { }
 a { color: #1A73E8; }
 :focus-visible { outline-color: rgba(26, 115, 232, 0.45); }
 body > aside input:focus,
@@ -2506,14 +2429,6 @@ body > aside .primary-button:active:not(:disabled) {
   box-shadow: 0 1px 5px rgba(60, 64, 67, 0.24);
   color: #202124;
 }
-
-
-.diriyah-swatch--haul { border-color: #F6B26B; }
-.diriyah-swatch--route { border-color: #4285F4; }
-.diriyah-area-key {
-  background: rgba(138, 180, 248, 0.30);
-  border-color: #1A73E8;
-}
 .leaflet-bar,
 .leaflet-control-layers {
   border-color: #DADCE0 !important;
@@ -2536,6 +2451,11 @@ body > aside .primary-button:active:not(:disabled) {
 
 /* Location and route tokens are defined once in the map palette above. */
 
+
+/* Definitive map canvas background — shared theme token. */
+#map {
+  background: var(--page-background);
+}
 
 /* ---------------------------------------------------------------------
    23. Recenter control and live-location marker
@@ -2563,7 +2483,7 @@ body > aside .primary-button:active:not(:disabled) {
   padding: 11px;
   background: #1A73E8;
   color: #FFFFFF;
-  border: 3px solid #FFFFFF;
+  border: 3px solid var(--map-location-outline);
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(32, 33, 36, 0.42), 0 0 0 1px rgba(32, 33, 36, 0.18);
   cursor: pointer;
@@ -2767,7 +2687,7 @@ body > aside .primary-button:active:not(:disabled) {
   box-sizing: border-box;
   display: block;
   transform: translate(-50%, -50%);
-  border: 3px solid #FFFFFF;
+  border: 3px solid var(--map-location-outline);
   border-radius: 50%;
   background: #1769FF;
   box-shadow: 0 0 0 1.5px #1249A8;
@@ -2895,7 +2815,7 @@ body > aside .primary-button:active:not(:disabled) {
   top: 22px;
   width: 17px;
   height: 17px;
-  border: 3px solid #FFFFFF;
+  border: 3px solid var(--map-location-outline);
   background: #1A73E8;
   box-shadow: 0 0 0 1.5px #174EA6, 0 1px 4px rgba(32, 33, 36, 0.35);
 }
@@ -3153,10 +3073,10 @@ body > aside .primary-button:active:not(:disabled) {
   height: 15px;
   min-height: 0;
   margin: 0;
-  accent-color: var(--earth-dark, #315b45);
+  accent-color: var(--teal);
 }
 .radio-options label:has(input:checked) {
-  border-color: var(--earth-dark, #315b45);
+  border-color: var(--teal);
   background: var(--sand, #f2eee5);
 }
 #destinationSearch,
@@ -3260,9 +3180,6 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* Remove the obsolete road-visibility note from the map key. */
-.map-legend .diriyah-legend-note {
-  display: none !important;
-}
 
 
 /* Map-key-only major road sample mirrors the map casing (6px) and road line (4px). */
@@ -3302,10 +3219,6 @@ body > aside .primary-button:active:not(:disabled) {
   min-width: 0;
   text-align: left;
 }
-.map-legend .map-legend__content .diriyah-swatch {
-  flex: 0 0 30px;
-  width: 30px;
-}
 
 
 /* Keep the location dot at its original size while centering it in the icon column. */
@@ -3327,10 +3240,10 @@ body > aside .primary-button:active:not(:disabled) {
   width: 16px;
   height: 16px;
   box-sizing: content-box;
-  background: #2188ee;
-  border: 3px solid #ffffff;
+  background: var(--map-location);
+  border: 3px solid var(--map-location-outline);
   border-radius: 50%;
-  box-shadow: 0 0 0 2px rgba(33, 136, 238, 0.3);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--map-location) 30%, transparent);
   position: absolute;
   left: 50%;
   top: 50%;
@@ -3837,12 +3750,104 @@ body > #journeyControls.journey-controls {
 
 
 /* =====================================================================
-   UNUSED / RETIRED STYLES — DISABLED
-   These rules were retained for reference but are not used by the current
-   HTML/JavaScript. They are intentionally commented out and do not affect
-   the rendered application. Review before deleting permanently.
-   =====================================================================
+   UNUSED / RETIRED MAP STYLES — COMMENTED OUT
+   These legacy Diriyah swatch/area-key selectors are not used by the current
+   HTML or JavaScript. The active map and legend now share --map-* tokens.
+   They are retained for review only and do not affect rendering.
+   ===================================================================== */
 /*
+.diriyah-swatch {
+  display: inline-block;
+
+  flex: 0 0 30px;
+
+  width: 30px;
+  height: 0;
+
+  border-top: 7px solid;
+}
+
+.diriyah-swatch {
+  flex-basis: 26px;
+  width: 26px;
+  border-top-width: 5px;
+}
+
+.diriyah-swatch--public {
+  border-color: var(--map-public-road);
+  filter: drop-shadow(0 0 1px var(--map-road-outline));
+}
+
+.diriyah-swatch--haul {
+  border-color: var(--map-haul-road);
+}
+
+.diriyah-swatch--haul { border-color: #F6B26B; }
+
+.diriyah-swatch--route {
+  border-color: var(--map-route);
+  border-top-width: 7px;
+}
+
+.diriyah-swatch--route {
+  border-top-width: 7px;
+}
+
+.diriyah-swatch--route { border-color: #4285F4; }
+
+.diriyah-area-key {
+  flex: 0 0 30px;
+
+  height: 15px;
+
+  border:
+    2px solid var(--earth-outline);
+
+  background:
+    rgba(217, 199, 165, 0.24);
+}
+
+.diriyah-area-key {
+  height: 12px;
+  border-width: 1.5px;
+}
+
+.diriyah-area-key {
+  background: rgba(138, 180, 248, 0.30);
+  border-color: #1A73E8;
+}
+
+.diriyah-legend-note {
+  margin: 9px 0 0;
+  padding-top: 8px;
+
+  color: var(--muted);
+
+  border-top:
+    1px solid var(--line);
+
+  font-size: 11px;
+}
+
+.diriyah-legend-note {
+  margin-top: 7px;
+  padding-top: 6px;
+  font-size: 10px;
+}
+
+.map-legend .diriyah-legend-note {
+  display: none !important;
+}
+
+.map-legend .map-legend__content .diriyah-swatch {
+  flex: 0 0 30px;
+  width: 30px;
+}
+*/
+
+/* Previously identified unused styles, retained and disabled for review. */
+/*
+
 /* Unused selectors: .eyebrow; .network-date; .vehicle-barrier; .vehicle-barrier > span; .vehicle-barrier__ground; .vehicle-barrier__cabinet; .vehicle-barrier__cabinet::before; .vehicle-barrier__cabinet::after; .vehicle-barrier__arm; .vehicle-barrier__support; .vehicle-barrier__support::before; .laar-gate-card__badge; .laar-gate-card__badge--valid; .laar-gate-card__badge--invalid; .eyebrow; .network-date; .diriyah-swatch--major; .eyebrow; .diriyah-swatch--main, .diriyah-swatch--major; .diriyah-swatch--public; .journey-footnote; .journey-popup-toggle; #journeyControls .journey-footnote * /
 .eyebrow {
   display: block;
