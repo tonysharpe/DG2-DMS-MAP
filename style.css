@@ -2329,9 +2329,9 @@ label[for="destinationSearch"] {
   /* Site overlay palette — consumed by js/mapLayers.js. */
   /* Site overlay palette — consumed by js/mapLayers.js. */
   --map-masterplan-fill: #DFAF7E;
-  --map-masterplan-fill-opacity: 0.05;
+  --map-masterplan-fill-opacity: 0.00;
   --map-masterplan-stroke: #232323;
-  --map-masterplan-stroke-opacity: 0.25;
+  --map-masterplan-stroke-opacity: 0.10;
   --map-masterplan-stroke-width: 1;
   --map-masterplan-dash-array: 1 3;
   --map-masterplan-line-cap: round;
