@@ -4010,12 +4010,6 @@ body > #journeyControls.journey-controls {
   filter: drop-shadow(0 0 1px var(--map-road-outline));
 }
 
-.diriyah-swatch--haul {
-  border-color: var(--map-haul-road);
-}
-
-.diriyah-swatch--haul { border-color: #F6B26B; }
-
 .diriyah-swatch--route {
   border-color: var(--map-route);
   border-top-width: 7px;
