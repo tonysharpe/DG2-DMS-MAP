@@ -22,7 +22,7 @@ function showDestinationArea(destination) {
         weight: 2.5,
         opacity: 1,
         fillColor: themeColor("--map-area-fill"),
-        fillOpacity: 0.30,
+        fillOpacity: Number.parseFloat(themeColor("--map-area-fill-opacity")) / 100,
         lineCap: "round",
         lineJoin: "round"
       },
