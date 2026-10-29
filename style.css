@@ -3969,6 +3969,21 @@ body > #journeyControls.journey-controls {
   visibility: visible !important;
 }
 
+
+/* Map key SVG symbols use explicit geometry and colors matching map layers. */
+.map-legend .map-key-svg {
+  display: block !important;
+  flex: 0 0 30px !important;
+  width: 30px !important;
+  min-width: 30px !important;
+  height: auto !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.map-legend .map-key-destination {
+  height: 20px !important;
+}
 /* =====================================================================
    UNUSED / RETIRED MAP STYLES — COMMENTED OUT
    These legacy Diriyah swatch/area-key selectors are not used by the current
