@@ -2327,27 +2327,28 @@ label[for="destinationSearch"] {
   --map-location-focus: #43C7EE;
 
   /* Site overlay palette — consumed by js/mapLayers.js. */
+  /* Site overlay palette — consumed by js/mapLayers.js. */
   --map-masterplan-fill: #DFAF7E;
-  --map-masterplan-fill-opacity: 0.25;
+  --map-masterplan-fill-opacity: 0.05;
   --map-masterplan-stroke: #232323;
-  --map-masterplan-stroke-opacity: 0.75;
+  --map-masterplan-stroke-opacity: 0.25;
   --map-masterplan-stroke-width: 1;
   --map-masterplan-dash-array: 1 3;
   --map-masterplan-line-cap: round;
 
   --map-communities-fill: #DFAF7E;
-  --map-communities-fill-opacity: 0.25;
+  --map-communities-fill-opacity: 0.05;
   --map-communities-stroke: #232323;
-  --map-communities-stroke-opacity: 0.75;
+  --map-communities-stroke-opacity: 0.25;
   --map-communities-stroke-width: 1;
   --map-communities-dash-array: 1 3;
   --map-communities-line-cap: round;
 
   --map-boundary-fill: #DFAF7E;
-  --map-boundary-fill-opacity: 0.5;
+  --map-boundary-fill-opacity: 0.25;
   --map-boundary-stroke: #232323;
   --map-boundary-stroke-opacity: 0.5;
-  --map-boundary-stroke-width: 2;
+  --map-boundary-stroke-width: 0;
   --map-boundary-dash-array: 1 4;
   --map-boundary-line-cap: round;
 }
