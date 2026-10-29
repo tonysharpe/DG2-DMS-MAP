@@ -4,6 +4,10 @@ function themeColor(property) {
   return getComputedStyle(document.documentElement).getPropertyValue(property).trim();
 }
 
+function themeNumber(property) {
+  return Number.parseFloat(themeColor(property));
+}
+
 (async function initialiseBackgroundLayers() {
   const definitions = [
     {
@@ -13,13 +17,13 @@ function themeColor(property) {
       visible: true,
       interactive: false,
       style: {
-        color: "#232323",
-        weight: 2,
-        opacity: 0.5,
-        dashArray: "1 4",
-        lineCap: "round",
-        fillColor: "#DFAF7E",
-        fillOpacity: 0.5
+        color: themeColor("--map-boundary-stroke"),
+        weight: themeNumber("--map-boundary-stroke-width"),
+        opacity: themeNumber("--map-boundary-stroke-opacity"),
+        dashArray: themeColor("--map-boundary-dash-array"),
+        lineCap: themeColor("--map-boundary-line-cap"),
+        fillColor: themeColor("--map-boundary-fill"),
+        fillOpacity: themeNumber("--map-boundary-fill-opacity")
       }
     },
     {
@@ -29,13 +33,13 @@ function themeColor(property) {
       visible: true,
       interactive: false,
       style: {
-        color: "#232323",
-        weight: 1,
-        opacity: 0.75,
-        dashArray: "1 3",
-        lineCap: "round",
-        fillColor: "#DFAF7E",
-        fillOpacity: 0.25
+        color: themeColor("--map-communities-stroke"),
+        weight: themeNumber("--map-communities-stroke-width"),
+        opacity: themeNumber("--map-communities-stroke-opacity"),
+        dashArray: themeColor("--map-communities-dash-array"),
+        lineCap: themeColor("--map-communities-line-cap"),
+        fillColor: themeColor("--map-communities-fill"),
+        fillOpacity: themeNumber("--map-communities-fill-opacity")
       }
     },
     {
@@ -45,13 +49,13 @@ function themeColor(property) {
       visible: true,
       boundary: true,
       style: {
-        color: "#232323",
-        weight: 1,
-        opacity: 0.75,
-        dashArray: "1 3",
-        lineCap: "round",
-        fillColor: "#DFAF7E",
-        fillOpacity: 0.25
+        color: themeColor("--map-masterplan-stroke"),
+        weight: themeNumber("--map-masterplan-stroke-width"),
+        opacity: themeNumber("--map-masterplan-stroke-opacity"),
+        dashArray: themeColor("--map-masterplan-dash-array"),
+        lineCap: themeColor("--map-masterplan-line-cap"),
+        fillColor: themeColor("--map-masterplan-fill"),
+        fillOpacity: themeNumber("--map-masterplan-fill-opacity")
       }
     }
   ];
