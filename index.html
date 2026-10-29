@@ -137,6 +137,27 @@
       </fieldset>
     </section>
 
+
+
+
+
+
+    
+    <!-- START LOCATION -->
+    <section class="control-section" aria-labelledby="startingHeading">
+      <h2 id="startingHeading">Start Location:</h2>
+      <fieldset class="radio-options start-options" aria-label="Start location">
+        <legend class="visually-hidden">Start location</legend>
+        <label><input type="radio" name="startModeChoice" value="live" checked> Current Location</label>
+        <label><input type="radio" name="startModeChoice" value="map"> Set on Map</label>
+      </fieldset>
+      <select id="startMode" hidden disabled aria-hidden="true" tabindex="-1">
+        <option value="gate">Access Gate</option>
+        <option value="live" selected>Current Location</option>
+        <option value="map">Set on Map</option>
+      </select>
+    </section>
+
 <!-- DESTINATION -->
     <section class="control-section" aria-labelledby="destinationHeading">
       <h2 id="destinationHeading">Destination:</h2>
@@ -154,24 +175,7 @@
       </select>
     </section>
 
-
-<!-- START LOCATION -->
-    <section class="control-section" aria-labelledby="startingHeading">
-      <h2 id="startingHeading">Start Location:</h2>
-      <fieldset class="radio-options start-options" aria-label="Start location">
-        <legend class="visually-hidden">Start location</legend>
-        <label><input type="radio" name="startModeChoice" value="live" checked> Current Location</label>
-        <label><input type="radio" name="startModeChoice" value="map"> Set on Map</label>
-      </fieldset>
-      <select id="startMode" hidden disabled aria-hidden="true" tabindex="-1">
-        <option value="gate">Access Gate</option>
-        <option value="live" selected>Current Location</option>
-        <option value="map">Set on Map</option>
-      </select>
-    </section>
-
-    
-    <!-- DEVELOPMENT FEATURES -->
+<!-- DEVELOPMENT FEATURES -->
     <section class="control-section development-section" aria-labelledby="developmentHeading">
       <h2 id="developmentHeading">Development Features:</h2>
       <label for="destinationSearch">Find destination</label>
