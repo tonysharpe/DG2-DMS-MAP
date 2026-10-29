@@ -13,11 +13,13 @@ function themeColor(property) {
       visible: true,
       interactive: false,
       style: {
-        color: "#7189A8",
-        weight: 1.4,
-        opacity: 0.85,
-        fillColor: "#DADCE0",
-        fillOpacity: 0.08
+        color: "#232323",
+        weight: 2,
+        opacity: 0.5,
+        dashArray: "1 4",
+        lineCap: "round",
+        fillColor: "#DFAF7E",
+        fillOpacity: 0.5
       }
     },
     {
@@ -27,11 +29,13 @@ function themeColor(property) {
       visible: true,
       interactive: false,
       style: {
-        color: "#9B85AF",
-        weight: 1.2,
-        opacity: 0.45,
-        fillColor: "#B9A5C9",
-        fillOpacity: 0.08
+        color: "#232323",
+        weight: 1,
+        opacity: 0.75,
+        dashArray: "1 3",
+        lineCap: "round",
+        fillColor: "#DFAF7E",
+        fillOpacity: 0.25
       }
     },
     {
@@ -41,10 +45,13 @@ function themeColor(property) {
       visible: true,
       boundary: true,
       style: {
-        color: "#DADCE0",
-        weight: 0.7,
-        fillColor: themeColor("--map-masterplan-fill"),
-        fillOpacity: 0.22
+        color: "#232323",
+        weight: 1,
+        opacity: 0.75,
+        dashArray: "1 3",
+        lineCap: "round",
+        fillColor: "#DFAF7E",
+        fillOpacity: 0.25
       }
     }
   ];
