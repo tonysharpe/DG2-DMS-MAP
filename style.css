@@ -4238,3 +4238,43 @@ body > #journeyControls.journey-controls {
 }
 
 */
+
+
+/* Development tools are available only on desktop and stay collapsed by default. */
+.development-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.development-section-heading h2 {
+  margin: 0;
+}
+.development-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  padding: 0;
+  border: 1px solid var(--border, #cbd5d1);
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.development-toggle:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.development-content[hidden] {
+  display: none !important;
+}
+@media (max-width: 760px) {
+  .development-section {
+    display: none !important;
+  }
+}
