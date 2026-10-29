@@ -3868,6 +3868,29 @@ body > #journeyControls.journey-controls {
 }
 
 
+
+/* Legacy Diriyah-style swatch class used by the deployed map key.
+   Haul roads intentionally use the same visual style as main roads. */
+.map-legend .diriyah-swatch {
+  display: inline-block !important;
+  flex: 0 0 30px !important;
+  width: 30px !important;
+  min-width: 30px !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+  border: 0 !important;
+  border-top: 4px solid var(--map-major-road, #92A9C6) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.map-legend .diriyah-swatch--main,
+.map-legend .diriyah-swatch--major {
+  border-top-color: var(--map-major-road, #92A9C6) !important;
+}
+
 /* Map-key symbol rendering — explicit rules for the current addMapLegend markup.
    !important prevents older theme overrides from suppressing the samples. */
 .map-legend .legend-symbol-main-road,
