@@ -2044,10 +2044,6 @@ select:disabled {
 }
 
 
-.diriyah-swatch--minor,
-.diriyah-swatch--local,
-
-
 /* SMALL SCREENS */
 
 @media (max-width: 600px) {
