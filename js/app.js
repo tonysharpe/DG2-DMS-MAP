@@ -2412,6 +2412,9 @@ async function init() {
     // automatically on launch. The browser may ask for location permission.
     // Shared-link destinations are not restored automatically on refresh.
     $("startMode").value = "live";
+    document.querySelectorAll('input[name="startModeChoice"]').forEach(radio => {
+      radio.checked = radio.value === $("startMode").value;
+    });
     $("start").selectedIndex = -1;
     $("end").value = "";
     $("destinationSearch").value = "";
