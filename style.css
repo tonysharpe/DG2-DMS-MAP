@@ -2309,7 +2309,7 @@ label[for="destinationSearch"] {
   --map-major-road: #92A9C6;
   --map-major-road-outline: #7189A8;
   --map-public-road: #FFFFFF;
-  --map-haul-road: #F6B26B;
+  --map-haul-road: #F28C28;
   --map-unknown-road: #DADCE0;
   --map-road-outline: #C5C9CE;
   --map-road-width: 4;
@@ -3913,7 +3913,7 @@ body > #journeyControls.journey-controls {
   background: var(--map-public-road, #FFFFFF) !important;
 }
 .map-legend .legend-symbol-haul-road > span {
-  background: var(--map-haul-road, #F6B26B) !important;
+  background: var(--map-haul-road, #F28C28) !important;
 }
 .map-legend .legend-symbol-destination {
   display: inline-block !important;
