@@ -111,6 +111,28 @@ for (let featureIndex = 0; featureIndex < roadFeatures.length; featureIndex++) {
       shapeVertices.push(vertex);
       return vertex;
     });
+    // Closed links (commonly roundabouts) must have one endpoint node,
+    // not separate start/end IDs for the same physical location. Do this
+    // before cross-link matching and before the link is split at entry/exit
+    // roads, using the same 0.1 m tolerance as other shape-point connections.
+    const lastVertexIndex = vertexNodes.length - 1;
+    if (lastVertexIndex > 0 &&
+        dist(points[0], points[lastVertexIndex]) <= SHAPE_POINT_CONNECT_TOLERANCE) {
+      const duplicateEnd = vertexNodes[lastVertexIndex];
+      const startVertex = vertexNodes[0];
+      vertexNodes[lastVertexIndex] = startVertex;
+      if (duplicateEnd.id !== startVertex.id) {
+        nodes.delete(duplicateEnd.id);
+        generatedEndpointIds.delete(duplicateEnd.id);
+      }
+      for (let i = shapeVertices.length - 1; i >= 0; i--) {
+        if (shapeVertices[i].linkId === id &&
+            shapeVertices[i].vertexIndex === lastVertexIndex) {
+          shapeVertices.splice(i, 1);
+        }
+      }
+    }
+
     // Ensure every vertex is registered, including repeated-coordinate vertices.
     for (const vertex of vertexNodes) {
       if (!shapeVertices.some(v => v.id === vertex.id)) shapeVertices.push(vertex);
