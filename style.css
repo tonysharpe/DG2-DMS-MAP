@@ -4486,3 +4486,52 @@ body {
   line-height: 1.15 !important;
   color: #747A80 !important;
 }
+
+
+/* Filter option hit areas: separate rows clearly and centre each checkbox. */
+.contractor-filter-options {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-auto-rows: minmax(22px, auto) !important;
+  align-content: start !important;
+  gap: 1px !important;
+  row-gap: 1px !important;
+}
+.contractor-filter-options > label.contractor-filter-option {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-height: 22px !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 3px 1px !important;
+  gap: 6px !important;
+  line-height: 16px !important;
+  cursor: pointer !important;
+  overflow: visible !important;
+}
+.contractor-filter-options > label.contractor-filter-option > input[type="checkbox"] {
+  position: static !important;
+  display: block !important;
+  flex: 0 0 13px !important;
+  width: 13px !important;
+  min-width: 13px !important;
+  height: 13px !important;
+  min-height: 13px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+  align-self: center !important;
+}
+.contractor-filter-options > label.contractor-filter-option > span {
+  display: block !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 16px !important;
+}
