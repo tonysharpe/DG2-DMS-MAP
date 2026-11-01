@@ -1170,7 +1170,17 @@ async function build(
     const sourceFeatures = features(data, filename);
     for (let sourceFeatureIndex = 0; sourceFeatureIndex < sourceFeatures.length; sourceFeatureIndex++) {
       const feature = sourceFeatures[sourceFeatureIndex];
-      const name = nameOf(feature.properties, filename);
+      // Destination labels and lookup keys must come from the GeoJSON
+      // properties.name field, not longname or the gate Name/name fallback.
+      const name = kind === "destination"
+        ? String(feature.properties?.name ?? "").trim()
+        : nameOf(feature.properties, filename);
+      if (!name) {
+        throw new Error(
+          filename + " feature " + sourceFeatureIndex +
+          " is missing the required name property."
+        );
+      }
       const destinationType = kind === "destination"
         ? String(feature.properties?.type ?? "").trim()
         : "";
