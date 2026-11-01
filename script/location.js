@@ -14,13 +14,17 @@ let liveLocationMarker = null;
 // GPS accuracy buffer intentionally removed; the live marker is the sole location cue.
 let liveAccuracyCircle = null;
 let liveNavigationActive = false;
+let screenWakeLock = null;
+let screenWakeLockRequestPending = false;
 let lastLiveRouteAttemptAt = 0;
 let lastLiveRerouteAt = 0;
 const LIVE_ROUTE_DEVIATION_METRES = 75;
 const LIVE_ROUTE_MIN_ACCURACY_METRES = 50;
 const LIVE_REROUTE_COOLDOWN_MS = 15000;
 const LIVE_ROUTE_ATTEMPT_COOLDOWN_MS = 15000;
-const LIVE_FOLLOW_ZOOM = 19; // Close navigation view, centred on the live route start.
+const LIVE_FOLLOW_ZOOM = 19; // Baseline navigation zoom before widening the initial view.
+const LIVE_START_VIEW_AREA_FACTOR = 3;
+const LIVE_START_ZOOM = LIVE_FOLLOW_ZOOM - Math.log2(LIVE_START_VIEW_AREA_FACTOR);
 let mapClickOrigin = null;
 let mapClickOriginMarker = null;
 const MAP_CLICK_BUFFER_METRES = 15000;
@@ -298,6 +302,42 @@ function updateJourneyGuidance() {
   hud.hidden = !journeyStartConfirmed;
 }
 
+async function requestScreenWakeLock() {
+  if (!liveNavigationActive || !("wakeLock" in navigator) ||
+      document.visibilityState !== "visible" || screenWakeLock || screenWakeLockRequestPending) return;
+  screenWakeLockRequestPending = true;
+  try {
+    const lock = await navigator.wakeLock.request("screen");
+    screenWakeLock = lock;
+    lock.addEventListener("release", () => {
+      if (screenWakeLock === lock) screenWakeLock = null;
+      // Android may release the lock when the document is backgrounded.
+      // visibilitychange below requests it again when the app returns.
+    }, {once: true});
+  } catch (error) {
+    console.warn("Screen wake lock could not be acquired:", error);
+  } finally {
+    screenWakeLockRequestPending = false;
+  }
+}
+
+async function releaseScreenWakeLock() {
+  const lock = screenWakeLock;
+  screenWakeLock = null;
+  if (!lock) return;
+  try {
+    await lock.release();
+  } catch (error) {
+    console.warn("Screen wake lock could not be released:", error);
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (liveNavigationActive && document.visibilityState === "visible") {
+    requestScreenWakeLock();
+  }
+});
+
 function startLiveRoute() {
   if (!livePosition) {
     locationStatus("Waiting for GPS. Allow location access, then try Start route again.");
@@ -313,6 +353,7 @@ function startLiveRoute() {
 function stopLiveRoute() {
   liveNavigationActive = false;
   journeyStartConfirmed = false;
+  releaseScreenWakeLock();
   syncHeaderLiveRouteButton();
   if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
   if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
@@ -342,27 +383,27 @@ function confirmBeginJourney() {
   }
   journeyStartConfirmed = true;
   liveNavigationActive = true;
+  requestScreenWakeLock();
   syncHeaderLiveRouteButton();
   if ($("journeyGuidance")) $("journeyGuidance").hidden = false;
   if ($("startLiveRoute")) $("startLiveRoute").hidden = true;
   if ($("stopLiveRoute")) $("stopLiveRoute").hidden = false;
   syncHeaderLiveRouteButton();
   updateJourneyGuidance();
-  followLiveLocation();
+  // Centre once when the user starts navigation, with the visible map area
+  // widened by a factor of three. Subsequent GPS fixes update the marker only.
+  map.setView(
+    [livePosition.latitude, livePosition.longitude],
+    LIVE_START_ZOOM,
+    {animate: false}
+  );
 }
 
 function followLiveLocation() {
   if (!livePosition || $("startMode")?.value !== "live") return;
 
-  // Follow the GPS marker while navigation is active; users can pan away
-  // and use the recenter control to return to their current position.
-  if (liveNavigationActive) {
-    map.setView(
-      [livePosition.latitude, livePosition.longitude],
-      LIVE_FOLLOW_ZOOM,
-      {animate: false}
-    );
-  }
+  // GPS updates move the marker but never move the map. The user controls
+  // recentering explicitly with the location/recenter control.
 
   if (!$("end")?.value) return;
 
@@ -502,19 +543,19 @@ function recenterMapOnStart() {
       locationStatus("Waiting for a live GPS fix before centring the map.");
       return;
     }
-    map.setView([livePosition.latitude, livePosition.longitude], Math.max(map.getZoom(), 16), {animate: true});
+    map.setView([livePosition.latitude, livePosition.longitude], map.getZoom(), {animate: true});
     return;
   }
 
   if ($("startMode")?.value === "map" && mapClickOrigin?.point) {
-    map.setView(L.latLng(ll(mapClickOrigin.point)), Math.max(map.getZoom(), 16), {animate: true});
+    map.setView(L.latLng(ll(mapClickOrigin.point)), map.getZoom(), {animate: true});
     return;
   }
 
   const selectedValue = $("start")?.value;
   const selectedIndex = selectedValue === "" || selectedValue == null ? NaN : Number(selectedValue);
   if (Number.isInteger(selectedIndex) && locations[selectedIndex]?.point) {
-    map.setView(L.latLng(ll(locations[selectedIndex].point)), Math.max(map.getZoom(), 16), {animate: true});
+    map.setView(L.latLng(ll(locations[selectedIndex].point)), map.getZoom(), {animate: true});
     return;
   }
 
