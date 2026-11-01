@@ -3498,33 +3498,31 @@ body > #journeyControls.journey-controls {
 }
 
 
-/* Contractor filter floating panel. */
-.contractor-filter-wrap { position: relative; margin: 8px 0; }
-.contractor-filter-trigger { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+/* Compact destination filter controls and floating filter panel. */
+.destination-filter-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:4px 0 7px; }
+.contractor-filter-trigger { display:inline-flex; align-items:center; gap:5px; cursor:pointer; font-size:12px; line-height:1.2; }
+.contractor-filter-trigger input { width:13px; height:13px; margin:0; }
+.destination-filter-clear { padding:3px 7px; font-size:11px; line-height:1.2; }
+.destination-filter-clear:disabled { opacity:.45; cursor:default; }
+.contractor-filter-wrap { position:relative; margin:0; }
 .contractor-filter-dialog {
-  position: absolute;
-  z-index: 1600;
-  top: calc(100% + 6px);
-  left: 0;
-  width: min(320px, calc(100vw - 48px));
-  max-height: min(65vh, 480px);
-  display: flex;
-  flex-direction: column;
-  padding: 12px;
-  border: 1px solid var(--border-color, #b8bec5);
-  border-radius: 10px;
-  background: var(--panel-background, #fff);
-  color: var(--text-color, #222);
-  box-shadow: 0 8px 28px rgba(0,0,0,.22);
+  position:absolute; z-index:1600; top:calc(100% + 4px); left:0;
+  width:min(340px, calc(100vw - 36px)); max-height:min(68vh, 460px);
+  display:flex; flex-direction:column; padding:9px;
+  border:1px solid var(--border-color, #b8bec5); border-radius:8px;
+  background:var(--panel-background, #fff); color:var(--text-color, #222);
+  box-shadow:0 6px 20px rgba(0,0,0,.2);
 }
-.contractor-filter-dialog[hidden] { display: none !important; }
-.contractor-filter-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.contractor-filter-heading button { border: 0; background: transparent; color: inherit; font-size: 22px; line-height: 1; padding: 2px 7px; }
-.contractor-filter-options { overflow-y: auto; min-height: 0; max-height: 280px; display: grid; grid-template-columns: 1fr; gap: 7px; padding: 5px 2px; }
-.contractor-filter-option { display: flex; align-items: center; gap: 8px; min-height: 28px; cursor: pointer; }
-.contractor-filter-option input { flex: 0 0 auto; }
-.contractor-filter-actions { display: flex; justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--border-color, #e2e5e8); }
-.contractor-filter-actions button { padding: 6px 10px; }
+.contractor-filter-dialog[hidden] { display:none !important; }
+.contractor-filter-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; }
+.contractor-filter-heading button { border:0; background:transparent; color:inherit; font-size:19px; line-height:1; padding:0 5px; }
+.destination-filter-groups { display:grid; grid-template-columns:1fr; gap:7px; min-height:0; overflow-y:auto; margin-top:6px; }
+.destination-filter-group { min-width:0; margin:0; padding:5px 7px 6px; border:1px solid var(--border-color, #e2e5e8); border-radius:6px; }
+.destination-filter-group legend { padding:0 4px; font-size:11px; font-weight:700; }
+.contractor-filter-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:3px 8px; max-height:120px; overflow-y:auto; }
+.contractor-filter-option { display:flex; align-items:center; gap:5px; min-width:0; min-height:21px; font-size:11px; line-height:1.15; cursor:pointer; }
+.contractor-filter-option span { overflow-wrap:anywhere; }
+.contractor-filter-option input { flex:0 0 auto; width:12px; height:12px; margin:0; }
 
 /* Custom destination picker avoids native mobile select popover/repaint issues. */
 #end[aria-hidden="true"] { display: none !important; }
