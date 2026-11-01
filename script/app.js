@@ -426,6 +426,8 @@ let ignoredDestinationNames = [];
 
 let destinationOptions = [];
 let selectedContractors = new Set();
+let selectedDestinationTypes = new Set();
+let selectedDestinationPackages = new Set();
 let gateMarkers = new Map();
 let gateMarkerLayer = null;
 
@@ -1289,6 +1291,7 @@ async function build(
           : "",
         nearestRoadOffset: nearestMappedRoad?.offset ?? Infinity,
         contractor: kind === "destination" ? String(feature.properties?.contractor ?? "").trim() : "",
+        package: kind === "destination" ? String(feature.properties?.package ?? "").trim() : "",
         operatingHours: feature.properties?.operating_hours,
         permittedVehicleTypes: feature.properties?.permitted_vehicle_types
       });
@@ -1511,6 +1514,7 @@ function buildDestinationOptions() {
       type: match?.location.type || typeFromName,
       valid: match?.location.valid ?? false,
       contractor: match?.location.contractor || "",
+      package: match?.location.package || "",
       hasPolygon: true,
       hasAccessPoint: Boolean(match)
     };
@@ -1520,17 +1524,17 @@ function buildDestinationOptions() {
 function renderDestinationOptions() {
   const previous = $("end").value;
   const query = searchKey($("destinationSearch").value);
-  const categoryControl = document.querySelector('input[name="destinationType"]:checked');
-  const category = categoryControl?.value || "All";
-
   const contractorFiltered = selectedContractors.size > 0;
-  const matching = destinationOptions.filter(item =>
-    (category === "All" || destinationCategory(item) === category) &&
+  const typeFiltered = selectedDestinationTypes.size > 0;
+  const packageFiltered = selectedDestinationPackages.size > 0;
+  const matchesFilters = item =>
     (!contractorFiltered || selectedContractors.has(item.contractor)) &&
-    searchKey(item.name).includes(query)
+    (!typeFiltered || selectedDestinationTypes.has(item.type)) &&
+    (!packageFiltered || selectedDestinationPackages.has(item.package));
+  const matching = destinationOptions.filter(item =>
+    matchesFilters(item) && searchKey(item.name).includes(query)
   );
-  const selected = destinationOptions.find(item => String(item.index) === previous &&
-    (category === "All" || destinationCategory(item) === category));
+  const selected = destinationOptions.find(item => String(item.index) === previous && matchesFilters(item));
   const visible = [...matching];
   const retained = selected && !visible.some(item => item.index === selected.index);
   if (retained) visible.push(selected);
@@ -1559,7 +1563,9 @@ function renderDestinationOptions() {
   }
   end.value = selected ? previous : "";
   if (pickerToggle) {
-    pickerToggle.textContent = selected ? selected.name : (matching.length ? "Select destination…" : "No destinations match");
+    pickerToggle.textContent = selected
+      ? selected.name + (selected.contractor ? " — " + selected.contractor : "")
+      : (matching.length ? "Select destination…" : "No destinations match");
     pickerToggle.disabled = end.disabled;
   }
   if (pickerList) {
@@ -1591,9 +1597,12 @@ function renderDestinationOptions() {
       pickerList.appendChild(empty);
     }
   }
+  const activeFilterCount = selectedContractors.size + selectedDestinationTypes.size + selectedDestinationPackages.size;
   $("searchStatus").textContent = matching.length + " matching destination(s)" +
-    (contractorFiltered ? " across " + selectedContractors.size + " contractor(s)" : "") +
+    (activeFilterCount ? " with " + activeFilterCount + " filter(s) applied" : "") +
     (retained ? ". Current selection retained." : ".");
+  const clearFilters = $("contractorFilterClear");
+  if (clearFilters) clearFilters.disabled = activeFilterCount === 0;
 }
 
 
@@ -2282,22 +2291,6 @@ async function init() {
         $("vehicleType").dispatchEvent(new Event("change", { bubbles: true }));
       });
     });
-    document.querySelectorAll('input[name="destinationType"]').forEach(radio => {
-      radio.addEventListener("change", () => {
-        if (!radio.checked) return;
-        $("end").value = "";
-        $("destinationSearch").value = "";
-        clearRoute();
-
-        // Refresh the area-based list against the newly built vehicle network.
-        buildDestinationOptions();
-        renderContractorFilterOptions();
-
-        renderDestinationOptions();
-        refreshShareControls();
-        status("Select a " + radio.value + " destination.");
-      });
-    });
     document.querySelectorAll('input[name="startModeChoice"]').forEach(radio => {
       radio.checked = radio.value === $("startMode").value;
       radio.addEventListener("change", () => {
@@ -2311,48 +2304,57 @@ async function init() {
     $("end").disabled = false;
     const contractorToggle = $("contractorFilterToggle");
     const contractorDialog = $("contractorFilterDialog");
-    const contractorOptions = $("contractorFilterOptions");
+    const filterGroups = [
+      {id: "contractorFilterOptions", field: "contractor", selected: selectedContractors},
+      {id: "destinationTypeFilterOptions", field: "type", selected: selectedDestinationTypes},
+      {id: "destinationPackageFilterOptions", field: "package", selected: selectedDestinationPackages}
+    ];
     const closeContractorDialog = () => {
       if (contractorDialog) contractorDialog.hidden = true;
       if (contractorToggle) contractorToggle.checked = false;
     };
-    const renderContractorFilterOptions = () => {
-      if (!contractorOptions) return;
-      contractorOptions.replaceChildren();
-      const contractors = [...new Set(destinationOptions.map(item => item.contractor).filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
-      for (const contractor of contractors) {
-        const label = document.createElement("label");
-        label.className = "contractor-filter-option";
-        const input = document.createElement("input");
-        input.type = "checkbox";
-        input.value = contractor;
-        input.checked = selectedContractors.has(contractor);
-        input.addEventListener("change", () => {
-          if (input.checked) selectedContractors.add(contractor);
-          else selectedContractors.delete(contractor);
-          renderDestinationOptions();
-        });
-        const text = document.createElement("span");
-        text.textContent = contractor;
-        label.append(input, text);
-        contractorOptions.appendChild(label);
+    const renderDestinationFilterOptions = () => {
+      for (const group of filterGroups) {
+        const container = $(group.id);
+        if (!container) continue;
+        container.replaceChildren();
+        const values = [...new Set(destinationOptions.map(item => String(item[group.field] || "").trim()).filter(Boolean))]
+          .sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
+        for (const value of values) {
+          const label = document.createElement("label");
+          label.className = "contractor-filter-option";
+          const input = document.createElement("input");
+          input.type = "checkbox";
+          input.value = value;
+          input.checked = group.selected.has(value);
+          input.addEventListener("change", () => {
+            if (input.checked) group.selected.add(value);
+            else group.selected.delete(value);
+            renderDestinationOptions();
+          });
+          const text = document.createElement("span");
+          text.textContent = value;
+          label.append(input, text);
+          container.appendChild(label);
+        }
       }
     };
     if (contractorToggle && contractorDialog) {
       contractorToggle.disabled = false;
-      renderContractorFilterOptions();
+      renderDestinationFilterOptions();
       contractorToggle.addEventListener("change", () => {
         contractorDialog.hidden = !contractorToggle.checked;
       });
       $("contractorFilterClose")?.addEventListener("click", closeContractorDialog);
       $("contractorFilterClear")?.addEventListener("click", () => {
         selectedContractors.clear();
-        renderContractorFilterOptions();
+        selectedDestinationTypes.clear();
+        selectedDestinationPackages.clear();
+        renderDestinationFilterOptions();
         renderDestinationOptions();
       });
       document.addEventListener("click", event => {
-        if (event.target.closest(".contractor-filter-wrap")) return;
+        if (event.target.closest(".contractor-filter-wrap, .destination-filter-bar")) return;
         if (!contractorDialog.hidden) closeContractorDialog();
       });
       document.addEventListener("keydown", event => {
