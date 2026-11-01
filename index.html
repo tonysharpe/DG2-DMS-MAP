@@ -161,24 +161,20 @@
 <!-- DESTINATION -->
     <section class="control-section" aria-labelledby="destinationHeading">
       <h2 id="destinationHeading">Destination:</h2>
-      <fieldset class="radio-options destination-type-options" aria-label="Destination type">
-        <legend class="visually-hidden">Destination type</legend>
-        <label><input type="radio" name="destinationType" value="All" checked> All</label>
-        <label><input type="radio" name="destinationType" value="WAN"> WAN</label>
-        <label><input type="radio" name="destinationType" value="LAAR"> LAAR</label>
-        <label><input type="radio" name="destinationType" value="Office"> Office</label>
-      </fieldset>
+      <div class="destination-filter-bar">
+        <label class="contractor-filter-trigger" title="Filter destinations"><input id="contractorFilterToggle" type="checkbox" disabled> Filters</label>
+        <button id="contractorFilterClear" class="destination-filter-clear" type="button" disabled>Clear filters</button>
+      </div>
       <div class="contractor-filter-wrap">
-        <label class="contractor-filter-trigger"><input id="contractorFilterToggle" type="checkbox" disabled> Filter by contractor</label>
-        <section id="contractorFilterDialog" class="contractor-filter-dialog" role="dialog" aria-label="Filter destinations by contractor" hidden>
+        <section id="contractorFilterDialog" class="contractor-filter-dialog" role="dialog" aria-label="Filter destinations" hidden>
           <div class="contractor-filter-heading">
-            <strong>Filter by contractor</strong>
-            <button id="contractorFilterClose" type="button" aria-label="Close contractor filter">×</button>
+            <strong>Filter destinations</strong>
+            <button id="contractorFilterClose" type="button" aria-label="Close destination filters">×</button>
           </div>
-          <p class="field-help">Select one or more contractors. No selection shows all contractors.</p>
-          <div id="contractorFilterOptions" class="contractor-filter-options"></div>
-          <div class="contractor-filter-actions">
-            <button id="contractorFilterClear" type="button">Clear filters</button>
+          <div class="destination-filter-groups">
+            <fieldset class="destination-filter-group"><legend>Contractor</legend><div id="contractorFilterOptions" class="contractor-filter-options"></div></fieldset>
+            <fieldset class="destination-filter-group"><legend>Type</legend><div id="destinationTypeFilterOptions" class="contractor-filter-options"></div></fieldset>
+            <fieldset class="destination-filter-group"><legend>Package</legend><div id="destinationPackageFilterOptions" class="contractor-filter-options"></div></fieldset>
           </div>
         </section>
       </div>
