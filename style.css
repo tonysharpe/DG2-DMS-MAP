@@ -4535,3 +4535,14 @@ body {
   padding: 0 !important;
   line-height: 16px !important;
 }
+
+
+/* Unreachable destinations remain selectable but are clearly marked. */
+.destination-picker-option.is-unreachable,
+.destination-picker-option--unreachable {
+  color: #C62828 !important;
+}
+.destination-picker-option.is-unreachable:hover,
+.destination-picker-option--unreachable:hover {
+  color: #B71C1C !important;
+}
