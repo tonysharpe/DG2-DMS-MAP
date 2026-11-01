@@ -77,7 +77,6 @@
             location &&
             location.kind === "destination" &&
             location.valid &&
-            option.hasPolygon &&
             location.node !== null &&
             location.node !== undefined &&
             reachableNodes.has(location.node)
