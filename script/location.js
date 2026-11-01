@@ -14,6 +14,7 @@ let liveLocationMarker = null;
 // GPS accuracy buffer intentionally removed; the live marker is the sole location cue.
 let liveAccuracyCircle = null;
 let liveNavigationActive = false;
+let liveCameraFollowEnabled = false;
 let screenWakeLock = null;
 let screenWakeLockRequestPending = false;
 let lastLiveRouteAttemptAt = 0;
@@ -241,6 +242,7 @@ function stopLiveLocation(showMessage = true) {
   }
   livePosition = null;
   liveNavigationActive = false;
+  liveCameraFollowEnabled = false;
   journeyStartConfirmed = false;
   releaseScreenWakeLock();
   previousHeadingPosition = null;
@@ -357,6 +359,7 @@ function startLiveRoute() {
 
 function stopLiveRoute() {
   liveNavigationActive = false;
+  liveCameraFollowEnabled = false;
   journeyStartConfirmed = false;
   releaseScreenWakeLock();
   syncHeaderLiveRouteButton();
@@ -388,6 +391,7 @@ function confirmBeginJourney() {
   }
   journeyStartConfirmed = true;
   liveNavigationActive = true;
+  liveCameraFollowEnabled = true;
   requestScreenWakeLock();
   syncHeaderLiveRouteButton();
   if ($("journeyGuidance")) $("journeyGuidance").hidden = false;
@@ -395,8 +399,8 @@ function confirmBeginJourney() {
   if ($("stopLiveRoute")) $("stopLiveRoute").hidden = false;
   syncHeaderLiveRouteButton();
   updateJourneyGuidance();
-  // Centre once when the user starts navigation, with the visible map area
-  // widened by a factor of three. Subsequent GPS fixes update the marker only.
+  // Centre when navigation starts, with the visible map area widened by a
+  // factor of three. GPS updates keep following until the user pans the map.
   map.setView(
     [livePosition.latitude, livePosition.longitude],
     LIVE_START_ZOOM,
@@ -407,8 +411,15 @@ function confirmBeginJourney() {
 function followLiveLocation() {
   if (!livePosition || $("startMode")?.value !== "live") return;
 
-  // GPS updates move the marker but never move the map. The user controls
-  // recentering explicitly with the location/recenter control.
+  // Follow the live position while enabled. A user drag disables this until
+  // the recenter control is pressed; retain the current zoom throughout.
+  if (liveNavigationActive && liveCameraFollowEnabled) {
+    map.setView(
+      [livePosition.latitude, livePosition.longitude],
+      map.getZoom(),
+      {animate: false}
+    );
+  }
 
   if (!$("end")?.value) return;
 
@@ -548,6 +559,7 @@ function recenterMapOnStart() {
       locationStatus("Waiting for a live GPS fix before centring the map.");
       return;
     }
+    if (liveNavigationActive) liveCameraFollowEnabled = true;
     map.setView([livePosition.latitude, livePosition.longitude], map.getZoom(), {animate: true});
     return;
   }
@@ -615,6 +627,9 @@ function initialiseLocationControls() {
     if (!$(id)) throw new Error("index.html is missing element id='" + id + "'.");
   }
   addRecenterControl();
+  map.on("dragstart", () => {
+    if (liveNavigationActive) liveCameraFollowEnabled = false;
+  });
   $("startMode").disabled = false;
   $("locate").disabled = true;
   $("stopLocation").disabled = true;
