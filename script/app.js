@@ -1566,7 +1566,7 @@ function renderDestinationOptions() {
       (!item.hasAccessPoint ? " — access point missing" :
         (!item.hasPolygon ? " — destination area missing" :
           (item.reachable === false ? " — unreachable" : (!item.valid ? " — outside snap limit" : ""))));
-    if (item.reachable === false || !item.valid || !item.hasPolygon || !item.hasAccessPoint) {
+    if (item.reachable === false || !item.valid || !item.hasAccessPoint) {
       option.className = "destination-picker-option--unreachable";
       option.style.color = "#C62828";
     }
@@ -1587,7 +1587,7 @@ function renderDestinationOptions() {
       option.className = "destination-picker-option";
       option.setAttribute("role", "option");
       option.setAttribute("aria-selected", String(Boolean(selected && optionValue(selected) === optionValue(item))));
-      const unreachable = item.reachable === false || !item.valid || !item.hasPolygon || !item.hasAccessPoint;
+      const unreachable = item.reachable === false || !item.valid || !item.hasAccessPoint;
       if (unreachable) option.classList.add("is-unreachable");
       option.textContent = item.name +
         (item.contractor ? " — " + item.contractor : "") +
