@@ -28,7 +28,7 @@ export function getGeoJSONBounds(geometry) {
 }
 
 export async function loadSiteBoundary(map) {
-  const geojson = await fetchGeoJSON("../../data/site_boundary.geojson", "site_boundary.geojson");
+  const geojson = await fetchGeoJSON("../../data/archive/site_boundary.geojson", "site_boundary.geojson");
   if (map.getSource("site_boundary")) {
     map.getSource("site_boundary").setData(geojson);
     return;

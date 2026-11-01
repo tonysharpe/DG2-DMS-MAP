@@ -3,7 +3,8 @@ SITE NAVIGATION PROTOTYPE
 Project layout:
 - index.html and style.css remain in the repository root.
 - Browser JavaScript is stored in script/.
-- GeoJSON and related data files are stored in data/.
+- Active GeoJSON and related data files are stored in data/.
+- Unused, legacy and diagnostic GeoJSON files are retained in data/archive/.
 
 To run locally, open a terminal in the repository root and run:
   python -m http.server 8000 --bind 127.0.0.1

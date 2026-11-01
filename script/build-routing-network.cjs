@@ -7,9 +7,9 @@ const proj4 = require("proj4");
 const ROOT = path.resolve(__dirname, "..");
 const INPUT_ROADS = path.join(ROOT, "data/roads.geojson");
 const OUTPUT = path.join(ROOT, "data/routing-network.json");
-const NODES_GEOJSON_OUTPUT = path.join(ROOT, "data/routing-network-nodes.geojson");
-const LINKS_GEOJSON_OUTPUT = path.join(ROOT, "data/routing-network-links.geojson");
-const CHECK_NODES_GEOJSON_OUTPUT = path.join(ROOT, "data/routing-network-check-nodes.geojson");
+const NODES_GEOJSON_OUTPUT = path.join(ROOT, "data/archive/routing-network-nodes.geojson");
+const LINKS_GEOJSON_OUTPUT = path.join(ROOT, "data/archive/routing-network-links.geojson");
+const CHECK_NODES_GEOJSON_OUTPUT = path.join(ROOT, "data/archive/routing-network-check-nodes.geojson");
 const UTM = "+proj=utm +zone=38 +datum=WGS84 +units=m +no_defs";
 const toLonLat = coordinates => proj4(UTM, "EPSG:4326", coordinates);
 const SHAPE_POINT_CONNECT_TOLERANCE = 0.1;
@@ -480,6 +480,6 @@ const snapCheckGeoJson = {
   crs: { type: "name", properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" } },
   features: snapCheckFeatures
 };
-fs.writeFileSync(path.join(ROOT, "data/snap_check.geojson"), JSON.stringify(snapCheckGeoJson));
+fs.writeFileSync(path.join(ROOT, "data/archive/snap_check.geojson"), JSON.stringify(snapCheckGeoJson));
 console.log("Generated data/snap_check.geojson", snapCheckFeatures.length, "snapped connections in requested distance range");
 
