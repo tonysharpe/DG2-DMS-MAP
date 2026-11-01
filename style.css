@@ -4374,3 +4374,115 @@ body > #journeyControls.journey-controls {
   font-weight: 700 !important;
   color: #202124 !important;
 }
+
+
+/* Final typography and spacing pass: 12px interface text, softer greys. */
+:root {
+  --text-primary: #50555B;
+  --text-secondary: #747A80;
+  --text-muted: #92979D;
+}
+body {
+  color: var(--text-primary);
+}
+:where(body > aside, #journeyControls, [role="dialog"], .map-loading-dialog,
+       .destination-picker-list, .destination-picker-option) {
+  font-family: var(--font-main) !important;
+  font-size: 12px !important;
+  color: #747A80 !important;
+}
+:where(body > aside, #journeyControls, [role="dialog"], .map-loading-dialog,
+       .destination-picker-list) :where(p, label, span, li, small, button,
+       input, select, textarea, option, summary, .field-help,
+       .network-date, .journey-footnote) {
+  font-family: var(--font-main) !important;
+  font-size: 12px !important;
+  color: #747A80;
+}
+:where(body > aside, #journeyControls, [role="dialog"], .map-loading-dialog,
+       .destination-picker-list) :where(h1, h2, h3, h4, strong, legend) {
+  font-family: var(--font-main) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #30343A !important;
+}
+
+/* Filter lists: compact, but not cramped; retain one column. */
+.destination-filter-groups { gap: 2px !important; }
+.destination-filter-group { padding: 2px 5px 3px !important; }
+.contractor-filter-options {
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0 !important;
+  row-gap: 0 !important;
+}
+.contractor-filter-options > .contractor-filter-option {
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-height: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  padding: 1px 0 !important;
+  gap: 4px !important;
+  font-family: var(--font-main) !important;
+  font-size: 12px !important;
+  line-height: 14px !important;
+  color: #747A80 !important;
+}
+.contractor-filter-option span {
+  font-family: var(--font-main) !important;
+  font-size: 12px !important;
+  line-height: 14px !important;
+  color: #747A80 !important;
+}
+.contractor-filter-options > .contractor-filter-option input {
+  flex: 0 0 12px !important;
+  width: 12px !important;
+  height: 12px !important;
+  margin: 0 !important;
+}
+.contractor-filter-group legend,
+.contractor-filter-heading strong {
+  font-family: var(--font-main) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #30343A !important;
+}
+
+/* Map key and Leaflet map-layer menu use the same 12px interface typography. */
+.map-legend,
+.map-legend :where(*),
+.leaflet-control-layers,
+.leaflet-control-layers :where(*) {
+  font-family: var(--font-main) !important;
+  font-size: 12px !important;
+}
+.map-legend { color: #747A80 !important; }
+.map-legend__title {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #30343A !important;
+}
+.map-legend__row,
+.map-legend__row :where(span) {
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  color: #747A80 !important;
+}
+.leaflet-control-layers label,
+.leaflet-control-layers label span {
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  color: #747A80 !important;
+}
+.leaflet-control-layers-expanded { padding: 8px 10px !important; }
+
+/* Vehicle names: readable grey text rather than black. */
+.vehicle-options .vehicle-label,
+.vehicle-options label .vehicle-label {
+  font-family: var(--font-main) !important;
+  font-size: 12px !important;
+  line-height: 1.15 !important;
+  color: #747A80 !important;
+}
