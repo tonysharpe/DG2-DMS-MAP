@@ -221,10 +221,7 @@ async function changeVehicle() {
     mark("build selected vehicle network", networkStartedAt);
 
     const destinationsStartedAt = performance.now();
-    destinationOptions = locations.flatMap((location, index) => location.kind === "destination" ? [{
-      index, name: location.name, type: location.type, valid: location.valid,
-      hasPolygon: destinationAreas.has(location.name)
-    }] : []);
+    buildDestinationOptions();
     // Do not calculate during a vehicle switch. Show all destinations for the
     // new vehicle and wait for the user to select one explicitly.
     $("end").value = "";
@@ -1492,24 +1489,36 @@ function destinationCategory(item) {
   return "Other";
 }
 
+function buildDestinationOptions() {
+  const pointIndexes = new Map();
+  locations.forEach((location, index) => {
+    if (location.kind === "destination" && !pointIndexes.has(location.name)) {
+      pointIndexes.set(location.name, {location, index});
+    }
+  });
+
+  // The area file is the canonical list. Deduplicate repeated polygon
+  // features by name, then attach the matching access-point record if present.
+  destinationOptions = [...destinationAreas.keys()].map(name => {
+    const match = pointIndexes.get(name);
+    const typeFromName = name.match(/^DGII-([^-]+)-/i)?.[1] || "";
+    return {
+      index: match?.index ?? null,
+      name,
+      type: match?.location.type || typeFromName,
+      valid: match?.location.valid ?? false,
+      hasPolygon: true,
+      hasAccessPoint: Boolean(match)
+    };
+  });
+}
+
 function renderDestinationOptions() {
   const previous = $("end").value;
   const query = searchKey($("destinationSearch").value);
   const categoryControl = document.querySelector('input[name="destinationType"]:checked');
   const category = categoryControl?.value || "All";
 
-  // Rebuild from every destination in the active location set on each render.
-  // Do not filter by route reachability: route viability is checked only after
-  // the user explicitly selects a destination.
-  destinationOptions = locations.flatMap((location, index) =>
-    location.kind === "destination" ? [{
-      index,
-      name: location.name,
-      type: location.type,
-      valid: location.valid,
-      hasPolygon: destinationAreas.has(location.name)
-    }] : []
-  );
   const matching = destinationOptions.filter(item =>
     (category === "All" || destinationCategory(item) === category) &&
     searchKey(item.name).includes(query)
@@ -1534,8 +1543,9 @@ function renderDestinationOptions() {
   end.appendChild(placeholder);
   for (const item of visible) {
     const option = document.createElement("option");
-    option.value = String(item.index);
-    option.textContent = item.name;
+    option.value = item.hasAccessPoint ? String(item.index) : "missing:" + item.name;
+    option.textContent = item.name + (!item.hasAccessPoint ? " — access point missing" : "");
+    option.disabled = !item.hasAccessPoint;
     end.appendChild(option);
   }
   end.value = selected ? previous : "";
@@ -1551,8 +1561,10 @@ function renderDestinationOptions() {
       option.className = "destination-picker-option";
       option.setAttribute("role", "option");
       option.setAttribute("aria-selected", String(Boolean(selected && selected.index === item.index)));
-      option.textContent = item.name + (!item.hasPolygon ? " — polygon missing" : "") + (!item.valid ? " — outside snap limit" : "");
+      option.disabled = !item.hasAccessPoint;
+      option.textContent = item.name + (!item.hasAccessPoint ? " — access point missing" : (!item.valid ? " — outside snap limit" : ""));
       option.addEventListener("click", () => {
+        if (!item.hasAccessPoint) return;
         end.value = String(item.index);
         pickerToggle.textContent = item.name;
         pickerToggle.setAttribute("aria-expanded", "false");
@@ -1599,7 +1611,9 @@ function updateDestinationUrl(destinationName = null) {
 function selectedDestination() {
   if ($("end").value === "") return null;
 
-  const location = locations[Number($("end").value)];
+  const index = Number($("end").value);
+  if (!Number.isInteger(index)) return null;
+  const location = locations[index];
 
   return location?.kind === "destination" ? location : null;
 }
@@ -2231,22 +2245,14 @@ async function init() {
         gateMarkers.set(index, marker);
 
       } else {
-        const hasPolygon = destinationAreas.has(location.name);
-
-        if (!hasPolygon) missingPolygons.push(location.name);
-
-        destinationOptions.push({
-          index,
-          name: location.name,
-          type: location.type,
-          valid: location.valid,
-          hasPolygon
-        });
+        if (!destinationAreas.has(location.name)) missingPolygons.push(location.name);
       }
     });
 
+    buildDestinationOptions();
+
     if (!destinationOptions.length) {
-      throw new Error("No destination points.");
+      throw new Error("No destination areas.");
     }
 
     $("start").selectedIndex = -1;
@@ -2270,17 +2276,8 @@ async function init() {
         $("destinationSearch").value = "";
         clearRoute();
 
-        // Rebuild from the canonical locations list so changing destination
-        // type never leaves the selector using a stale or incomplete list.
-        destinationOptions = locations.flatMap((location, index) =>
-          location.kind === "destination" ? [{
-            index,
-            name: location.name,
-            type: location.type,
-            valid: location.valid,
-            hasPolygon: destinationAreas.has(location.name)
-          }] : []
-        );
+        // Refresh the area-based list against the newly built vehicle network.
+        buildDestinationOptions();
 
         renderDestinationOptions();
         refreshShareControls();
