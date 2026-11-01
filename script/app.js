@@ -1499,13 +1499,16 @@ function buildDestinationOptions() {
   const pointIndexes = new Map();
   locations.forEach((location, index) => {
     if (location.kind === "destination" && !pointIndexes.has(location.name)) {
-      pointIndexes.set(location.name, {location, index});
+      pointIndexes.set(location.name, { location, index });
     }
   });
 
-  // The area file is the canonical list. Deduplicate repeated polygon
-  // features by name, then attach the matching access-point record if present.
-  destinationOptions = [...destinationAreas.keys()].map(name => {
+  // Include the union of destination point records and mapped destination
+  // areas. A missing area or road attachment must not hide the destination.
+  const names = new Set([...destinationAreas.keys(), ...pointIndexes.keys()]);
+  destinationOptions = [...names].sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true })
+  ).map(name => {
     const match = pointIndexes.get(name);
     const typeFromName = name.match(/^DGII-([^-]+)-/i)?.[1] || "";
     return {
@@ -1515,8 +1518,10 @@ function buildDestinationOptions() {
       valid: match?.location.valid ?? false,
       contractor: match?.location.contractor || "",
       package: match?.location.package || "",
-      hasPolygon: true,
-      hasAccessPoint: Boolean(match)
+      point: match?.location.point || null,
+      hasPolygon: destinationAreas.has(name),
+      hasAccessPoint: Boolean(match),
+      reachable: null
     };
   });
 }
@@ -1531,10 +1536,11 @@ function renderDestinationOptions() {
     (!contractorFiltered || selectedContractors.has(item.contractor)) &&
     (!typeFiltered || selectedDestinationTypes.has(item.type)) &&
     (!packageFiltered || selectedDestinationPackages.has(item.package));
+  const optionValue = item => item.index === null ? "missing:" + item.name : String(item.index);
   const matching = destinationOptions.filter(item =>
     matchesFilters(item) && searchKey(item.name).includes(query)
   );
-  const selected = destinationOptions.find(item => String(item.index) === previous && matchesFilters(item));
+  const selected = destinationOptions.find(item => optionValue(item) === previous && matchesFilters(item));
   const visible = [...matching];
   const retained = selected && !visible.some(item => item.index === selected.index);
   if (retained) visible.push(selected);
@@ -1554,11 +1560,16 @@ function renderDestinationOptions() {
   end.appendChild(placeholder);
   for (const item of visible) {
     const option = document.createElement("option");
-    option.value = item.hasAccessPoint ? String(item.index) : "missing:" + item.name;
+    option.value = optionValue(item);
     option.textContent = item.name +
       (item.contractor ? " — " + item.contractor : "") +
-      (!item.hasAccessPoint ? " — access point missing" : "");
-    option.disabled = !item.hasAccessPoint;
+      (!item.hasAccessPoint ? " — access point missing" :
+        (!item.hasPolygon ? " — destination area missing" :
+          (item.reachable === false ? " — unreachable" : (!item.valid ? " — outside snap limit" : ""))));
+    if (item.reachable === false || !item.valid || !item.hasPolygon || !item.hasAccessPoint) {
+      option.className = "destination-picker-option--unreachable";
+      option.style.color = "#C62828";
+    }
     end.appendChild(option);
   }
   end.value = selected ? previous : "";
@@ -1575,14 +1586,16 @@ function renderDestinationOptions() {
       option.type = "button";
       option.className = "destination-picker-option";
       option.setAttribute("role", "option");
-      option.setAttribute("aria-selected", String(Boolean(selected && selected.index === item.index)));
-      option.disabled = !item.hasAccessPoint;
+      option.setAttribute("aria-selected", String(Boolean(selected && optionValue(selected) === optionValue(item))));
+      const unreachable = item.reachable === false || !item.valid || !item.hasPolygon || !item.hasAccessPoint;
+      if (unreachable) option.classList.add("is-unreachable");
       option.textContent = item.name +
         (item.contractor ? " — " + item.contractor : "") +
-        (!item.hasAccessPoint ? " — access point missing" : (!item.valid ? " — outside snap limit" : ""));
+        (!item.hasAccessPoint ? " — access point missing" :
+          (!item.hasPolygon ? " — destination area missing" :
+            (item.reachable === false ? " — unreachable" : (!item.valid ? " — outside snap limit" : ""))));
       option.addEventListener("click", () => {
-        if (!item.hasAccessPoint) return;
-        end.value = String(item.index);
+        end.value = optionValue(item);
         pickerToggle.textContent = item.name + (item.contractor ? " — " + item.contractor : "");
         pickerToggle.setAttribute("aria-expanded", "false");
         pickerList.hidden = true;
@@ -1631,12 +1644,26 @@ function updateDestinationUrl(destinationName = null) {
 
 
 function selectedDestination() {
-  if ($("end").value === "") return null;
+  const value = $("end").value;
+  if (!value) return null;
 
-  const index = Number($("end").value);
+  if (value.startsWith("missing:")) {
+    const name = value.slice("missing:".length);
+    const item = destinationOptions.find(option => option.name === name);
+    if (!item) return null;
+    return {
+      ...item,
+      kind: "destination",
+      offset: Infinity,
+      node: null,
+      valid: false,
+      nearestRoadType: ""
+    };
+  }
+
+  const index = Number(value);
   if (!Number.isInteger(index)) return null;
   const location = locations[index];
-
   return location?.kind === "destination" ? location : null;
 }
 
@@ -1755,6 +1782,9 @@ function calculate(collapseMobilePanelOnSuccess = false) {
     refreshShareControls();
 
     showDestinationArea(destination);
+    // Even when no network route is possible, centre the map on the selected
+    // destination area or point so the user can see its actual location.
+    fitSelectedResult();
 
     if (!destination.valid) {
       if (!Number.isFinite(destination.offset)) {
