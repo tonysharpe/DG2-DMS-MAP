@@ -242,6 +242,7 @@ function stopLiveLocation(showMessage = true) {
   livePosition = null;
   liveNavigationActive = false;
   journeyStartConfirmed = false;
+  releaseScreenWakeLock();
   previousHeadingPosition = null;
   liveHeadingDegrees = null;
   if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
