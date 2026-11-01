@@ -309,6 +309,10 @@ async function requestScreenWakeLock() {
   screenWakeLockRequestPending = true;
   try {
     const lock = await navigator.wakeLock.request("screen");
+    if (!liveNavigationActive || document.visibilityState !== "visible") {
+      await lock.release();
+      return;
+    }
     screenWakeLock = lock;
     lock.addEventListener("release", () => {
       if (screenWakeLock === lock) screenWakeLock = null;
