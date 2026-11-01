@@ -1247,6 +1247,7 @@ async function build(
             ? roadField(nearestMappedRoad.candidate.properties, "truck")
             : "",
           nearestRoadOffset: nearestMappedRoad?.offset ?? Infinity,
+          contractor: kind === "destination" ? String(feature.properties?.contractor ?? "").trim() : "",
           operatingHours: feature.properties?.operating_hours,
           permittedVehicleTypes: feature.properties?.permitted_vehicle_types
         });
@@ -1286,6 +1287,7 @@ async function build(
           ? roadField(nearestMappedRoad.candidate.properties, "truck")
           : "",
         nearestRoadOffset: nearestMappedRoad?.offset ?? Infinity,
+        contractor: kind === "destination" ? String(feature.properties?.contractor ?? "").trim() : "",
         operatingHours: feature.properties?.operating_hours,
         permittedVehicleTypes: feature.properties?.permitted_vehicle_types
       });
@@ -1507,6 +1509,7 @@ function buildDestinationOptions() {
       name,
       type: match?.location.type || typeFromName,
       valid: match?.location.valid ?? false,
+      contractor: match?.location.contractor || "",
       hasPolygon: true,
       hasAccessPoint: Boolean(match)
     };
@@ -1544,7 +1547,9 @@ function renderDestinationOptions() {
   for (const item of visible) {
     const option = document.createElement("option");
     option.value = item.hasAccessPoint ? String(item.index) : "missing:" + item.name;
-    option.textContent = item.name + (!item.hasAccessPoint ? " — access point missing" : "");
+    option.textContent = item.name +
+      (item.contractor ? " — " + item.contractor : "") +
+      (!item.hasAccessPoint ? " — access point missing" : "");
     option.disabled = !item.hasAccessPoint;
     end.appendChild(option);
   }
@@ -1562,11 +1567,13 @@ function renderDestinationOptions() {
       option.setAttribute("role", "option");
       option.setAttribute("aria-selected", String(Boolean(selected && selected.index === item.index)));
       option.disabled = !item.hasAccessPoint;
-      option.textContent = item.name + (!item.hasAccessPoint ? " — access point missing" : (!item.valid ? " — outside snap limit" : ""));
+      option.textContent = item.name +
+        (item.contractor ? " — " + item.contractor : "") +
+        (!item.hasAccessPoint ? " — access point missing" : (!item.valid ? " — outside snap limit" : ""));
       option.addEventListener("click", () => {
         if (!item.hasAccessPoint) return;
         end.value = String(item.index);
-        pickerToggle.textContent = item.name;
+        pickerToggle.textContent = item.name + (item.contractor ? " — " + item.contractor : "");
         pickerToggle.setAttribute("aria-expanded", "false");
         pickerList.hidden = true;
         end.dispatchEvent(new Event("change", { bubbles: true }));
