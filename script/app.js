@@ -425,6 +425,7 @@ let destinationAreas = new Map();
 let ignoredDestinationNames = [];
 
 let destinationOptions = [];
+let selectedContractors = new Set();
 let gateMarkers = new Map();
 let gateMarkerLayer = null;
 
@@ -1522,11 +1523,14 @@ function renderDestinationOptions() {
   const categoryControl = document.querySelector('input[name="destinationType"]:checked');
   const category = categoryControl?.value || "All";
 
+  const contractorFiltered = selectedContractors.size > 0;
   const matching = destinationOptions.filter(item =>
     (category === "All" || destinationCategory(item) === category) &&
+    (!contractorFiltered || selectedContractors.has(item.contractor)) &&
     searchKey(item.name).includes(query)
   );
-  const selected = destinationOptions.find(item => String(item.index) === previous && (category === "All" || destinationCategory(item) === category));
+  const selected = destinationOptions.find(item => String(item.index) === previous &&
+    (category === "All" || destinationCategory(item) === category));
   const visible = [...matching];
   const retained = selected && !visible.some(item => item.index === selected.index);
   if (retained) visible.push(selected);
@@ -1587,7 +1591,9 @@ function renderDestinationOptions() {
       pickerList.appendChild(empty);
     }
   }
-  $("searchStatus").textContent = matching.length + " matching destination(s)" + (retained ? ". Current selection retained." : ".");
+  $("searchStatus").textContent = matching.length + " matching destination(s)" +
+    (contractorFiltered ? " across " + selectedContractors.size + " contractor(s)" : "") +
+    (retained ? ". Current selection retained." : ".");
 }
 
 
@@ -2285,6 +2291,7 @@ async function init() {
 
         // Refresh the area-based list against the newly built vehicle network.
         buildDestinationOptions();
+        renderContractorFilterOptions();
 
         renderDestinationOptions();
         refreshShareControls();
@@ -2302,6 +2309,56 @@ async function init() {
 
     $("destinationSearch").disabled = false;
     $("end").disabled = false;
+    const contractorToggle = $("contractorFilterToggle");
+    const contractorDialog = $("contractorFilterDialog");
+    const contractorOptions = $("contractorFilterOptions");
+    const closeContractorDialog = () => {
+      if (contractorDialog) contractorDialog.hidden = true;
+      if (contractorToggle) contractorToggle.checked = false;
+    };
+    const renderContractorFilterOptions = () => {
+      if (!contractorOptions) return;
+      contractorOptions.replaceChildren();
+      const contractors = [...new Set(destinationOptions.map(item => item.contractor).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
+      for (const contractor of contractors) {
+        const label = document.createElement("label");
+        label.className = "contractor-filter-option";
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.value = contractor;
+        input.checked = selectedContractors.has(contractor);
+        input.addEventListener("change", () => {
+          if (input.checked) selectedContractors.add(contractor);
+          else selectedContractors.delete(contractor);
+          renderDestinationOptions();
+        });
+        const text = document.createElement("span");
+        text.textContent = contractor;
+        label.append(input, text);
+        contractorOptions.appendChild(label);
+      }
+    };
+    if (contractorToggle && contractorDialog) {
+      contractorToggle.disabled = false;
+      renderContractorFilterOptions();
+      contractorToggle.addEventListener("change", () => {
+        contractorDialog.hidden = !contractorToggle.checked;
+      });
+      $("contractorFilterClose")?.addEventListener("click", closeContractorDialog);
+      $("contractorFilterClear")?.addEventListener("click", () => {
+        selectedContractors.clear();
+        renderContractorFilterOptions();
+        renderDestinationOptions();
+      });
+      document.addEventListener("click", event => {
+        if (event.target.closest(".contractor-filter-wrap")) return;
+        if (!contractorDialog.hidden) closeContractorDialog();
+      });
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && !contractorDialog.hidden) closeContractorDialog();
+      });
+    }
     const pickerToggle = $("destinationPickerToggle");
     const pickerList = $("destinationPickerList");
     if (pickerToggle && pickerList) {
