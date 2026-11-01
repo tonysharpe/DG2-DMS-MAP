@@ -5,7 +5,7 @@ on:
   push:
     paths:
       - "data/roads.geojson"
-      - "scripts/build-routing-network.cjs"
+      - "script/build-routing-network.cjs"
       - "package.json"
       - ".github/workflows/build-routing-network.yml"
 
