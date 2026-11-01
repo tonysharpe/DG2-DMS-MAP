@@ -3516,11 +3516,11 @@ body > #journeyControls.journey-controls {
 .contractor-filter-dialog[hidden] { display:none !important; }
 .contractor-filter-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; }
 .contractor-filter-heading button { border:0; background:transparent; color:inherit; font-size:19px; line-height:1; padding:0 5px; }
-.destination-filter-groups { display:grid; grid-template-columns:1fr; gap:7px; min-height:0; overflow-y:auto; margin-top:6px; }
-.destination-filter-group { min-width:0; margin:0; padding:5px 7px 6px; border:1px solid var(--border-color, #e2e5e8); border-radius:6px; }
+.destination-filter-groups { display:grid; grid-template-columns:1fr; gap:4px; min-height:0; overflow-y:auto; margin-top:4px; }
+.destination-filter-group { min-width:0; margin:0; padding:3px 6px 4px; border:1px solid var(--border-color, #e2e5e8); border-radius:6px; }
 .destination-filter-group legend { padding:0 4px; font-size:11px; font-weight:700; }
-.contractor-filter-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:3px 8px; max-height:120px; overflow-y:auto; }
-.contractor-filter-option { display:flex; align-items:center; gap:5px; min-width:0; min-height:21px; font-size:11px; line-height:1.15; cursor:pointer; }
+.contractor-filter-options { display:grid; grid-template-columns:minmax(0,1fr); gap:1px; max-height:120px; overflow-y:auto; }
+.contractor-filter-option { display:flex; align-items:center; gap:4px; min-width:0; min-height:17px; font-size:11px; line-height:1; cursor:pointer; }
 .contractor-filter-option span { overflow-wrap:anywhere; }
 .contractor-filter-option input { flex:0 0 auto; width:12px; height:12px; margin:0; }
 
