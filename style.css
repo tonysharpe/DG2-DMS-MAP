@@ -3498,6 +3498,34 @@ body > #journeyControls.journey-controls {
 }
 
 
+/* Contractor filter floating panel. */
+.contractor-filter-wrap { position: relative; margin: 8px 0; }
+.contractor-filter-trigger { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.contractor-filter-dialog {
+  position: absolute;
+  z-index: 1600;
+  top: calc(100% + 6px);
+  left: 0;
+  width: min(320px, calc(100vw - 48px));
+  max-height: min(65vh, 480px);
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border: 1px solid var(--border-color, #b8bec5);
+  border-radius: 10px;
+  background: var(--panel-background, #fff);
+  color: var(--text-color, #222);
+  box-shadow: 0 8px 28px rgba(0,0,0,.22);
+}
+.contractor-filter-dialog[hidden] { display: none !important; }
+.contractor-filter-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.contractor-filter-heading button { border: 0; background: transparent; color: inherit; font-size: 22px; line-height: 1; padding: 2px 7px; }
+.contractor-filter-options { overflow-y: auto; min-height: 0; max-height: 280px; display: grid; grid-template-columns: 1fr; gap: 7px; padding: 5px 2px; }
+.contractor-filter-option { display: flex; align-items: center; gap: 8px; min-height: 28px; cursor: pointer; }
+.contractor-filter-option input { flex: 0 0 auto; }
+.contractor-filter-actions { display: flex; justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--border-color, #e2e5e8); }
+.contractor-filter-actions button { padding: 6px 10px; }
+
 /* Custom destination picker avoids native mobile select popover/repaint issues. */
 #end[aria-hidden="true"] { display: none !important; }
 .destination-picker-toggle {
