@@ -3516,13 +3516,13 @@ body > #journeyControls.journey-controls {
 .contractor-filter-dialog[hidden] { display:none !important; }
 .contractor-filter-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; }
 .contractor-filter-heading button { border:0; background:transparent; color:inherit; font-size:19px; line-height:1; padding:0 5px; }
-.destination-filter-groups { display:grid; grid-template-columns:1fr; gap:4px; min-height:0; overflow-y:auto; margin-top:4px; }
-.destination-filter-group { min-width:0; margin:0; padding:3px 6px 4px; border:1px solid var(--border-color, #e2e5e8); border-radius:6px; }
-.destination-filter-group legend { padding:0 4px; font-size:11px; font-weight:700; }
-.contractor-filter-options { display:grid; grid-template-columns:minmax(0,1fr); gap:1px; max-height:120px; overflow-y:auto; }
-.contractor-filter-option { display:flex; align-items:center; gap:4px; min-width:0; min-height:17px; font-size:11px; line-height:1; cursor:pointer; }
-.contractor-filter-option span { overflow-wrap:anywhere; }
-.contractor-filter-option input { flex:0 0 auto; width:12px; height:12px; margin:0; }
+.destination-filter-groups { display:grid; grid-template-columns:1fr; gap:2px !important; min-height:0; overflow-y:auto; margin-top:3px; }
+.destination-filter-group { min-width:0; margin:0 !important; padding:2px 5px 3px; border:1px solid var(--border-color, #e2e5e8); border-radius:6px; }
+.destination-filter-group legend { padding:0 3px; font-size:11px; font-weight:700; line-height:12px; }
+.contractor-filter-options { display:grid; grid-template-columns:minmax(0,1fr); gap:0 !important; row-gap:0 !important; max-height:120px; overflow-y:auto; }
+.contractor-filter-options > .contractor-filter-option { box-sizing:border-box; display:flex !important; align-items:center; gap:4px; width:100%; min-width:0; min-height:13px !important; height:13px; margin:0 !important; padding:0 !important; font-size:11px; line-height:12px !important; cursor:pointer; }
+.contractor-filter-option span { display:block; overflow-wrap:anywhere; line-height:12px !important; }
+.contractor-filter-options > .contractor-filter-option input { flex:0 0 12px; width:12px; height:12px; margin:0 !important; padding:0; }
 
 /* Custom destination picker avoids native mobile select popover/repaint issues. */
 #end[aria-hidden="true"] { display: none !important; }
