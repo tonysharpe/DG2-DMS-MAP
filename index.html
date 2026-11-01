@@ -168,6 +168,20 @@
         <label><input type="radio" name="destinationType" value="LAAR"> LAAR</label>
         <label><input type="radio" name="destinationType" value="Office"> Office</label>
       </fieldset>
+      <div class="contractor-filter-wrap">
+        <label class="contractor-filter-trigger"><input id="contractorFilterToggle" type="checkbox" disabled> Filter by contractor</label>
+        <section id="contractorFilterDialog" class="contractor-filter-dialog" role="dialog" aria-label="Filter destinations by contractor" hidden>
+          <div class="contractor-filter-heading">
+            <strong>Filter by contractor</strong>
+            <button id="contractorFilterClose" type="button" aria-label="Close contractor filter">×</button>
+          </div>
+          <p class="field-help">Select one or more contractors. No selection shows all contractors.</p>
+          <div id="contractorFilterOptions" class="contractor-filter-options"></div>
+          <div class="contractor-filter-actions">
+            <button id="contractorFilterClear" type="button">Clear filters</button>
+          </div>
+        </section>
+      </div>
       <button id="destinationPickerToggle" class="destination-picker-toggle" type="button" aria-expanded="false" aria-controls="destinationPickerList" disabled>Select destination…</button>
       <div id="destinationPickerList" class="destination-picker-list" role="listbox" aria-label="Available destinations" hidden></div>
       <select id="end" disabled aria-hidden="true" tabindex="-1">
