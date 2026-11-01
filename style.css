@@ -4304,3 +4304,73 @@ body > #journeyControls.journey-controls {
     display: none !important;
   }
 }
+
+
+/* ---------------------------------------------------------------------
+   Consistent typography for the sidebar, menus and application dialogs.
+   --------------------------------------------------------------------- */
+:where(body > aside, #journeyControls, [role="dialog"], .map-loading-dialog,
+       .destination-picker-list, .destination-picker-option) {
+  font-family: var(--font-main) !important;
+  font-size: 14px !important;
+}
+
+:where(body > aside, #journeyControls, [role="dialog"], .map-loading-dialog,
+       .destination-picker-list) :where(p, label, span, li, small, button,
+       input, select, textarea, option, legend, summary, .field-help,
+       .network-date, .journey-footnote) {
+  font-family: var(--font-main) !important;
+  font-size: 14px !important;
+  color: #5F6368;
+}
+
+:where(body > aside, #journeyControls, [role="dialog"], .map-loading-dialog,
+       .destination-picker-list) :where(h1, h2, h3, h4, strong, legend,
+       .contractor-filter-heading) {
+  font-family: var(--font-main) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #202124 !important;
+}
+
+:where(body > aside, #journeyControls, [role="dialog"]) :where(input, select, textarea, button) {
+  font-family: var(--font-main) !important;
+  font-size: 14px !important;
+}
+
+:where(body > aside, #journeyControls, [role="dialog"]) :where(button.primary-button, .primary-button) {
+  color: #FFFFFF !important;
+}
+
+:where(body > aside, #journeyControls, [role="dialog"]) :where(button:disabled) {
+  color: #80868B !important;
+}
+
+/* Filter options: readable 14px text with slightly more breathing room. */
+.contractor-filter-options > .contractor-filter-option {
+  min-height: 19px !important;
+  height: auto !important;
+  padding: 2px 0 !important;
+  font-family: var(--font-main) !important;
+  font-size: 14px !important;
+  line-height: 15px !important;
+  color: #5F6368 !important;
+}
+.contractor-filter-option span {
+  font-family: var(--font-main) !important;
+  font-size: 14px !important;
+  line-height: 15px !important;
+  color: #5F6368 !important;
+}
+.contractor-filter-options > .contractor-filter-option input {
+  flex-basis: 13px;
+  width: 13px;
+  height: 13px;
+}
+.contractor-filter-group legend,
+.contractor-filter-heading strong {
+  font-family: var(--font-main) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #202124 !important;
+}
