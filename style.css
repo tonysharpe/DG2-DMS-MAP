@@ -4611,3 +4611,12 @@ body {
     min-width: 92px;
   }
 }
+
+
+/* Destination type filters are presented as three fixed columns. */
+.destination-type-filter-group .contractor-filter-options {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  column-gap: 10px !important;
+  row-gap: 1px !important;
+}
