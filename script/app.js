@@ -2048,6 +2048,7 @@ async function init() {
 
     map = L.map("map", {
       zoomControl: false,
+      attributionControl: false,
       maxBoundsViscosity: 1,
       scrollWheelZoom: true,
       preferCanvas: true,
