@@ -201,9 +201,6 @@
             <span>My Location</span>
           </div>
 
-          <p class="diriyah-legend-note">
-            Road visibility does not indicate vehicle access.
-          </p>
         </div>
       `;
 
