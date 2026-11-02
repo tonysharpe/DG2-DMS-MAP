@@ -139,31 +139,42 @@
 })();
 
 
-/* Keep the selected vehicle and destination visible in the collapsed mobile bar. */
+/* Keep the selected vehicle symbol and destination name visible in the collapsed mobile bar. */
 (function () {
   const summary = document.getElementById("mobileHeaderSummary");
-  const vehicleText = document.getElementById("mobileHeaderVehicle");
+  const vehicleIcon = document.getElementById("mobileHeaderVehicleIcon");
   const destinationText = document.getElementById("mobileHeaderDestination");
-  if (!summary || !vehicleText || !destinationText) return;
+  if (!summary || !vehicleIcon || !destinationText) return;
 
   function refresh() {
     const vehicle = document.getElementById("vehicleType");
-    const destination = document.getElementById("end");
-    const selected = typeof selectedDestination === "function"
+    const destination = typeof selectedDestination === "function"
       ? selectedDestination()
       : null;
-    const vehicleLabel = vehicle?.selectedOptions?.[0]?.textContent?.trim() ||
-      vehicle?.value || "Vehicle";
-    const destinationLabel = selected?.name ||
-      (destination?.value ? destination.selectedOptions?.[0]?.textContent?.trim() : "") ||
-      "No destination selected";
+    const vehicleValue = vehicle?.value || "truck";
+    const sourceIcon = document.querySelector(
+      'input[name="vehicleTypeChoice"][value="' + vehicleValue + '"]'
+    )?.closest("label")?.querySelector("svg.vehicle-icon");
 
-    vehicleText.textContent = vehicleLabel;
-    destinationText.textContent = destinationLabel;
+    vehicleIcon.replaceChildren();
+    if (sourceIcon) {
+      const icon = sourceIcon.cloneNode(true);
+      icon.removeAttribute("id");
+      icon.setAttribute("aria-hidden", "true");
+      vehicleIcon.appendChild(icon);
+    }
+
+    // Use only the destination's name property; do not include contractor,
+    // route status, or other selector text in the compact header.
+    destinationText.textContent = destination?.name || "No Route Selected";
   }
 
   document.addEventListener("change", event => {
-    if (event.target?.id === "vehicleType" || event.target?.id === "end") refresh();
+    if (
+      event.target?.id === "vehicleType" ||
+      event.target?.id === "end" ||
+      event.target?.name === "vehicleTypeChoice"
+    ) refresh();
   });
   document.addEventListener("laar-destination-selection-change", refresh);
   window.addEventListener("pageshow", refresh);
