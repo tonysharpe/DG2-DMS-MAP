@@ -1503,9 +1503,10 @@ function buildDestinationOptions() {
     }
   });
 
-  // The area file is the canonical list. Deduplicate repeated polygon
-  // features by name, then attach the matching access-point record if present.
-  destinationOptions = [...destinationAreas.keys()].map(name => {
+  // Include every named destination from either source. A polygon without a
+  // matching access point remains selectable so its area can still be shown.
+  const names = new Set([...destinationAreas.keys(), ...pointIndexes.keys()]);
+  destinationOptions = [...names].map(name => {
     const match = pointIndexes.get(name);
     const typeFromName = name.match(/^DGII-([^-]+)-/i)?.[1] || "";
     return {
@@ -1515,8 +1516,9 @@ function buildDestinationOptions() {
       valid: match?.location.valid ?? false,
       contractor: match?.location.contractor || "",
       package: match?.location.package || "",
-      hasPolygon: true,
-      hasAccessPoint: Boolean(match)
+      hasPolygon: destinationAreas.has(name),
+      hasAccessPoint: Boolean(match),
+      reachable: null
     };
   });
 }
@@ -1534,7 +1536,8 @@ function renderDestinationOptions() {
   const matching = destinationOptions.filter(item =>
     matchesFilters(item) && searchKey(item.name).includes(query)
   );
-  const selected = destinationOptions.find(item => String(item.index) === previous && matchesFilters(item));
+  const optionValue = item => item.hasAccessPoint ? String(item.index) : "missing:" + item.name;
+  const selected = destinationOptions.find(item => optionValue(item) === previous && matchesFilters(item));
   const visible = [...matching];
   const retained = selected && !visible.some(item => item.index === selected.index);
   if (retained) visible.push(selected);
@@ -1557,8 +1560,8 @@ function renderDestinationOptions() {
     option.value = item.hasAccessPoint ? String(item.index) : "missing:" + item.name;
     option.textContent = item.name +
       (item.contractor ? " — " + item.contractor : "") +
-      (!item.hasAccessPoint ? " — access point missing" : "");
-    option.disabled = !item.hasAccessPoint;
+      (item.reachable === false ? " — no route found" : "");
+    if (item.reachable === false) option.style.color = "#c62828";
     end.appendChild(option);
   }
   end.value = selected ? previous : "";
@@ -1575,14 +1578,13 @@ function renderDestinationOptions() {
       option.type = "button";
       option.className = "destination-picker-option";
       option.setAttribute("role", "option");
-      option.setAttribute("aria-selected", String(Boolean(selected && selected.index === item.index)));
-      option.disabled = !item.hasAccessPoint;
+      option.setAttribute("aria-selected", String(Boolean(selected && optionValue(selected) === optionValue(item))));
+      if (item.reachable === false) option.classList.add("is-unreachable");
       option.textContent = item.name +
         (item.contractor ? " — " + item.contractor : "") +
-        (!item.hasAccessPoint ? " — access point missing" : (!item.valid ? " — outside snap limit" : ""));
+        (item.reachable === false ? " — no route found" : "");
       option.addEventListener("click", () => {
-        if (!item.hasAccessPoint) return;
-        end.value = String(item.index);
+        end.value = optionValue(item);
         pickerToggle.textContent = item.name + (item.contractor ? " — " + item.contractor : "");
         pickerToggle.setAttribute("aria-expanded", "false");
         pickerList.hidden = true;
@@ -1631,12 +1633,26 @@ function updateDestinationUrl(destinationName = null) {
 
 
 function selectedDestination() {
-  if ($("end").value === "") return null;
+  const value = $("end").value;
+  if (value === "") return null;
 
-  const index = Number($("end").value);
+  if (value.startsWith("missing:")) {
+    const name = value.slice("missing:".length);
+    const item = destinationOptions.find(option => option.name === name);
+    if (!item) return null;
+    return {
+      ...item,
+      kind: "destination",
+      offset: Infinity,
+      node: null,
+      valid: false,
+      nearestRoadType: ""
+    };
+  }
+
+  const index = Number(value);
   if (!Number.isInteger(index)) return null;
   const location = locations[index];
-
   return location?.kind === "destination" ? location : null;
 }
 
