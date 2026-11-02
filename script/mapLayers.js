@@ -310,11 +310,13 @@ function themeNumber(property) {
   pane("siteFacilities", 320);
   pane("siteReferenceLabels", 350);
 
+  // Keep the layer registry available to the app, but do not add
+  // Leaflet's layers button/menu to the map.
   const control = L.control.layers(
     null,
     {},
     { collapsed: true }
-  ).addTo(map);
+  );
   window.laarLayerControl = control;
 
   if (typeof displayedRoadLayerGroup !== "undefined" && displayedRoadLayerGroup) {
