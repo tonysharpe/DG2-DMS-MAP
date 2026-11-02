@@ -1981,7 +1981,7 @@ function calculate(collapseMobilePanelOnSuccess = false) {
   } catch (error) {
     console.error(error);
     const routeFailure = Boolean(selectedDestination());
-    if (!liveNavigationActive) fitSelectedResult();
+    if (!liveNavigationActive) fitSelectedResult(routeFailure);
     if (routeFailure) {
       showRouteFailureBanner("No route found");
       status("No route found for the selected destination and vehicle.");
