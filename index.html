@@ -30,7 +30,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=collapsed-summary-1"
+    href="style.css?v=filter-hitareas-22px-1"
   >
 <!-- LIBRARIES -->
 
@@ -49,7 +49,7 @@
 
   <script
     defer
-    src="script/app.js?v=route-layer-above-destination-1"
+    src="script/app.js?v=destination-filter-panel-2"
   ></script>
 <script
     defer
@@ -58,15 +58,15 @@
 
   <script
     defer
-    src="script/routing.js?v=all-destinations-status-2"
+    src="script/routing.js?v=unreachable-destination-diagnostics-1"
   ></script>
 
   <script
     defer
-    src="script/mapLayers.js?v=hidden-layer-control-1"
+    src="script/mapLayers.js?v=background-layers-during-routing-1"
   ></script>
 
-  <script defer src="script/routeDisplay.js?v=destination-point-preview-1"></script>
+  <script defer src="script/routeDisplay.js?v=live-button-state-fix-2"></script>
   <script defer src="script/map.js?v=haul-color-match-1"></script>
 </head>
 
@@ -91,11 +91,6 @@
       <h1>Diriyah 2 Map</h1>
       <div class="header-actions"><button id="panelToggle" class="mobile-panel-toggle" type="button" aria-expanded="true" aria-controls="navigationPanel">Hide</button><button id="liveRouteToggle" class="live-route-toggle" type="button" disabled>Start</button></div>
     </header>
-    <div id="collapsedMenuSummary" class="collapsed-menu-summary" aria-live="polite">
-      <span id="collapsedVehicleType">Truck</span>
-      <span class="collapsed-menu-summary__separator" aria-hidden="true">·</span>
-      <span id="collapsedDestination">Select destination…</span>
-    </div>
 <!-- VEHICLE -->
     <section class="control-section" aria-labelledby="vehicleHeading">
       <h2 id="vehicleHeading">Vehicle Type:</h2>
@@ -384,7 +379,7 @@
     </div>
   </div>
 
-  <script defer src="script/ui.js?v=collapsed-summary-1"></script>
+  <script defer src="script/ui.js?v=development-sidebar-toggle-2"></script>
   <script defer src="script/main.js?v=project-structure-1"></script>
 
 </body>

@@ -39,38 +39,6 @@
   // can make the destination selector flash between the sheet and full map.
 
 
-
-  // Keep the collapsed mobile bar in sync with the selected vehicle and destination.
-  const summaryVehicle = document.getElementById("collapsedVehicleType");
-  const summaryDestination = document.getElementById("collapsedDestination");
-  const vehicleSelect = document.getElementById("vehicleType");
-  const destinationToggle = document.getElementById("destinationPickerToggle");
-
-  function syncCollapsedSummary() {
-    if (summaryVehicle) {
-      const checkedVehicle = document.querySelector('input[name="vehicleTypeChoice"]:checked');
-      const vehicleLabel = checkedVehicle?.closest("label")?.querySelector(".vehicle-label")?.textContent?.trim();
-      const selectedVehicle = vehicleSelect?.selectedOptions?.[0]?.textContent?.trim();
-      summaryVehicle.textContent = vehicleLabel || selectedVehicle || "Vehicle not selected";
-    }
-    if (summaryDestination) {
-      const destinationText = destinationToggle?.textContent?.trim();
-      summaryDestination.textContent = destinationText || "Select destination…";
-    }
-  }
-
-  vehicleSelect?.addEventListener("change", syncCollapsedSummary);
-  document.querySelectorAll('input[name="vehicleTypeChoice"]').forEach(input => {
-    input.addEventListener("change", syncCollapsedSummary);
-  });
-  destinationToggle?.addEventListener("click", syncCollapsedSummary);
-  if (destinationToggle && typeof MutationObserver !== "undefined") {
-    new MutationObserver(syncCollapsedSummary).observe(destinationToggle, {
-      childList: true, characterData: true, subtree: true
-    });
-  }
-  syncCollapsedSummary();
-
   toggle.addEventListener("click", function () {
     const expanded = toggle.getAttribute("aria-expanded") === "true";
     setExpanded(!expanded);

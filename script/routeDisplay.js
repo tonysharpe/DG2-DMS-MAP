@@ -2,59 +2,48 @@ function themeColor(property) {
   return getComputedStyle(document.documentElement).getPropertyValue(property).trim();
 }
 
-let selectedDestinationMarker = null;
-
 function showDestinationArea(destination) {
   const matching = destinationAreas.get(destination.name);
 
-  if (matching?.length) {
-    selectedAreaLayer = L.geoJSON(
-      { type: "FeatureCollection", features: matching },
-      {
-        pane: "selectedLaarPane",
-        style: {
-          color: themeColor("--map-area-outline"),
-          weight: 2.5,
-          opacity: 1,
-          fillColor: themeColor("--map-area-fill"),
-          fillOpacity: Number.parseFloat(themeColor("--map-area-fill-opacity")) / 100,
-          lineCap: "round",
-          lineJoin: "round"
-        },
-        onEachFeature: (feature, layer) => {
-          const label = document.createElement("span");
-          label.textContent = destination.name;
-          layer.bindTooltip(label, { direction: "top", className: "selected-laar-tooltip" });
-        }
-      }
-    ).addTo(map);
+  if (!matching?.length) {
+    throw new Error(
+      "No polygon matches '" + destination.name +
+      "'. Check the exact Name values."
+    );
   }
 
-  // Show the destination point as well as its polygon, when the point exists.
-  if (destination.point && Array.isArray(destination.point)) {
-    selectedDestinationMarker = L.circleMarker(ll(destination.point), {
+  selectedAreaLayer = L.geoJSON(
+    { type: "FeatureCollection", features: matching },
+    {
       pane: "selectedLaarPane",
-      radius: 7,
-      color: "#FFFFFF",
-      weight: 2,
-      fillColor: "#C62828",
-      fillOpacity: 1
-    }).addTo(map);
-    selectedDestinationMarker.bindTooltip(destination.name, {
-      direction: "top",
-      className: "selected-laar-tooltip"
-    });
-  }
 
-  if (!selectedAreaLayer && !selectedDestinationMarker) {
-    throw new Error("No mapped area or destination point is available for '" + destination.name + "'.");
-  }
+      style: {
+        color: themeColor("--map-area-outline"),
+        weight: 2.5,
+        opacity: 1,
+        fillColor: themeColor("--map-area-fill"),
+        fillOpacity: Number.parseFloat(themeColor("--map-area-fill-opacity")) / 100,
+        lineCap: "round",
+        lineJoin: "round"
+      },
+
+      onEachFeature: (feature, layer) => {
+        const label = document.createElement("span");
+        label.textContent = destination.name;
+
+        layer.bindTooltip(label, {
+          direction: "top",
+          className: "selected-laar-tooltip"
+        });
+      }
+    }
+  ).addTo(map);
 }
 
 function fitSelectedResult() {
   let bounds = null;
 
-  for (const layer of [selectedAreaLayer, selectedDestinationMarker, routeLayer]) {
+  for (const layer of [selectedAreaLayer, routeLayer]) {
     if (!layer) continue;
 
     const layerBounds = layer.getBounds();
@@ -141,10 +130,6 @@ function clearRoute() {
   if (selectedAreaLayer) {
     map.removeLayer(selectedAreaLayer);
     selectedAreaLayer = null;
-  }
-  if (selectedDestinationMarker) {
-    map.removeLayer(selectedDestinationMarker);
-    selectedDestinationMarker = null;
   }
 
   if ($("routeSummary")) {
