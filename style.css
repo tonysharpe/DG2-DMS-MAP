@@ -4545,3 +4545,51 @@ body {
 .destination-picker-option.is-unreachable:focus-visible {
   color: #a51f1f !important;
 }
+
+
+/* Collapsed mobile menu summary: one compact line matching the header typography. */
+.mobile-header-summary {
+  display: none;
+}
+@media (max-width: 760px) {
+  body > #navigationPanel.mobile-panel-collapsed .site-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 56px;
+    margin: 0;
+    padding: 0;
+  }
+  body > #navigationPanel.mobile-panel-collapsed .site-header h1 {
+    display: none;
+  }
+  body > #navigationPanel.mobile-panel-collapsed .mobile-header-summary {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 6px;
+    overflow: hidden;
+    color: var(--text-primary, #302C28);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+  .mobile-header-summary__separator {
+    flex: 0 0 auto;
+    color: var(--text-muted, #827E76);
+  }
+  #mobileHeaderVehicle {
+    flex: 0 0 auto;
+  }
+  #mobileHeaderDestination {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  body > #navigationPanel.mobile-panel-collapsed .header-actions {
+    flex: 0 0 auto;
+    gap: 5px;
+  }
+}
