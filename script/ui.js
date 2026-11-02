@@ -137,3 +137,36 @@
 
   setExpanded(false);
 })();
+
+
+/* Keep the selected vehicle and destination visible in the collapsed mobile bar. */
+(function () {
+  const summary = document.getElementById("mobileHeaderSummary");
+  const vehicleText = document.getElementById("mobileHeaderVehicle");
+  const destinationText = document.getElementById("mobileHeaderDestination");
+  if (!summary || !vehicleText || !destinationText) return;
+
+  function refresh() {
+    const vehicle = document.getElementById("vehicleType");
+    const destination = document.getElementById("end");
+    const selected = typeof selectedDestination === "function"
+      ? selectedDestination()
+      : null;
+    const vehicleLabel = vehicle?.selectedOptions?.[0]?.textContent?.trim() ||
+      vehicle?.value || "Vehicle";
+    const destinationLabel = selected?.name ||
+      (destination?.value ? destination.selectedOptions?.[0]?.textContent?.trim() : "") ||
+      "No destination selected";
+
+    vehicleText.textContent = vehicleLabel;
+    destinationText.textContent = destinationLabel;
+  }
+
+  document.addEventListener("change", event => {
+    if (event.target?.id === "vehicleType" || event.target?.id === "end") refresh();
+  });
+  document.addEventListener("laar-destination-selection-change", refresh);
+  window.addEventListener("pageshow", refresh);
+  refresh();
+  window.updateMobileHeaderSummary = refresh;
+})();
