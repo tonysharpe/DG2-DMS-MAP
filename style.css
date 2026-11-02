@@ -3515,7 +3515,19 @@ body > #journeyControls.journey-controls {
 }
 .contractor-filter-dialog[hidden] { display:none !important; }
 .contractor-filter-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; }
-.contractor-filter-heading button { border:0; background:transparent; color:inherit; font-size:19px; line-height:1; padding:0 5px; }
+.contractor-filter-heading button {
+  border:1px solid var(--border-color, #d5d9dd);
+  border-radius:6px;
+  background:#f1f2f3;
+  color:#50555b;
+  font-size:12px;
+  font-weight:600;
+  line-height:1.2;
+  padding:4px 11px;
+}
+.contractor-filter-heading button:hover {
+  background:#e8eaec;
+}
 .destination-filter-groups { display:grid; grid-template-columns:1fr; gap:2px !important; min-height:0; overflow-y:auto; margin-top:3px; }
 .destination-filter-group { min-width:0; margin:0 !important; padding:2px 5px 3px; border:1px solid var(--border-color, #e2e5e8); border-radius:6px; }
 .destination-filter-group legend { padding:0 3px; font-size:11px; font-weight:700; line-height:12px; }
