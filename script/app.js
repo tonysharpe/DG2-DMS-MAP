@@ -202,16 +202,19 @@ async function changeVehicle() {
     timing[name] = Number(((endedAt - startedAt) / 1000).toFixed(3));
     window.recordMapLoadTiming?.("Vehicle switch: " + name, startedAt, endedAt);
   };
+  // Preserve the selected destination by its stable name, not its
+  // vehicle-specific location-array index. Keep the active start mode and
+  // map-click origin; prepareRoutingStart will reattach that origin to the
+  // newly selected vehicle's permitted network.
+  const selectedDestinationName = selectedDestination()?.name || null;
+  const selectedStartMode = $("startMode").value;
+
   setVehicleUpdating(true);
   const paintStartedAt = performance.now();
   // Let the browser paint the progress indicator before graph construction starts.
   await new Promise(resolve => requestAnimationFrame(() => resolve()));
   mark("allow progress dialog to paint", paintStartedAt);
   clearRoute();
-  if ($("startMode")?.value === "map" && typeof removeMapClickOrigin === "function") {
-    removeMapClickOrigin();
-    locationStatus("Vehicle changed. Click the map again within 10 m of a permitted road.");
-  }
   vehicleMode = $("vehicleType").value;
   let networkSource = "built on demand";
   try {
@@ -222,10 +225,19 @@ async function changeVehicle() {
 
     const destinationsStartedAt = performance.now();
     buildDestinationOptions();
-    // Do not calculate during a vehicle switch. Show all destinations for the
-    // new vehicle and wait for the user to select one explicitly.
-    $("end").value = "";
-    $("destinationSearch").value = "";
+
+    // Restore the selected LAAR against the new vehicle-specific location
+    // array. Area-only destinations remain selectable as well.
+    const retainedDestination = selectedDestinationName
+      ? destinationOptions.find(option => option.name === selectedDestinationName)
+      : null;
+    $("end").value = retainedDestination
+      ? (retainedDestination.hasAccessPoint
+          ? String(retainedDestination.index)
+          : "missing:" + retainedDestination.name)
+      : "";
+    // Keep the user's search text and the chosen start mode unchanged.
+    $("startMode").value = selectedStartMode;
     renderDestinationOptions();
     mark("prepare and render destination options", destinationsStartedAt);
 
@@ -236,7 +248,12 @@ async function changeVehicle() {
     refreshShareControls();
     mark("refresh map and controls", mapRefreshStartedAt);
 
-    status(vehicleMode + ": " + roads.length + " eligible roads. Select a destination to calculate a route.");
+    if (retainedDestination) {
+      status(vehicleMode + ": updating route to " + retainedDestination.name + "…");
+      calculate();
+    } else {
+      status(vehicleMode + ": " + roads.length + " eligible roads. Select a destination to calculate a route.");
+    }
   } catch (error) {
     roads = [];
     adjacency = new Map();
