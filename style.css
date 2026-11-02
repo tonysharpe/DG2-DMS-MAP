@@ -4547,7 +4547,7 @@ body {
 }
 
 
-/* Collapsed mobile menu summary: one compact line matching the header typography. */
+/* Collapsed mobile summary: vehicle symbol and destination in a light-grey pill. */
 .mobile-header-summary {
   display: none;
 }
@@ -4568,20 +4568,33 @@ body {
     align-items: center;
     flex: 1 1 auto;
     min-width: 0;
-    gap: 6px;
+    box-sizing: border-box;
+    gap: 8px;
     overflow: hidden;
-    color: var(--text-primary, #302C28);
-    font-size: 13px;
+    padding: 6px 10px;
+    border: 1px solid #e1e3e5;
+    border-radius: 999px;
+    background: #f1f2f3;
+    color: #747A80;
+    font-family: var(--font-main);
+    font-size: 12px;
     font-weight: 600;
     line-height: 1.25;
     white-space: nowrap;
   }
-  .mobile-header-summary__separator {
+  .mobile-header-summary__vehicle-icon {
+    display: inline-flex;
     flex: 0 0 auto;
-    color: var(--text-muted, #827E76);
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 20px;
+    color: #747A80;
   }
-  #mobileHeaderVehicle {
-    flex: 0 0 auto;
+  .mobile-header-summary__vehicle-icon svg {
+    display: block;
+    width: 22px;
+    height: 16px;
   }
   #mobileHeaderDestination {
     min-width: 0;
