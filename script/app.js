@@ -2017,6 +2017,7 @@ async function init() {
     }
 
     map = L.map("map", {
+      zoomControl: false,
       maxBoundsViscosity: 1,
       scrollWheelZoom: true,
       preferCanvas: true,
