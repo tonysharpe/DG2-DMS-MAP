@@ -2343,6 +2343,13 @@ async function init() {
       if (contractorDialog) contractorDialog.hidden = true;
       if (contractorToggle) contractorToggle.checked = false;
     };
+    const scrollMobilePlannerToBottom = () => {
+      if (!window.matchMedia("(max-width: 760px)").matches) return;
+      requestAnimationFrame(() => {
+        const panel = $("navigationPanel");
+        if (panel) panel.scrollTo({ top: panel.scrollHeight, behavior: "smooth" });
+      });
+    };
     const renderDestinationFilterOptions = () => {
       for (const group of filterGroups) {
         const container = $(group.id);
@@ -2374,6 +2381,7 @@ async function init() {
       renderDestinationFilterOptions();
       contractorToggle.addEventListener("change", () => {
         contractorDialog.hidden = !contractorToggle.checked;
+        if (contractorToggle.checked) scrollMobilePlannerToBottom();
       });
       $("contractorFilterClose")?.addEventListener("click", closeContractorDialog);
       $("contractorFilterClear")?.addEventListener("click", () => {
@@ -2398,6 +2406,7 @@ async function init() {
         const opening = pickerList.hidden;
         pickerList.hidden = !opening;
         pickerToggle.setAttribute("aria-expanded", String(opening));
+        if (opening) scrollMobilePlannerToBottom();
       });
       document.addEventListener("click", event => {
         if (event.target.closest("#destinationPickerToggle, #destinationPickerList")) return;
