@@ -310,11 +310,13 @@ function themeNumber(property) {
   pane("siteFacilities", 320);
   pane("siteReferenceLabels", 350);
 
+  // Keep the overlay registry for layer setup, but do not add a
+  // layer-switcher control to the map interface.
   const control = L.control.layers(
     null,
     {},
     { collapsed: true }
-  ).addTo(map);
+  );
   window.laarLayerControl = control;
 
   if (typeof displayedRoadLayerGroup !== "undefined" && displayedRoadLayerGroup) {
