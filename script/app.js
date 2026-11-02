@@ -2093,7 +2093,7 @@ async function init() {
     map.getPane("selectedLaarPane").style.zIndex = "500";
 
     map.createPane("routePane");
-    map.getPane("routePane").style.zIndex = "450";
+    map.getPane("routePane").style.zIndex = "640";
 
     map.createPane("gateMarkerPane");
     map.getPane("gateMarkerPane").style.zIndex = "670";
