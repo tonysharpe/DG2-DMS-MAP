@@ -444,7 +444,6 @@ let ignoredDestinationNames = [];
 let destinationOptions = [];
 let selectedContractors = new Set();
 let selectedDestinationTypes = new Set();
-let selectedDestinationPackages = new Set();
 let gateMarkers = new Map();
 let gateMarkerLayer = null;
 
@@ -1545,11 +1544,9 @@ function renderDestinationOptions() {
   const query = searchKey($("destinationSearch").value);
   const contractorFiltered = selectedContractors.size > 0;
   const typeFiltered = selectedDestinationTypes.size > 0;
-  const packageFiltered = selectedDestinationPackages.size > 0;
   const matchesFilters = item =>
     (!contractorFiltered || selectedContractors.has(item.contractor)) &&
-    (!typeFiltered || selectedDestinationTypes.has(item.type)) &&
-    (!packageFiltered || selectedDestinationPackages.has(item.package));
+    (!typeFiltered || selectedDestinationTypes.has(String(item.type || "").toUpperCase()));
   const matching = destinationOptions.filter(item =>
     matchesFilters(item) && searchKey(item.name).includes(query)
   );
@@ -1616,7 +1613,7 @@ function renderDestinationOptions() {
       pickerList.appendChild(empty);
     }
   }
-  const activeFilterCount = selectedContractors.size + selectedDestinationTypes.size + selectedDestinationPackages.size;
+  const activeFilterCount = selectedContractors.size + selectedDestinationTypes.size;
   $("searchStatus").textContent = matching.length + " matching destination(s)" +
     (activeFilterCount ? " with " + activeFilterCount + " filter(s) applied" : "") +
     (retained ? ". Current selection retained." : ".");
@@ -2340,8 +2337,7 @@ async function init() {
     const contractorDialog = $("contractorFilterDialog");
     const filterGroups = [
       {id: "contractorFilterOptions", field: "contractor", selected: selectedContractors},
-      {id: "destinationTypeFilterOptions", field: "type", selected: selectedDestinationTypes},
-      {id: "destinationPackageFilterOptions", field: "package", selected: selectedDestinationPackages}
+      {id: "destinationTypeFilterOptions", field: "type", selected: selectedDestinationTypes, values: ["Office", "LAAR", "WAN"]}
     ];
     const closeContractorDialog = () => {
       if (contractorDialog) contractorDialog.hidden = true;
@@ -2352,7 +2348,7 @@ async function init() {
         const container = $(group.id);
         if (!container) continue;
         container.replaceChildren();
-        const values = [...new Set(destinationOptions.map(item => String(item[group.field] || "").trim()).filter(Boolean))]
+        const values = group.values || [...new Set(destinationOptions.map(item => String(item[group.field] || "").trim()).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
         for (const value of values) {
           const label = document.createElement("label");
@@ -2360,7 +2356,7 @@ async function init() {
           const input = document.createElement("input");
           input.type = "checkbox";
           input.value = value;
-          input.checked = group.selected.has(value);
+          input.checked = group.selected.has(value) || (group.field === "type" && group.selected.has(value.toUpperCase()));
           input.addEventListener("change", () => {
             if (input.checked) group.selected.add(value);
             else group.selected.delete(value);
@@ -2383,7 +2379,6 @@ async function init() {
       $("contractorFilterClear")?.addEventListener("click", () => {
         selectedContractors.clear();
         selectedDestinationTypes.clear();
-        selectedDestinationPackages.clear();
         renderDestinationFilterOptions();
         renderDestinationOptions();
       });
