@@ -4620,3 +4620,10 @@ body {
   column-gap: 10px !important;
   row-gap: 1px !important;
 }
+
+
+/* Show eight contractor choices before the contractor list itself scrolls. */
+.destination-filter-group:not(.destination-type-filter-group) .contractor-filter-options {
+  max-height: 184px !important;
+  overflow-y: auto !important;
+}
