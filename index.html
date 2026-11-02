@@ -30,7 +30,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=all-destinations-route-status-1"
+    href="style.css?v=mobile-collapsed-vehicle-destination-1"
   >
 <!-- LIBRARIES -->
 
@@ -89,6 +89,11 @@
 
     <header class="site-header">
       <h1>Diriyah 2 Map</h1>
+      <div id="mobileHeaderSummary" class="mobile-header-summary" aria-live="polite">
+        <span id="mobileHeaderVehicle">Truck</span>
+        <span class="mobile-header-summary__separator" aria-hidden="true">·</span>
+        <span id="mobileHeaderDestination">No destination selected</span>
+      </div>
       <div class="header-actions"><button id="panelToggle" class="mobile-panel-toggle" type="button" aria-expanded="true" aria-controls="navigationPanel">Hide</button><button id="liveRouteToggle" class="live-route-toggle" type="button" disabled>Start</button></div>
     </header>
 <!-- VEHICLE -->
@@ -379,7 +384,7 @@
     </div>
   </div>
 
-  <script defer src="script/ui.js?v=development-sidebar-toggle-2"></script>
+  <script defer src="script/ui.js?v=mobile-collapsed-vehicle-destination-1"></script>
   <script defer src="script/main.js?v=project-structure-1"></script>
 
 </body>
