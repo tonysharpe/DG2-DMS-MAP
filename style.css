@@ -4546,3 +4546,51 @@ body {
 .destination-picker-option--unreachable:hover {
   color: #B71C1C !important;
 }
+
+
+/* Selected vehicle and destination remain visible in the collapsed mobile bar. */
+.collapsed-menu-summary {
+  display: none;
+}
+@media (max-width: 760px) {
+  body > #navigationPanel.mobile-panel-collapsed {
+    height: 100px !important;
+    min-height: 100px !important;
+    max-height: 100px !important;
+  }
+  body > #navigationPanel.mobile-panel-collapsed .collapsed-menu-summary {
+    display: flex !important;
+    align-items: center;
+    gap: 7px;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: 22px;
+    margin: 0;
+    padding: 0 2px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: var(--font-main);
+    font-size: 12px;
+    line-height: 18px;
+    color: #747A80;
+  }
+  .collapsed-menu-summary #collapsedVehicleType {
+    flex: 0 0 auto;
+    max-width: 92px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 700;
+    color: #50555B;
+  }
+  .collapsed-menu-summary__separator {
+    flex: 0 0 auto;
+    color: #A0A5AA;
+  }
+  .collapsed-menu-summary #collapsedDestination {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
