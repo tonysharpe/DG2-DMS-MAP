@@ -4592,4 +4592,9 @@ body {
     flex: 0 0 auto;
     gap: 5px;
   }
+  body > #navigationPanel.mobile-panel-collapsed .header-actions .mobile-panel-toggle,
+  body > #navigationPanel.mobile-panel-collapsed .header-actions .live-route-toggle {
+    width: 92px;
+    min-width: 92px;
+  }
 }
