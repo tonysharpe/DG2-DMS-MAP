@@ -4535,3 +4535,13 @@ body {
   padding: 0 !important;
   line-height: 16px !important;
 }
+
+
+/* Unreachable destinations remain selectable but are clearly flagged. */
+.destination-picker-option.is-unreachable {
+  color: #c62828 !important;
+}
+.destination-picker-option.is-unreachable:hover,
+.destination-picker-option.is-unreachable:focus-visible {
+  color: #a51f1f !important;
+}
