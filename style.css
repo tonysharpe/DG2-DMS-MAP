@@ -4654,3 +4654,9 @@ body {
     margin-top: 20px;
   }
 }
+
+
+/* Hide any Leaflet attribution badge in the map's bottom-right corner. */
+#map .leaflet-control-attribution {
+  display: none !important;
+}
