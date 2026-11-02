@@ -2384,7 +2384,7 @@ async function init() {
         contractorDialog.hidden = !contractorToggle.checked;
         if (contractorToggle.checked) scrollMobilePlannerToBottom();
       });
-      $("contractorFilterClose")?.addEventListener("click", closeContractorDialog);
+      $("contractorFilterApply")?.addEventListener("click", closeContractorDialog);
       $("contractorFilterClear")?.addEventListener("click", () => {
         selectedContractors.clear();
         selectedDestinationTypes.clear();
