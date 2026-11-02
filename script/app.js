@@ -2049,6 +2049,7 @@ async function init() {
     map = L.map("map", {
       maxBoundsViscosity: 1,
       scrollWheelZoom: true,
+      zoomControl: false,
       preferCanvas: true,
       renderer: L.canvas({ padding: 0.5 })
     });
