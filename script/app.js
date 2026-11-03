@@ -2445,10 +2445,6 @@ async function init() {
       }
     };
 
-    // Load a shared destination only after the destination selector and its
-    // change handler are ready. This uses the same validation as shared links.
-    loadDestinationFromUrl();
-
     $("copyLink").onclick = copyDestinationLink;
 
     $("clear").onclick = () => {
@@ -2531,14 +2527,25 @@ async function init() {
       radio.checked = radio.value === $("startMode").value;
     });
     $("start").selectedIndex = -1;
-    $("end").value = "";
     $("destinationSearch").value = "";
     $("searchStatus").textContent = "";
     $("shareFallback").hidden = true;
     $("shareLink").value = "";
-    updateDestinationUrl();
     clearRoute();
-    refreshShareControls();
+
+    // Apply a shared destination after all startup defaults have been set.
+    // The previous startup reset cleared the selection and removed the query
+    // parameter immediately after the URL loader had selected it.
+    const hasSharedDestination = new URLSearchParams(window.location.search)
+      .has("destination");
+    if (hasSharedDestination) {
+      loadDestinationFromUrl();
+    } else {
+      $("end").value = "";
+      updateDestinationUrl();
+      refreshShareControls();
+    }
+
     locationStatus("Requesting your current location…");
     status(
       "Vehicle: " + vehicleMode + ". " + roads.length + " eligible roads. " +
