@@ -1719,16 +1719,15 @@ function loadDestinationFromUrl() {
     window.location.search
   ).get("destination");
 
-  if (requested === null) return;
+  if (requested === null || !requested.trim()) return;
 
-  const index = locations.findIndex(location => {
-    return (
-      location.kind === "destination" &&
-      location.name === requested
-    );
-  });
+  // Match against the same combined destination list used by the visible
+  // picker (including destinations represented by an area polygon only).
+  const destination = destinationOptions.find(item =>
+    searchKey(item.name) === searchKey(requested)
+  );
 
-  if (index === -1) {
+  if (!destination) {
     status(
       "Shared destination not found: " + requested +
       "\nCheck its exact Name value or select a LAAR manually."
@@ -1736,32 +1735,28 @@ function loadDestinationFromUrl() {
     return;
   }
 
+  // A URL is an explicit destination choice, so stale picker filters must
+  // not hide it or cause renderDestinationOptions() to clear the selection.
+  selectedContractors.clear();
+  selectedDestinationTypes.clear();
   $("destinationSearch").value = "";
-  renderDestinationOptions();
-
   $("startMode").value = "gate";
-  $("end").value = String(index);
+  $("end").value = destination.hasAccessPoint
+    ? String(destination.index)
+    : "missing:" + destination.name;
 
-  // Refresh the custom destination picker after assigning the native select.
-  // Otherwise its visible button can continue to display the placeholder.
+  // Rebuild both the native select and the custom visible picker from the
+  // selected value so their labels and selected states stay in sync.
   renderDestinationOptions();
-
-  // The destination selector may be filtered to destinations reachable
-  // from a valid gate for the active vehicle. Do not attempt to calculate
-  // when the requested shared destination was excluded from that selector.
-  if ($("end").value !== String(index)) {
-    status(
-      "Shared destination is not available for the current vehicle/start. " +
-      "Select a reachable LAAR manually."
-    );
-    refreshShareControls();
-    return;
-  }
-
   refreshShareControls();
   clearRoute();
   $("start").selectedIndex = -1;
-  status("Shared destination loaded. Press Show / update LAAR route to calculate it.");
+
+  status(
+    destination.hasAccessPoint
+      ? "Shared destination loaded: " + destination.name + ". Press Show / update LAAR route to calculate it."
+      : "Shared destination area loaded: " + destination.name + ". No mapped access point is available."
+  );
 }
 
 
