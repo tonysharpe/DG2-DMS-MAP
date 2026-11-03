@@ -44,6 +44,54 @@
     setExpanded(!expanded);
   });
 
+  // The mobile top bar is also a tap target. Exclude its buttons so the
+  // live-routing action and explicit menu toggle keep their own behaviour.
+  const header = panel.querySelector(".site-header");
+  if (header) {
+    header.addEventListener("click", function (event) {
+      if (event.target.closest("button, a, input, select, label")) return;
+      const expanded = toggle.getAttribute("aria-expanded") === "true";
+      setExpanded(!expanded);
+    });
+
+    // Swipe down on the top bar to expand; swipe up to collapse.
+    // Ignore horizontal gestures and gestures beginning on controls.
+    let touchStart = null;
+    header.addEventListener("touchstart", function (event) {
+      if (!mobileQuery.matches || event.touches.length !== 1) {
+        touchStart = null;
+        return;
+      }
+      if (event.target.closest("button, a, input, select, label")) {
+        touchStart = null;
+        return;
+      }
+      const touch = event.changedTouches[0];
+      touchStart = { x: touch.clientX, y: touch.clientY };
+    }, { passive: true });
+
+    header.addEventListener("touchend", function (event) {
+      if (!mobileQuery.matches || !touchStart || event.changedTouches.length !== 1) {
+        touchStart = null;
+        return;
+      }
+      const touch = event.changedTouches[0];
+      const dx = touch.clientX - touchStart.x;
+      const dy = touch.clientY - touchStart.y;
+      touchStart = null;
+      if (Math.abs(dy) < 45 || Math.abs(dy) < Math.abs(dx) * 1.2) return;
+      if (dy < 0) {
+        setExpanded(false);
+      } else {
+        setExpanded(true);
+      }
+    }, { passive: true });
+
+    header.addEventListener("touchcancel", function () {
+      touchStart = null;
+    }, { passive: true });
+  }
+
   // Do not auto-toggle the bottom sheet on viewport/media-query changes.
   // Mobile browser chrome and viewport resizes can otherwise cause visible flashing.
 
