@@ -125,7 +125,7 @@
       window.setTimeout(function () {
         suppressHeaderClick = false;
       }, 600);
-      setExpanded(dy > 0);
+      setExpanded(dy < 0);
     }, { capture: true, passive: true });
 
     document.addEventListener("touchcancel", function () {
