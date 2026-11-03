@@ -4311,13 +4311,6 @@ body > #journeyControls.journey-controls {
 .development-content[hidden] {
   display: none !important;
 }
-@media (max-width: 760px) {
-  .development-section {
-    display: none !important;
-  }
-}
-
-
 /* ---------------------------------------------------------------------
    Consistent typography for the sidebar, menus and application dialogs.
    --------------------------------------------------------------------- */
