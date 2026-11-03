@@ -44,37 +44,12 @@
     setExpanded(!expanded);
   });
 
-  // Mobile bottom-sheet gestures. Use native touch events as the primary
-  // path (reliable on Android Chrome), with Pointer Events as a fallback.
+  // Android/iOS bottom-sheet gestures. Capture touch events at document
+  // level so child elements and browser event retargeting do not swallow them.
   const header = panel.querySelector(".site-header");
   if (header) {
-    let touchStart = null;
+    let gesture = null;
     let suppressHeaderClick = false;
-
-    function startGesture(x, y) {
-      const rect = header.getBoundingClientRect();
-      const inHeader =
-        x >= rect.left && x <= rect.right &&
-        y >= rect.top && y <= rect.bottom;
-      return inHeader ? { x, y, moved: false } : null;
-    }
-
-    function finishGesture(x, y, preventClick) {
-      if (!touchStart) return false;
-      const dx = x - touchStart.x;
-      const dy = y - touchStart.y;
-      touchStart = null;
-
-      // Require a clear vertical movement; ignore taps and horizontal swipes.
-      if (Math.abs(dy) < 35 || Math.abs(dy) < Math.abs(dx) * 1.15) return false;
-
-      if (preventClick) {
-        suppressHeaderClick = true;
-        window.setTimeout(function () { suppressHeaderClick = false; }, 500);
-      }
-      setExpanded(dy > 0);
-      return true;
-    }
 
     header.addEventListener("click", function (event) {
       if (suppressHeaderClick) {
@@ -84,63 +59,78 @@
         return;
       }
       if (event.target.closest("button, a, input, select, label")) return;
-      const expanded = toggle.getAttribute("aria-expanded") === "true";
-      setExpanded(!expanded);
+      setExpanded(toggle.getAttribute("aria-expanded") !== "true");
     });
 
-    // Android Chrome touch path: cancel native vertical panning only after
-    // the gesture is clearly vertical, then use touchend to change the sheet.
-    header.addEventListener("touchstart", function (event) {
+    document.addEventListener("touchstart", function (event) {
       if (!mobileQuery.matches || event.touches.length !== 1) {
-        touchStart = null;
+        gesture = null;
         return;
       }
-      const t = event.touches[0];
-      touchStart = startGesture(t.clientX, t.clientY);
-    }, { passive: true });
-
-    header.addEventListener("touchmove", function (event) {
-      if (!mobileQuery.matches || !touchStart || event.touches.length !== 1) return;
-      const t = event.touches[0];
-      const dx = t.clientX - touchStart.x;
-      const dy = t.clientY - touchStart.y;
-      if (Math.abs(dy) >= 12 && Math.abs(dy) > Math.abs(dx) * 1.1) {
-        event.preventDefault();
-        touchStart.moved = true;
-      }
-    }, { passive: false });
-
-    header.addEventListener("touchend", function (event) {
-      if (!mobileQuery.matches || !touchStart || event.changedTouches.length !== 1) {
-        touchStart = null;
+      const target = event.target;
+      if (!target || !header.contains(target)) {
+        gesture = null;
         return;
       }
-      const t = event.changedTouches[0];
-      finishGesture(t.clientX, t.clientY, true);
-    }, { passive: true });
+      const touch = event.touches[0];
+      gesture = {
+        identifier: touch.identifier,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        lastX: touch.clientX,
+        lastY: touch.clientY,
+        vertical: false
+      };
+    }, { capture: true, passive: true });
 
-    header.addEventListener("touchcancel", function () {
-      touchStart = null;
-    }, { passive: true });
+    document.addEventListener("touchmove", function (event) {
+      if (!mobileQuery.matches || !gesture || event.touches.length !== 1) return;
+      const touch = Array.from(event.touches).find(
+        item => item.identifier === gesture.identifier
+      );
+      if (!touch) return;
 
-    // Pointer fallback for browsers that do not dispatch touch events.
-    let pointerStart = null;
-    header.addEventListener("pointerdown", function (event) {
-      if (!mobileQuery.matches || event.pointerType !== "touch" || !event.isPrimary) return;
-      pointerStart = startGesture(event.clientX, event.clientY);
-    });
-    header.addEventListener("pointerup", function (event) {
-      if (!mobileQuery.matches || event.pointerType !== "touch" || !pointerStart) return;
-      const dx = event.clientX - pointerStart.x;
-      const dy = event.clientY - pointerStart.y;
-      pointerStart = null;
-      if (Math.abs(dy) >= 35 && Math.abs(dy) > Math.abs(dx) * 1.15) {
-        suppressHeaderClick = true;
-        window.setTimeout(function () { suppressHeaderClick = false; }, 500);
-        setExpanded(dy > 0);
+      const dx = touch.clientX - gesture.startX;
+      const dy = touch.clientY - gesture.startY;
+      gesture.lastX = touch.clientX;
+      gesture.lastY = touch.clientY;
+
+      // Lock only clear vertical drags; leave horizontal movement alone.
+      if (Math.abs(dy) >= 8 && Math.abs(dy) > Math.abs(dx) * 1.1) {
+        gesture.vertical = true;
+        if (event.cancelable) event.preventDefault();
       }
-    });
-    header.addEventListener("pointercancel", function () { pointerStart = null; });
+    }, { capture: true, passive: false });
+
+    document.addEventListener("touchend", function (event) {
+      if (!mobileQuery.matches || !gesture) {
+        gesture = null;
+        return;
+      }
+      const touch = Array.from(event.changedTouches).find(
+        item => item.identifier === gesture.identifier
+      );
+      if (!touch) return;
+
+      const dx = touch.clientX - gesture.startX;
+      const dy = touch.clientY - gesture.startY;
+      const wasVertical = gesture.vertical;
+      gesture = null;
+
+      // A deliberate vertical swipe, rather than a tap or horizontal drag.
+      if (!wasVertical || Math.abs(dy) < 28 ||
+          Math.abs(dy) < Math.abs(dx) * 1.1) return;
+
+      suppressHeaderClick = true;
+      window.setTimeout(function () {
+        suppressHeaderClick = false;
+      }, 600);
+      setExpanded(dy > 0);
+    }, { capture: true, passive: true });
+
+    document.addEventListener("touchcancel", function () {
+      gesture = null;
+    }, { capture: true, passive: true });
   }
 
   // Do not auto-toggle the bottom sheet on viewport/media-query changes.
