@@ -4311,6 +4311,13 @@ body > #journeyControls.journey-controls {
 .development-content[hidden] {
   display: none !important;
 }
+/* These controls remain in the DOM for application logic, but are not
+   part of the user-facing navigation menu. */
+.share-section,
+.start-gate-section {
+  display: none !important;
+}
+
 /* ---------------------------------------------------------------------
    Consistent typography for the sidebar, menus and application dialogs.
    --------------------------------------------------------------------- */
