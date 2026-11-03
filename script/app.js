@@ -1742,6 +1742,10 @@ function loadDestinationFromUrl() {
   $("startMode").value = "gate";
   $("end").value = String(index);
 
+  // Refresh the custom destination picker after assigning the native select.
+  // Otherwise its visible button can continue to display the placeholder.
+  renderDestinationOptions();
+
   // The destination selector may be filtered to destinations reachable
   // from a valid gate for the active vehicle. Do not attempt to calculate
   // when the requested shared destination was excluded from that selector.
