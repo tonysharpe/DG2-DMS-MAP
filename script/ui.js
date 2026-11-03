@@ -44,33 +44,41 @@
     setExpanded(!expanded);
   });
 
-  // The mobile top bar is also a tap target. Exclude its buttons so the
-  // live-routing action and explicit menu toggle keep their own behaviour.
+  // The mobile top bar is also a tap target. Listen at document level so
+  // the gesture is still recognised if the finger ends just outside the bar.
   const header = panel.querySelector(".site-header");
   if (header) {
+    let touchStart = null;
+    let suppressHeaderClick = false;
+
     header.addEventListener("click", function (event) {
+      if (suppressHeaderClick) {
+        suppressHeaderClick = false;
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
       if (event.target.closest("button, a, input, select, label")) return;
       const expanded = toggle.getAttribute("aria-expanded") === "true";
       setExpanded(!expanded);
     });
 
-    // Swipe down on the top bar to expand; swipe up to collapse.
-    // Ignore horizontal gestures and gestures beginning on controls.
-    let touchStart = null;
-    header.addEventListener("touchstart", function (event) {
+    document.addEventListener("touchstart", function (event) {
       if (!mobileQuery.matches || event.touches.length !== 1) {
         touchStart = null;
         return;
       }
-      if (event.target.closest("button, a, input, select, label")) {
-        touchStart = null;
-        return;
-      }
-      const touch = event.changedTouches[0];
-      touchStart = { x: touch.clientX, y: touch.clientY };
-    }, { passive: true });
+      const touch = event.touches[0];
+      const rect = header.getBoundingClientRect();
+      const beganInHeader =
+        touch.clientX >= rect.left && touch.clientX <= rect.right &&
+        touch.clientY >= rect.top && touch.clientY <= rect.bottom;
+      touchStart = beganInHeader
+        ? { x: touch.clientX, y: touch.clientY }
+        : null;
+    }, { passive: true, capture: true });
 
-    header.addEventListener("touchend", function (event) {
+    document.addEventListener("touchend", function (event) {
       if (!mobileQuery.matches || !touchStart || event.changedTouches.length !== 1) {
         touchStart = null;
         return;
@@ -79,17 +87,25 @@
       const dx = touch.clientX - touchStart.x;
       const dy = touch.clientY - touchStart.y;
       touchStart = null;
-      if (Math.abs(dy) < 45 || Math.abs(dy) < Math.abs(dx) * 1.2) return;
+
+      // A short, clearly vertical movement is a deliberate menu gesture.
+      if (Math.abs(dy) < 30 || Math.abs(dy) < Math.abs(dx) * 1.15) return;
+
+      suppressHeaderClick = true;
+      window.setTimeout(function () {
+        suppressHeaderClick = false;
+      }, 450);
+
       if (dy < 0) {
         setExpanded(false);
       } else {
         setExpanded(true);
       }
-    }, { passive: true });
+    }, { passive: true, capture: true });
 
-    header.addEventListener("touchcancel", function () {
+    document.addEventListener("touchcancel", function () {
       touchStart = null;
-    }, { passive: true });
+    }, { passive: true, capture: true });
   }
 
   // Do not auto-toggle the bottom sheet on viewport/media-query changes.
