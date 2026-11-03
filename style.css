@@ -1346,6 +1346,8 @@ body > aside .primary-button:active:not(:disabled) {
   }
 
   .site-header {
+    /* Reserve vertical touch gestures for expanding/collapsing the sheet. */
+    touch-action: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
