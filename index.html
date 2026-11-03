@@ -195,6 +195,15 @@
       </div>
       <div id="developmentContent" class="development-content" hidden>
       <h2 id="developmentHeading">Development Features</h2>
+
+      <div class="button-row development-actions">
+        <button id="clear" type="button" disabled>Clear</button>
+        <button id="fit" type="button" disabled>Whole site</button>
+      </div>
+
+      <p id="status" class="setup-status" role="status" aria-live="polite">
+        Loading…
+      </p>
       <label for="destinationSearch">Find destination</label>
       <input id="destinationSearch" type="search" placeholder="Type to search…" autocomplete="off"
         aria-describedby="searchStatus" disabled>
@@ -309,39 +318,7 @@
     </section>
 
 
-    <!-- GENERAL CONTROLS -->
-
-    <div class="button-row">
-      <button
-        id="clear"
-        type="button"
-        disabled
-      >
-        Clear
-      </button>
-
-      <button
-        id="fit"
-        type="button"
-        disabled
-      >
-        Whole site
-      </button>
-    </div>
-
-
     <span id="networkDate" hidden></span>
-
-    <!-- STATUS -->
-
-    <p
-      id="status"
-      class="setup-status"
-      role="status"
-      aria-live="polite"
-    >
-      Loading…
-    </p>
 
 
 
