@@ -111,6 +111,17 @@
 
   if (!section || !toggle || !content) return;
 
+  // Development controls are available only through an explicit URL opt-in.
+  // Keep the whole section out of the layout unless the query is exactly
+  // ?dev=true (or includes &dev=true alongside other parameters).
+  const developmentEnabled =
+    new URLSearchParams(window.location.search).get("dev") === "true";
+  if (!developmentEnabled) {
+    section.hidden = true;
+    return;
+  }
+  section.hidden = false;
+
   function setExpanded(expanded) {
     // Do not permit expansion at mobile viewport widths.
     if (!desktopQuery.matches) expanded = false;
