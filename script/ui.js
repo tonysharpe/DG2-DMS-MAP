@@ -44,11 +44,12 @@
     setExpanded(!expanded);
   });
 
-  // The mobile top bar is also a tap target. Listen at document level so
-  // the gesture is still recognised if the finger ends just outside the bar.
+  // The mobile top bar is also a tap target. Use Pointer Events for
+  // Android Chrome and other modern touch browsers, with document-level
+  // listeners so the gesture can finish outside the header.
   const header = panel.querySelector(".site-header");
   if (header) {
-    let touchStart = null;
+    let pointerStart = null;
     let suppressHeaderClick = false;
 
     header.addEventListener("click", function (event) {
@@ -63,49 +64,44 @@
       setExpanded(!expanded);
     });
 
-    document.addEventListener("touchstart", function (event) {
-      if (!mobileQuery.matches || event.touches.length !== 1) {
-        touchStart = null;
+    document.addEventListener("pointerdown", function (event) {
+      if (!mobileQuery.matches || event.pointerType !== "touch" || !event.isPrimary) {
+        pointerStart = null;
         return;
       }
-      const touch = event.touches[0];
       const rect = header.getBoundingClientRect();
       const beganInHeader =
-        touch.clientX >= rect.left && touch.clientX <= rect.right &&
-        touch.clientY >= rect.top && touch.clientY <= rect.bottom;
-      touchStart = beganInHeader
-        ? { x: touch.clientX, y: touch.clientY }
+        event.clientX >= rect.left && event.clientX <= rect.right &&
+        event.clientY >= rect.top && event.clientY <= rect.bottom;
+      pointerStart = beganInHeader
+        ? { x: event.clientX, y: event.clientY, id: event.pointerId }
         : null;
-    }, { passive: true, capture: true });
+    }, true);
 
-    document.addEventListener("touchend", function (event) {
-      if (!mobileQuery.matches || !touchStart || event.changedTouches.length !== 1) {
-        touchStart = null;
+    document.addEventListener("pointerup", function (event) {
+      if (!mobileQuery.matches || !pointerStart ||
+          event.pointerType !== "touch" || event.pointerId !== pointerStart.id) {
+        pointerStart = null;
         return;
       }
-      const touch = event.changedTouches[0];
-      const dx = touch.clientX - touchStart.x;
-      const dy = touch.clientY - touchStart.y;
-      touchStart = null;
+      const dx = event.clientX - pointerStart.x;
+      const dy = event.clientY - pointerStart.y;
+      pointerStart = null;
 
-      // A short, clearly vertical movement is a deliberate menu gesture.
-      if (Math.abs(dy) < 30 || Math.abs(dy) < Math.abs(dx) * 1.15) return;
+      // Ignore taps and horizontal gestures; accept a deliberate vertical swipe.
+      if (Math.abs(dy) < 25 || Math.abs(dy) < Math.abs(dx) * 1.1) return;
 
       suppressHeaderClick = true;
       window.setTimeout(function () {
         suppressHeaderClick = false;
-      }, 450);
+      }, 500);
 
-      if (dy < 0) {
-        setExpanded(false);
-      } else {
-        setExpanded(true);
-      }
-    }, { passive: true, capture: true });
+      setExpanded(dy > 0);
+    }, true);
 
-    document.addEventListener("touchcancel", function () {
-      touchStart = null;
-    }, { passive: true, capture: true });
+    document.addEventListener("pointercancel", function () {
+      pointerStart = null;
+    }, true);
   }
 
   // Do not auto-toggle the bottom sheet on viewport/media-query changes.
