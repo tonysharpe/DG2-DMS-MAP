@@ -345,13 +345,15 @@
 
 
 
-      <label for="start">Selected gate</label>
-      <select id="start" disabled></select>
-      <div class="button-row">
-        <button id="locate" type="button" disabled>Locate me</button>
-        <button id="stopLocation" type="button" disabled>Stop</button>
-      </div>
-      <p id="locationStatus" class="location-status" role="status" aria-live="polite">Location off.</p>
+      <section class="start-gate-section" aria-label="Gate and location controls">
+        <label for="start">Selected gate</label>
+        <select id="start" disabled></select>
+        <div class="button-row">
+          <button id="locate" type="button" disabled>Locate me</button>
+          <button id="stopLocation" type="button" disabled>Stop</button>
+        </div>
+        <p id="locationStatus" class="location-status" role="status" aria-live="polite">Location off.</p>
+      </section>
 
     <noscript>
       <p class="setup-status">
