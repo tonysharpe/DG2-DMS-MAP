@@ -246,6 +246,7 @@ async function changeVehicle() {
     $("start").selectedIndex = -1;
     refreshVehicleRoads();
     refreshShareControls();
+    updateDestinationUrl(retainedDestination?.name || null);
     mark("refresh map and controls", mapRefreshStartedAt);
 
     if (retainedDestination) {
@@ -1634,6 +1635,9 @@ function updateDestinationUrl(destinationName = null) {
       url.searchParams.set("destination", destinationName);
     }
 
+    // Keep the current vehicle in every shareable URL.
+    url.searchParams.set("vehicle", $("vehicleType").value || vehicleMode);
+
     window.history.replaceState(
       window.history.state,
       "",
@@ -1689,6 +1693,7 @@ async function copyDestinationLink() {
 
   const url = new URL(window.location.href);
   url.searchParams.set("destination", destination.name);
+  url.searchParams.set("vehicle", $("vehicleType").value || vehicleMode);
 
   try {
     if (!navigator.clipboard?.writeText) {
@@ -2031,6 +2036,25 @@ async function init() {
     for (const id of required) {
       if (!$(id)) {
         throw new Error("index.html is missing id='" + id + "'.");
+      }
+    }
+
+    // Apply a vehicle supplied in the launch URL before building the routing
+    // graph, so the initial network and the visible vehicle choice agree.
+    const requestedVehicle = new URLSearchParams(window.location.search)
+      .get("vehicle");
+    const supportedVehicles = new Set([
+      "truck", "bus", "minibus", "pickup", "suv", "car"
+    ]);
+    if (requestedVehicle !== null) {
+      const normalizedVehicle = requestedVehicle.trim().toLowerCase();
+      if (supportedVehicles.has(normalizedVehicle)) {
+        $("vehicleType").value = normalizedVehicle;
+        document.querySelectorAll('input[name="vehicleTypeChoice"]').forEach(radio => {
+          radio.checked = radio.value === normalizedVehicle;
+        });
+      } else {
+        console.warn("Ignoring unsupported vehicle URL parameter:", requestedVehicle);
       }
     }
 
