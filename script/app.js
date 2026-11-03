@@ -2446,23 +2446,9 @@ async function init() {
       }
     };
 
-    // Honour a destination supplied in the launch URL after destination
-    // options and the change handler are ready. The value is matched against
-    // the destination name, not the internal locations array index.
-    const requestedDestination = new URLSearchParams(window.location.search)
-      .get("destination");
-    if (requestedDestination) {
-      const match = destinationOptions.find(item =>
-        item.hasAccessPoint &&
-        item.name.localeCompare(requestedDestination, undefined, {sensitivity: "accent"}) === 0
-      );
-      if (match) {
-        $("end").value = String(match.index);
-        $("end").dispatchEvent(new Event("change", { bubbles: true }));
-      } else {
-        status("Destination not found: " + requestedDestination);
-      }
-    }
+    // Load a shared destination only after the destination selector and its
+    // change handler are ready. This uses the same validation as shared links.
+    loadDestinationFromUrl();
 
     $("copyLink").onclick = copyDestinationLink;
 
