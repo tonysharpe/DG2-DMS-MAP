@@ -181,6 +181,18 @@
             <span>Haul Roads</span>
           </div>
 
+          <div class="map-legend__row map-legend__row--road-names">
+            <span class="legend-road-name" aria-hidden="true">A12</span>
+            <span>Road Name</span>
+            <input
+              id="roadNameLabelsToggle"
+              class="map-legend__checkbox"
+              type="checkbox"
+              aria-label="Show road name labels"
+              checked
+            >
+          </div>
+
           <div class="map-legend__row">
             <span class="legend-symbol-route" aria-hidden="true"></span>
             <span>Route</span>
@@ -214,6 +226,16 @@
         content.hidden = expanded;
         icon.textContent = expanded ? "+" : "−";
       });
+
+      const roadNameCheckbox = container.querySelector("#roadNameLabelsToggle");
+      roadNameCheckbox.checked = window.roadNameLabelsVisible !== false;
+      roadNameCheckbox.addEventListener("change", function () {
+        window.roadNameLabelsVisible = roadNameCheckbox.checked;
+        if (typeof window.setRoadNameLabelsVisible === "function") {
+          window.setRoadNameLabelsVisible(roadNameCheckbox.checked);
+        }
+      });
+
       L.DomEvent.disableClickPropagation(
         container
       );
