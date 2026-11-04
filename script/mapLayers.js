@@ -57,8 +57,26 @@ function themeNumber(property) {
         fillColor: themeColor("--map-masterplan-fill"),
         fillOpacity: themeNumber("--map-masterplan-fill-opacity")
       }
+    },
+    {
+      id: "roadNames",
+      label: "Road Names",
+      file: "data/road_names.geojson",
+      pane: "siteReferenceLabels",
+      visible: true,
+      interactive: false,
+      showLabels: true,
+      labelField: "RoadName",
+      style: {
+        radius: 0,
+        opacity: 0,
+        fillOpacity: 0,
+        weight: 0
+      }
     }
   ];
+
+  window.roadNameLabelsVisible = window.roadNameLabelsVisible !== false;
 
   const wait = milliseconds => {
     return new Promise(resolve => {
@@ -84,8 +102,9 @@ function themeNumber(property) {
     map.getPane(name).style.zIndex = String(zIndex);
   }
 
-  function findLabel(properties) {
+  function findLabel(properties, preferredField) {
     const candidates = [
+      ...(preferredField ? [preferredField] : []),
       "name", "Name", "NAME",
       "Road_Name", "ROAD_NAME", "RoadName", "road_name",
       "ShortName",
@@ -218,7 +237,7 @@ function themeNumber(property) {
         }
 
         if (definition.showLabels) {
-          const label = findLabel(feature.properties || {});
+          const label = findLabel(feature.properties || {}, definition.labelField);
 
           if (label) {
             const element = document.createElement("span");
@@ -247,7 +266,23 @@ function themeNumber(property) {
 
     control.addOverlay(layer, definition.label);
 
-    if (definition.visible) {
+    if (definition.id === "roadNames") {
+      window.setRoadNameLabelsVisible = function (visible) {
+        window.roadNameLabelsVisible = Boolean(visible);
+        if (window.roadNameLabelsVisible) {
+          if (!map.hasLayer(layer)) layer.addTo(map);
+        } else if (map.hasLayer(layer)) {
+          map.removeLayer(layer);
+        }
+      };
+      const checkbox = document.getElementById("roadNameLabelsToggle");
+      if (checkbox) checkbox.checked = window.roadNameLabelsVisible !== false;
+    }
+
+    if (
+      definition.visible &&
+      (definition.id !== "roadNames" || window.roadNameLabelsVisible !== false)
+    ) {
       if (casingLayer) casingLayer.addTo(map);
       layer.addTo(map);
     }
