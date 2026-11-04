@@ -4674,3 +4674,55 @@ body {
 #map .leaflet-control-attribution {
   display: none !important;
 }
+
+
+/* Road-name labels rendered from data/road_names.geojson. */
+.leaflet-tooltip.site-road-label {
+  background: rgba(245, 246, 247, 0.94);
+  color: #59616A;
+  border: 1px solid rgba(210, 214, 218, 0.9);
+  border-radius: 5px;
+  box-shadow: none;
+  padding: 2px 5px;
+  font-family: var(--font-main);
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.leaflet-tooltip.site-road-label::before {
+  display: none;
+}
+
+.map-legend__row--road-names {
+  gap: 8px;
+}
+
+.legend-road-name {
+  display: inline-flex;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 17px;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0 3px;
+  border: 1px solid #D2D6DA;
+  border-radius: 5px;
+  background: #F1F2F3;
+  color: #59616A;
+  font-size: 8px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.map-legend__checkbox {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin: 0 1px 0 auto;
+  accent-color: var(--teal);
+  cursor: pointer;
+}
