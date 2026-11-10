@@ -76,7 +76,7 @@ function themeNumber(property) {
     }
   ];
 
-  window.roadNameLabelsVisible = window.roadNameLabelsVisible !== false;
+  window.roadNameLabelsVisible = window.roadNameLabelsVisible === true;
 
   const wait = milliseconds => {
     return new Promise(resolve => {
@@ -276,7 +276,7 @@ function themeNumber(property) {
         }
       };
       const checkbox = document.getElementById("roadNameLabelsToggle");
-      if (checkbox) checkbox.checked = window.roadNameLabelsVisible !== false;
+      if (checkbox) checkbox.checked = window.roadNameLabelsVisible === true;
     }
 
     if (
