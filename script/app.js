@@ -1619,6 +1619,11 @@ function setDestinationSelectionMode(enabled) {
   }
   renderDestinationSelectionLayer();
   if (destinationSelectionMode) {
+    // Remove any previously calculated route and its map highlights before
+    // presenting destination areas for selection.
+    clearRoute();
+    clearRouteDebugHighlight();
+    clearRouteFailureBanner();
     map?.closePopup();
     status("Select a highlighted destination area on the map. This does not change the starting location.");
   }
