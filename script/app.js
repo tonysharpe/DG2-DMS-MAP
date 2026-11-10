@@ -85,7 +85,7 @@ function isRoundaboutLink(properties) {
 
 function roadAccess(properties, vehicle = vehicleMode) {
   const type = roadField(properties, "type");
-  const supportedTypes = ["major", "minor", "local", "public", "haul", "main"];
+  const supportedTypes = ["major", "minor", "local", "public", "haul", "community", "main"];
   const vehicleFields = ["car", "suv", "pickup", "minibus", "bus", "truck"];
   if (!supportedTypes.includes(type) || !vehicleFields.includes(vehicle)) return false;
   // Each vehicle is permitted only when its matching roads.geojson field is yes.
@@ -101,7 +101,8 @@ function roadStyle(feature) {
     minor: { color: "--map-public-road", outline: "--map-road-outline", width: "--map-road-width", casing: 5.5 },
     local: { color: "--map-public-road", outline: "--map-road-outline", width: "--map-road-width", casing: 5.5 },
     public: { color: "--map-public-road", outline: "--map-road-outline", width: "--map-road-width", casing: 5.5 },
-    haul: { color: "--map-haul-road", outline: "--map-road-outline", width: "--map-road-width", casing: 5.5 }
+    haul: { color: "--map-haul-road", outline: "--map-road-outline", width: "--map-road-width", casing: 5.5 },
+    community: { color: "--map-haul-road", outline: "--map-road-outline", width: "--map-road-width", casing: 4.5 }
   };
   const style = palette[type];
   return {
@@ -122,7 +123,8 @@ function roadCasingStyle(feature) {
     minor: { color: "--map-road-outline", casing: 5.5 },
     local: { color: "--map-road-outline", casing: 5.5 },
     public: { color: "--map-road-outline", casing: 5.5 },
-    haul: { color: "--map-road-outline", casing: 5.5 }
+    haul: { color: "--map-road-outline", casing: 5.5 },
+    community: { color: "--map-road-outline", casing: 4.5 }
   };
   const style = palette[type];
   return {
@@ -172,7 +174,7 @@ function reportAccessData(data) {
     const type = roadField(p, "type");
     const car = roadField(p, "car");
     const truck = roadField(p, "truck");
-    return !["major", "minor", "local", "public", "haul", "main"].includes(type) ||
+    return !["major", "minor", "local", "public", "haul", "community", "main"].includes(type) ||
       !["yes", "no"].includes(truck) ||
       (car !== "" && !["yes", "no"].includes(car));
   });
@@ -2170,7 +2172,7 @@ async function init() {
     const visibleGeometryStartedAt = performance.now();
     loadDestinationAreas(areas);
 
-    const roadTypeOrder = { local: 0, minor: 1, major: 2, main: 2, public: 3, haul: 4 };
+    const roadTypeOrder = { local: 0, minor: 1, major: 2, main: 2, public: 3, haul: 4, community: 5 };
     const orderedRoadData = {
       ...r,
       features: [...(r.features || [])].sort((a, b) => {
