@@ -85,7 +85,7 @@ function isRoundaboutLink(properties) {
 
 function roadAccess(properties, vehicle = vehicleMode) {
   const type = roadField(properties, "type");
-  const supportedTypes = ["major", "minor", "local", "public", "haul", "main"];
+  const supportedTypes = ["major", "minor", "local", "public", "haul", "community", "main"];
   const vehicleFields = ["car", "suv", "pickup", "minibus", "bus", "truck"];
   if (!supportedTypes.includes(type) || !vehicleFields.includes(vehicle)) return false;
   // Each vehicle is permitted only when its matching roads.geojson field is yes.
