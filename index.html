@@ -165,6 +165,11 @@
 <!-- DESTINATION -->
     <section class="control-section" aria-labelledby="destinationHeading">
       <h2 id="destinationHeading">Destination:</h2>
+      <fieldset class="radio-options start-options destination-mode-options" aria-label="Destination selection method">
+        <legend class="visually-hidden">Choose destination by</legend>
+        <label><input type="radio" name="destinationModeChoice" value="list" checked> Select from List</label>
+        <label><input type="radio" name="destinationModeChoice" value="map"> Set on Map</label>
+      </fieldset>
       <div class="destination-filter-bar">
         <label class="contractor-filter-trigger" title="Filter destinations"><input id="contractorFilterToggle" type="checkbox" disabled> Filters</label>
         <button id="contractorFilterClear" class="destination-filter-clear" type="button" disabled>Clear filters</button>
