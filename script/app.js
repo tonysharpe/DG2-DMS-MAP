@@ -67,7 +67,7 @@ function setMapClickHoverCursor(_latlng) {
   const container = map.getContainer();
   // Map-click mode accepts clicks anywhere; snapping and route eligibility
   // are resolved after the click rather than by the cursor hit-test.
-  const cursor = $("startMode")?.value === "map" ? "crosshair" : "";
+  const cursor = destinationSelectionMode || $("startMode")?.value === "map" ? "crosshair" : "";
   container.style.cursor = cursor;
   container.querySelectorAll(".leaflet-pane canvas, .leaflet-pane path.leaflet-interactive")
     .forEach(element => { element.style.cursor = cursor; });
