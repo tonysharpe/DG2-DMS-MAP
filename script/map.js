@@ -56,14 +56,16 @@
       color = themeColor("--map-major-road");
     } else if (["minor", "local", "public"].includes(type)) {
       color = themeColor("--map-public-road");
-    } else if (type === "haul" || type === "community") {
+    } else if (type === "haul") {
       color = themeColor("--map-haul-road");
+    } else if (type === "community") {
+      color = "#C4A484";
     }
 
     return {
       color,
       weight: type === "community"
-        ? themeNumber("--map-road-width") * 0.65
+        ? themeNumber("--map-road-width") * 0.55
         : themeNumber("--map-road-width"),
       opacity: 1,
       dashArray: null,
@@ -76,7 +78,7 @@
     const type = roadField(feature.properties || {}, "type");
     return {
       color: (type === "major" || type === "main") ? themeColor("--map-major-road-outline") : themeColor("--map-road-outline"),
-      weight: (type === "major" || type === "main") ? 6 : type === "community" ? 4.5 : 5.5,
+      weight: (type === "major" || type === "main") ? 6 : type === "community" ? 4 : 5.5,
       opacity: 1,
       lineCap: "round",
       lineJoin: "round"
@@ -183,7 +185,7 @@
             <span>Haul Roads</span>
           </div>
           <div class="map-legend__row">
-            <svg class="map-key-svg" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#F28C28" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <svg class="map-key-svg" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#C4A484" stroke-width="2" stroke-linecap="round"/></svg>
             <span>Community Roads</span>
           </div>
 
