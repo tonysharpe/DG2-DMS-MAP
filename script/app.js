@@ -1579,7 +1579,7 @@ function renderDestinationSelectionLayer() {
     { type: "FeatureCollection", features: visibleFeatures },
     {
       pane: "destinationSelectionPane",
-      bubblingMouseEvents: false,
+      bubblingMouseEvents: true,
       style: feature => {
         const name = nameOf(feature.properties || {}, "Destination area");
         const selected = selectedDestination()?.name === name;
@@ -1600,11 +1600,9 @@ function renderDestinationSelectionLayer() {
           weight: selectedDestination()?.name === name ? 3 : 1.8,
           fillOpacity: selectedDestination()?.name === name ? 0.22 : 0.12
         }));
-        layer.on("click", event => {
-          if (!destinationSelectionMode) return;
-          if (event.originalEvent) L.DomEvent.stop(event.originalEvent);
-          selectDestinationFromMap(name);
-        });
+        // Map-level click handling performs the hit test. Keeping polygon
+        // events bubbling ensures that handler also works with Leaflet's
+        // Canvas renderer (preferCanvas is enabled for this map).
       }
     }
   ).addTo(map);
@@ -2211,10 +2209,32 @@ async function init() {
     map.on("mousemove", event => setMapClickHoverCursor(event.latlng));
     map.on("mouseout", () => setMapClickHoverCursor(null));
     map.on("click", event => {
-      // Destination selection is a separate interaction from setting the
-      // route origin. Polygon clicks are handled by their own layer events;
-      // blank-map clicks must never become an origin while selecting a LAAR.
-      if (destinationSelectionMode) return;
+      // Destination selection is handled independently from origin selection.
+      // Hit-test the displayed destination polygons explicitly so selection
+      // works consistently with both SVG and Canvas Leaflet renderers.
+      if (destinationSelectionMode) {
+        const point = map.latLngToLayerPoint(event.latlng);
+        let selectedName = null;
+        const inspectLayer = layer => {
+          if (selectedName) return;
+          if (typeof layer.eachLayer === "function" && !layer.getLatLngs) {
+            layer.eachLayer(inspectLayer);
+            return;
+          }
+          const hit = typeof layer._containsPoint === "function"
+            ? layer._containsPoint(point)
+            : layer.getBounds?.().contains(event.latlng);
+          if (hit && layer.feature?.properties) {
+            selectedName = nameOf(layer.feature.properties, "Destination area");
+          }
+        };
+        destinationSelectionLayer?.eachLayer(inspectLayer);
+        if (selectedName) {
+          selectDestinationFromMap(selectedName);
+          return;
+        }
+        return;
+      }
       if ($("startMode")?.value !== "map") return;
       if (typeof setMapClickOrigin !== "function") {
         const message = "Map click received, but origin-selection code is unavailable.";
