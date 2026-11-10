@@ -236,7 +236,7 @@
       });
 
       const roadNameCheckbox = container.querySelector("#roadNameLabelsToggle");
-      roadNameCheckbox.checked = window.roadNameLabelsVisible !== false;
+      roadNameCheckbox.checked = window.roadNameLabelsVisible === true;
       roadNameCheckbox.addEventListener("change", function () {
         window.roadNameLabelsVisible = roadNameCheckbox.checked;
         if (typeof window.setRoadNameLabelsVisible === "function") {
