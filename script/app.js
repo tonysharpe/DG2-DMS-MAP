@@ -445,6 +445,8 @@ let destinationAreas = new Map();
 let ignoredDestinationNames = [];
 
 let destinationOptions = [];
+let destinationSelectionMode = false;
+let destinationSelectionLayer = null;
 let selectedContractors = new Set();
 let selectedDestinationTypes = new Set();
 let gateMarkers = new Map();
@@ -1542,6 +1544,101 @@ function buildDestinationOptions() {
   });
 }
 
+function destinationMatchesActiveFilters(item) {
+  return (!selectedContractors.size || selectedContractors.has(item.contractor)) &&
+    (!selectedDestinationTypes.size ||
+      selectedDestinationTypes.has(String(item.type || "").toUpperCase()));
+}
+
+function clearDestinationSelectionLayer() {
+  if (destinationSelectionLayer && map?.hasLayer(destinationSelectionLayer)) {
+    map.removeLayer(destinationSelectionLayer);
+  }
+  destinationSelectionLayer = null;
+}
+
+function renderDestinationSelectionLayer() {
+  clearDestinationSelectionLayer();
+  if (!destinationSelectionMode || !map) return;
+
+  const allowedNames = new Set(
+    destinationOptions
+      .filter(item => item.hasPolygon && destinationMatchesActiveFilters(item))
+      .map(item => item.name)
+  );
+  const visibleFeatures = [...destinationAreas.entries()]
+    .filter(([name]) => allowedNames.has(name))
+    .flatMap(([, features]) => features);
+
+  if (!visibleFeatures.length) {
+    status("No destination areas match the current filters.");
+    return;
+  }
+
+  destinationSelectionLayer = L.geoJSON(
+    { type: "FeatureCollection", features: visibleFeatures },
+    {
+      pane: "destinationSelectionPane",
+      bubblingMouseEvents: false,
+      style: feature => {
+        const name = nameOf(feature.properties || {}, "Destination area");
+        const selected = selectedDestination()?.name === name;
+        return {
+          color: selected ? themeColor("--map-area-outline") : "#2874B8",
+          weight: selected ? 3 : 1.8,
+          opacity: 1,
+          fillColor: selected ? themeColor("--map-area-fill") : "#58A6E7",
+          fillOpacity: selected ? 0.22 : 0.12,
+          lineJoin: "round"
+        };
+      },
+      onEachFeature: (feature, layer) => {
+        const name = nameOf(feature.properties || {}, "Destination area");
+        layer.bindTooltip(name, { sticky: true, className: "destination-map-tooltip" });
+        layer.on("mouseover", () => layer.setStyle({ weight: 3, fillOpacity: 0.24 }));
+        layer.on("mouseout", () => layer.setStyle({
+          weight: selectedDestination()?.name === name ? 3 : 1.8,
+          fillOpacity: selectedDestination()?.name === name ? 0.22 : 0.12
+        }));
+        layer.on("click", event => {
+          if (!destinationSelectionMode) return;
+          if (event.originalEvent) L.DomEvent.stop(event.originalEvent);
+          selectDestinationFromMap(name);
+        });
+      }
+    }
+  ).addTo(map);
+}
+
+function setDestinationSelectionMode(enabled) {
+  destinationSelectionMode = Boolean(enabled);
+  const radio = document.querySelector('input[name="destinationModeChoice"][value="map"]');
+  if (radio) radio.checked = destinationSelectionMode;
+  const listRadio = document.querySelector('input[name="destinationModeChoice"][value="list"]');
+  if (listRadio) listRadio.checked = !destinationSelectionMode;
+  if (typeof setMapClickHitAreaEnabled === "function") {
+    setMapClickHitAreaEnabled(destinationSelectionMode || $("startMode")?.value === "map");
+  }
+  renderDestinationSelectionLayer();
+  if (destinationSelectionMode) {
+    map?.closePopup();
+    status("Select a highlighted destination area on the map. This does not change the starting location.");
+  }
+}
+
+function selectDestinationFromMap(name) {
+  const item = destinationOptions.find(option =>
+    option.name === name && option.hasPolygon && destinationMatchesActiveFilters(option)
+  );
+  if (!item) return;
+
+  const end = $("end");
+  end.value = item.hasAccessPoint ? String(item.index) : "missing:" + item.name;
+  setDestinationSelectionMode(false);
+  renderDestinationOptions();
+  end.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
 function renderDestinationOptions() {
   const previous = $("end").value;
   const query = searchKey($("destinationSearch").value);
@@ -1622,6 +1719,7 @@ function renderDestinationOptions() {
     (retained ? ". Current selection retained." : ".");
   const clearFilters = $("contractorFilterClear");
   if (clearFilters) clearFilters.disabled = activeFilterCount === 0;
+  renderDestinationSelectionLayer();
 }
 
 
@@ -2113,6 +2211,10 @@ async function init() {
     map.on("mousemove", event => setMapClickHoverCursor(event.latlng));
     map.on("mouseout", () => setMapClickHoverCursor(null));
     map.on("click", event => {
+      // Destination selection is a separate interaction from setting the
+      // route origin. Polygon clicks are handled by their own layer events;
+      // blank-map clicks must never become an origin while selecting a LAAR.
+      if (destinationSelectionMode) return;
       if ($("startMode")?.value !== "map") return;
       if (typeof setMapClickOrigin !== "function") {
         const message = "Map click received, but origin-selection code is unavailable.";
@@ -2144,6 +2246,9 @@ async function init() {
 
     map.createPane("siteReferenceRoads");
     map.getPane("siteReferenceRoads").style.zIndex = "300";
+
+    map.createPane("destinationSelectionPane");
+    map.getPane("destinationSelectionPane").style.zIndex = "480";
 
     map.createPane("selectedLaarPane");
     map.getPane("selectedLaarPane").style.zIndex = "500";
@@ -2384,6 +2489,14 @@ async function init() {
         if (!radio.checked) return;
         $("startMode").value = radio.value;
         $("startMode").dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    });
+
+    document.querySelectorAll('input[name="destinationModeChoice"]').forEach(radio => {
+      radio.checked = radio.value === "list";
+      radio.addEventListener("change", () => {
+        if (!radio.checked) return;
+        setDestinationSelectionMode(radio.value === "map");
       });
     });
 
