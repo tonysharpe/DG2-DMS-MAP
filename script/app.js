@@ -1823,56 +1823,83 @@ function calculate(collapseMobilePanelOnSuccess = false) {
     const previous = new Map();
     const source = new Map();
     const visited = new Set();
+    const searchStates = new Map();
+    const roadById = new Map(roads.map(road => [road.id, road]));
+    const stateKey = (node, communityEntered) =>
+      JSON.stringify([node, communityEntered]);
 
     for (const start of prepared.sources) {
       const id = start.location.node;
+      // If the origin is attached directly to a community road, the route
+      // has entered the community-road network before its first graph edge.
+      const attachedRoad = roadById.get(start.location.attachedRoadId);
+      const communityEntered = attachedRoad?.type === "community";
+      const key = stateKey(id, communityEntered);
 
-      if (!best.has(id)) {
-        best.set(id, 0);
-        source.set(id, start);
+      if (!best.has(key)) {
+        best.set(key, 0);
+        source.set(key, start);
+        searchStates.set(key, { node: id, communityEntered });
       }
     }
 
     const end = destination.node;
+    let endStateKey = null;
 
     while (true) {
-      let current = null;
+      let currentKey = null;
       let distance = Infinity;
 
-      for (const [id, value] of best) {
-        if (!visited.has(id) && value < distance) {
-          current = id;
+      for (const [key, value] of best) {
+        if (!visited.has(key) && value < distance) {
+          currentKey = key;
           distance = value;
         }
       }
 
-      if (current === null || current === end) break;
+      if (currentKey === null) break;
+      const currentState = searchStates.get(currentKey);
+      if (currentState.node === end) {
+        endStateKey = currentKey;
+        break;
+      }
 
-      visited.add(current);
+      visited.add(currentKey);
 
-      for (const edge of adjacency.get(current) || []) {
+      for (const edge of adjacency.get(currentState.node) || []) {
         if (edge.roadId !== undefined && edge.roadId !== null) {
           routeDebugRoadIds.add(edge.roadId);
         }
-        if (visited.has(edge.to)) continue;
+
+        const edgeRoad = roadById.get(edge.roadId);
+        const edgeIsCommunity = edgeRoad?.type === "community";
+
+        // After entering a community road, only community-road edges may
+        // be used. The state is part of the Dijkstra key so reaching the same
+        // node before and after entering community roads remains distinct.
+        if (currentState.communityEntered && !edgeIsCommunity) continue;
+
+        const nextCommunityEntered =
+          currentState.communityEntered || edgeIsCommunity;
+        const nextKey = stateKey(edge.to, nextCommunityEntered);
+        if (visited.has(nextKey)) continue;
 
         // Dijkstra minimizes travel time using the speed of each road link.
         const candidate = distance + edge.seconds;
 
-        if (candidate < (best.get(edge.to) ?? Infinity)) {
-          best.set(edge.to, candidate);
-
-          previous.set(edge.to, {
-            from: current,
-            edge
+        if (candidate < (best.get(nextKey) ?? Infinity)) {
+          best.set(nextKey, candidate);
+          previous.set(nextKey, { from: currentKey, edge });
+          source.set(nextKey, source.get(currentKey));
+          searchStates.set(nextKey, {
+            node: edge.to,
+            communityEntered: nextCommunityEntered
           });
-
-          source.set(edge.to, source.get(current));
         }
       }
     }
 
-    if (!best.has(end)) {
+    if (endStateKey === null) {
       throw new Error(
         liveMode
           ? "No connected road route from your attached position."
@@ -1882,7 +1909,7 @@ function calculate(collapseMobilePanelOnSuccess = false) {
       );
     }
 
-    const start = source.get(end);
+    const start = source.get(endStateKey);
     if (!start) throw new Error("Starting point unavailable.");
 
     if (start.index !== null) {
@@ -1891,14 +1918,17 @@ function calculate(collapseMobilePanelOnSuccess = false) {
     }
 
     const edges = [];
-    let id = end;
+    let currentKey = endStateKey;
 
-    while (id !== start.location.node) {
-      const step = previous.get(id);
+    while (currentKey !== stateKey(
+      start.location.node,
+      roadById.get(start.location.attachedRoadId)?.type === "community"
+    )) {
+      const step = previous.get(currentKey);
       if (!step) throw new Error("Cannot reconstruct route.");
 
       edges.push(step.edge);
-      id = step.from;
+      currentKey = step.from;
     }
 
     edges.reverse();
