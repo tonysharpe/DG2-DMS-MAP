@@ -4739,3 +4739,9 @@ body {
 .leaflet-tooltip-bottom.laar-live-coordinates-tooltip::before {
   border-bottom-color: rgba(255, 255, 255, 0.96);
 }
+/* Hide any Leaflet attribution badge in the map's bottom-right corner. */
+#map .leaflet-control-attribution {
+  display: none !important;
+}
+
+
