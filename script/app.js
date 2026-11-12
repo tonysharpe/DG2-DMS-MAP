@@ -2510,6 +2510,15 @@ async function init() {
     });
     document.querySelectorAll('input[name="startModeChoice"]').forEach(radio => {
       radio.checked = radio.value === $("startMode").value;
+      // A radio change event does not fire when the already-selected option
+      // is tapped. Treat that tap as an explicit gesture to retry compass
+      // startup, which may require user activation in the browser.
+      radio.addEventListener("click", () => {
+        if (radio.value === "live" && radio.checked &&
+            $("startMode").value === "live") {
+          startLiveLocation(true);
+        }
+      });
       radio.addEventListener("change", () => {
         if (!radio.checked) return;
         $("startMode").value = radio.value;
