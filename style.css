@@ -2665,7 +2665,6 @@ body > aside .primary-button:active:not(:disabled) {
 .laar-live-heading-marker {
   width: 32px !important;
   height: 42px !important;
-  margin: 0 !important;
   border: 0 !important;
   background: transparent !important;
   transform-origin: 50% 22px;
@@ -2788,8 +2787,8 @@ body > aside .primary-button:active:not(:disabled) {
 /* Refined live-location icon: a crisp heading arrow, strong position dot,
    and subtle halo for contrast on pale or detailed map backgrounds. */
 .laar-live-heading-marker {
-  width: 36px !important;
-  height: 44px !important;
+  width: 32px !important;
+  height: 42px !important;
   transform-origin: 50% 22px;
   transform: rotate(var(--laar-live-heading, 0deg));
 }
