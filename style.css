@@ -4722,22 +4722,6 @@ body {
 
 
 /* Temporary live GPS coordinate readout for field verification. */
-.leaflet-tooltip.laar-live-coordinates-tooltip {
-  z-index: 1200;
-  margin-top: 0;
-  padding: 4px 7px;
-  border: 1px solid rgba(32, 33, 36, 0.28);
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.96);
-  color: #202124;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.24);
-  font: 600 11px/1.35 system-ui, sans-serif;
-  white-space: nowrap;
-  pointer-events: none;
-}
-.leaflet-tooltip-bottom.laar-live-coordinates-tooltip::before {
-  border-bottom-color: rgba(255, 255, 255, 0.96);
-}
 /* Hide any Leaflet attribution badge in the map's bottom-right corner. */
 #map .leaflet-control-attribution {
   display: none !important;
