@@ -2204,7 +2204,7 @@ async function init() {
 
     map = L.map("map", {
       zoomControl: false,
-      attributionControl: true,
+      attributionControl: false,
       maxBoundsViscosity: 1,
       scrollWheelZoom: true,
       preferCanvas: true,
@@ -2265,16 +2265,6 @@ async function init() {
       map.invalidateSize({ pan: false, animate: false });
       fitSelectedResult();
     });
-
-    // OpenStreetMap provides a no-key reference basemap for this road-alignment test.
-    // Keep it below the site's custom road casing and road geometry panes.
-    map.createPane("baseMapPane");
-    map.getPane("baseMapPane").style.zIndex = "180";
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      pane: "baseMapPane",
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
 
     map.createPane("roadCasingPane");
     map.getPane("roadCasingPane").style.zIndex = "290";
