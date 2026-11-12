@@ -37,6 +37,7 @@ const LIVE_LOCATION_MAX_AGE = 60000;
 
 let locationStatusMessage = "Location off.";
 let compassDiagnosticMessage = "Compass: not started.";
+let compassStopTrace = "caller unknown";
 
 function renderLocationStatus() {
   const element = $("locationStatus");
@@ -247,7 +248,7 @@ function removeLiveLocationLayers() {
 }
 
 function stopLiveLocation(showMessage = true) {
-  const stopTrace = new Error().stack?.split("\n").slice(2, 5).map(line => line.trim()).join(" ← ");
+  compassStopTrace = new Error().stack?.split("\n").slice(2, 5).map(line => line.trim()).join(" ← ") || "caller unknown";
   locationWatchGeneration += 1;
   if (locationWatchId !== null) {
     navigator.geolocation.clearWatch(locationWatchId);
@@ -360,7 +361,7 @@ function stopDeviceHeading() {
     deviceOrientationListening = false;
   }
   deviceHeadingDegrees = null;
-  compassDiagnosticMessage = "Compass: stopped by app (" + (stopTrace || "caller unknown") + ").";
+  compassDiagnosticMessage = "Compass: stopped by app (" + compassStopTrace + ").";
   renderLocationStatus();
 }
 
