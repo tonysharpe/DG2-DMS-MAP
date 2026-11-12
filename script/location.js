@@ -42,7 +42,7 @@ function renderLocationStatus() {
   const element = $("locationStatus");
   if (element) element.textContent = locationStatusMessage + " " + compassDiagnosticMessage;
   const visibleDiagnostic = $("compassDiagnostic");
-  if (visibleDiagnostic) visibleDiagnostic.textContent = compassDiagnosticMessage;
+  if (visibleDiagnostic) visibleDiagnostic.textContent = locationStatusMessage + " | " + compassDiagnosticMessage;
 }
 
 function locationStatus(text) {
