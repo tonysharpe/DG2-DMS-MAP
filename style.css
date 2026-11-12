@@ -4670,12 +4670,6 @@ body {
 }
 
 
-/* Hide any Leaflet attribution badge in the map's bottom-right corner. */
-#map .leaflet-control-attribution {
-  display: none !important;
-}
-
-
 /* Road-name labels rendered from data/road_names.geojson. */
 .leaflet-tooltip.site-road-label {
   background: rgba(245, 246, 247, 0.94);
