@@ -247,6 +247,7 @@ function removeLiveLocationLayers() {
 }
 
 function stopLiveLocation(showMessage = true) {
+  const stopTrace = new Error().stack?.split("\n").slice(2, 5).map(line => line.trim()).join(" ← ");
   locationWatchGeneration += 1;
   if (locationWatchId !== null) {
     navigator.geolocation.clearWatch(locationWatchId);
@@ -359,7 +360,7 @@ function stopDeviceHeading() {
     deviceOrientationListening = false;
   }
   deviceHeadingDegrees = null;
-  compassDiagnosticMessage = "Compass: stopped.";
+  compassDiagnosticMessage = "Compass: stopped by app (" + (stopTrace || "caller unknown") + ").";
   renderLocationStatus();
 }
 
