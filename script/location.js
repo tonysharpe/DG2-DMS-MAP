@@ -35,9 +35,17 @@ const MAIN_ROAD_40_PERCENT_BUFFER_METRES = 50;
 let locationWatchGeneration = 0;
 const LIVE_LOCATION_MAX_AGE = 60000;
 
-function locationStatus(text) {
+let locationStatusMessage = "Location off.";
+let compassDiagnosticMessage = "Compass: not started.";
+
+function renderLocationStatus() {
   const element = $("locationStatus");
-  if (element) element.textContent = text;
+  if (element) element.textContent = locationStatusMessage + " " + compassDiagnosticMessage;
+}
+
+function locationStatus(text) {
+  locationStatusMessage = text;
+  renderLocationStatus();
 }
 
 function removeMapClickOrigin() {
@@ -289,17 +297,25 @@ function applyDeviceOrientationHeading(event) {
     (event.absolute === true || event.type === "deviceorientationabsolute") &&
     Number.isFinite(event.alpha)
   ) {
-    // Some browsers dispatch an absolute reading as deviceorientationabsolute
-    // without setting event.absolute; the event type itself establishes that it
-    // is an absolute compass reference.
+    // Chrome Android provides the Earth-referenced reading through
+    // deviceorientationabsolute; alpha is converted to clockwise heading.
     const screenAngle = Number.isFinite(screen.orientation?.angle)
       ? screen.orientation.angle
       : (Number.isFinite(window.orientation) ? window.orientation : 0);
     heading = 360 - event.alpha + screenAngle;
   }
-  if (!Number.isFinite(heading)) return;
+  if (!Number.isFinite(heading)) {
+    const alpha = Number.isFinite(event.alpha) ? Math.round(event.alpha) + "°" : "unavailable";
+    compassDiagnosticMessage = "Compass: " + event.type + ", alpha " + alpha +
+      ", absolute " + String(event.absolute) + " (no absolute heading)";
+    renderLocationStatus();
+    return;
+  }
   deviceHeadingDegrees = (heading + 360) % 360;
   liveHeadingDegrees = deviceHeadingDegrees;
+  compassDiagnosticMessage = "Compass: " + Math.round(deviceHeadingDegrees) +
+    "° via " + event.type;
+  renderLocationStatus();
   updateLiveMarkerHeading();
 }
 
@@ -308,10 +324,16 @@ function attachDeviceOrientationListeners() {
   window.addEventListener("deviceorientation", applyDeviceOrientationHeading, true);
   window.addEventListener("deviceorientationabsolute", applyDeviceOrientationHeading, true);
   deviceOrientationListening = true;
+  compassDiagnosticMessage = "Compass: listeners active; waiting for sensor readings.";
+  renderLocationStatus();
 }
 
 function startDeviceHeading(requestPermission = false) {
-  if (!isMobileOrientationDevice() || !("DeviceOrientationEvent" in window)) return;
+  if (!isMobileOrientationDevice() || !("DeviceOrientationEvent" in window)) {
+    compassDiagnosticMessage = "Compass: device orientation API unavailable.";
+    renderLocationStatus();
+    return;
+  }
   const OrientationEvent = window.DeviceOrientationEvent;
   if (typeof OrientationEvent.requestPermission === "function") {
     // iOS requires this call to originate directly from a user gesture.
@@ -335,6 +357,8 @@ function stopDeviceHeading() {
     deviceOrientationListening = false;
   }
   deviceHeadingDegrees = null;
+  compassDiagnosticMessage = "Compass: stopped.";
+  renderLocationStatus();
 }
 
 function updateLiveMarkerHeading() {
