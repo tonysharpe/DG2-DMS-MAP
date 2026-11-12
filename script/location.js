@@ -522,10 +522,20 @@ function startLiveLocation() {
             pane: "liveLocationPane",
             keyboard: false
           }).addTo(map);
-          liveLocationMarker.bindTooltip("My live location", {direction: "top"});
+          liveLocationMarker.bindTooltip("", {
+            permanent: true,
+            direction: "bottom",
+            offset: [0, 18],
+            opacity: 1,
+            className: "laar-live-coordinates-tooltip",
+            interactive: false
+          });
         } else {
           liveLocationMarker.setLatLng(latlng);
         }
+        liveLocationMarker.setTooltipContent(
+          "Lat: " + latitude.toFixed(6) + " | Lon: " + longitude.toFixed(6)
+        );
         // No accuracy circle: keep the map clean and make the 2D position marker prominent.
         $("stopLocation").disabled = false;
         updateJourneyGuidance();
