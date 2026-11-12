@@ -699,7 +699,7 @@ function initialiseLocationControls() {
       if (typeof setMapClickHitAreaEnabled === "function") setMapClickHitAreaEnabled(false);
       removeMapClickOrigin();
       $("locate").disabled = false;
-      startLiveLocation();
+      startLiveLocation(true);
     } else if ($("startMode").value === "map") {
       stopLiveLocation(false);
       if (typeof setMapClickHitAreaEnabled === "function") setMapClickHitAreaEnabled(true);
