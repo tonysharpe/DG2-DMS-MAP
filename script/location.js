@@ -285,8 +285,13 @@ function applyDeviceOrientationHeading(event) {
   if (Number.isFinite(event.webkitCompassHeading)) {
     // iOS exposes a compass heading in degrees clockwise from magnetic north.
     heading = event.webkitCompassHeading;
-  } else if (event.absolute && Number.isFinite(event.alpha)) {
-    // Absolute DeviceOrientation alpha is counter-clockwise from north.
+  } else if (
+    (event.absolute === true || event.type === "deviceorientationabsolute") &&
+    Number.isFinite(event.alpha)
+  ) {
+    // Some browsers dispatch an absolute reading as deviceorientationabsolute
+    // without setting event.absolute; the event type itself establishes that it
+    // is an absolute compass reference.
     const screenAngle = Number.isFinite(screen.orientation?.angle)
       ? screen.orientation.angle
       : (Number.isFinite(window.orientation) ? window.orientation : 0);
