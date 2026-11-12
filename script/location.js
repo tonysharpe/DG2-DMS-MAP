@@ -8,6 +8,8 @@ let locationWatchId = null;
 let livePosition = null;
 let previousHeadingPosition = null;
 let liveHeadingDegrees = null;
+let deviceHeadingDegrees = null;
+let deviceOrientationListening = false;
 let nextRouteBearing = null;
 let journeyStartConfirmed = false;
 let liveLocationMarker = null;
@@ -247,6 +249,7 @@ function stopLiveLocation(showMessage = true) {
   releaseScreenWakeLock();
   previousHeadingPosition = null;
   liveHeadingDegrees = null;
+  stopDeviceHeading();
   if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
   if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
   if ($("stopLiveRoute")) $("stopLiveRoute").hidden = true;
@@ -271,6 +274,62 @@ function bearingDegrees(lat1, lon1, lat2, lon2) {
   const x = Math.cos(p1) * Math.sin(p2) -
     Math.sin(p1) * Math.cos(p2) * Math.cos(dLon);
   return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+function isMobileOrientationDevice() {
+  return Boolean(window.matchMedia?.("(pointer: coarse)").matches || navigator.maxTouchPoints > 0);
+}
+
+function applyDeviceOrientationHeading(event) {
+  let heading = null;
+  if (Number.isFinite(event.webkitCompassHeading)) {
+    // iOS exposes a compass heading in degrees clockwise from magnetic north.
+    heading = event.webkitCompassHeading;
+  } else if (event.absolute && Number.isFinite(event.alpha)) {
+    // Absolute DeviceOrientation alpha is counter-clockwise from north.
+    const screenAngle = Number.isFinite(screen.orientation?.angle)
+      ? screen.orientation.angle
+      : (Number.isFinite(window.orientation) ? window.orientation : 0);
+    heading = 360 - event.alpha + screenAngle;
+  }
+  if (!Number.isFinite(heading)) return;
+  deviceHeadingDegrees = (heading + 360) % 360;
+  liveHeadingDegrees = deviceHeadingDegrees;
+  updateLiveMarkerHeading();
+}
+
+function attachDeviceOrientationListeners() {
+  if (deviceOrientationListening) return;
+  window.addEventListener("deviceorientation", applyDeviceOrientationHeading, true);
+  window.addEventListener("deviceorientationabsolute", applyDeviceOrientationHeading, true);
+  deviceOrientationListening = true;
+}
+
+function startDeviceHeading(requestPermission = false) {
+  if (!isMobileOrientationDevice() || !("DeviceOrientationEvent" in window)) return;
+  const OrientationEvent = window.DeviceOrientationEvent;
+  if (typeof OrientationEvent.requestPermission === "function") {
+    // iOS requires this call to originate directly from a user gesture.
+    if (!requestPermission) return;
+    try {
+      OrientationEvent.requestPermission().then(permission => {
+        if (permission === "granted") attachDeviceOrientationListeners();
+      }).catch(error => console.warn("Compass permission was not granted:", error));
+    } catch (error) {
+      console.warn("Compass permission could not be requested:", error);
+    }
+    return;
+  }
+  attachDeviceOrientationListeners();
+}
+
+function stopDeviceHeading() {
+  if (deviceOrientationListening) {
+    window.removeEventListener("deviceorientation", applyDeviceOrientationHeading, true);
+    window.removeEventListener("deviceorientationabsolute", applyDeviceOrientationHeading, true);
+    deviceOrientationListening = false;
+  }
+  deviceHeadingDegrees = null;
 }
 
 function updateLiveMarkerHeading() {
@@ -457,10 +516,11 @@ function followLiveLocation() {
   calculate();
 }
 
-function startLiveLocation() {
+function startLiveLocation(requestOrientationPermission = false) {
   if ($("startMode").value !== "live") $("startMode").value = "live";
   removeMapClickOrigin();
   stopLiveLocation(false);
+  startDeviceHeading(requestOrientationPermission);
   clearRoute();
   $("start").selectedIndex = -1;
   if (!window.isSecureContext) {
@@ -484,9 +544,9 @@ function startLiveLocation() {
           locationStatus("The browser returned an invalid location.");
           return;
         }
-        if (Number.isFinite(position.coords.heading) && position.coords.speed > 0.5) {
+        if (deviceHeadingDegrees === null && Number.isFinite(position.coords.heading) && position.coords.speed > 0.5) {
           liveHeadingDegrees = (position.coords.heading + 360) % 360;
-        } else if (previousHeadingPosition) {
+        } else if (deviceHeadingDegrees === null && previousHeadingPosition) {
           const moved = dist(
             xy([previousHeadingPosition.longitude, previousHeadingPosition.latitude]),
             xy([longitude, latitude])
@@ -514,7 +574,7 @@ function startLiveLocation() {
           liveLocationMarker = L.marker(latlng, {
             icon: L.divIcon({
               className: "laar-live-heading-marker",
-              html: '<span class="laar-live-heading-arrow" aria-hidden="true"></span><span class="laar-live-heading-core" aria-hidden="true"></span>',
+              html: '<span class="laar-live-heading-rotator"><span class="laar-live-heading-arrow" aria-hidden="true"></span><span class="laar-live-heading-core" aria-hidden="true"></span></span>',
               iconSize: [32, 42],
               iconAnchor: [16, 22]
             }),
@@ -658,7 +718,7 @@ function initialiseLocationControls() {
       else status("Gate mode selected. Select a LAAR destination.");
     }
   };
-  $("locate").onclick = startLiveLocation;
+  $("locate").onclick = () => startLiveLocation(true);
   $("stopLocation").onclick = () => stopLiveLocation();
   window.addEventListener("pagehide", () => stopLiveLocation(false));
 }
