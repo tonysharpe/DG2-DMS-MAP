@@ -2096,6 +2096,9 @@ function calculate(collapseMobilePanelOnSuccess = false) {
         }).addTo(map);
         window.laarRouteAvailable = true;
         document.dispatchEvent(new CustomEvent("laar-route-state-change"));
+        if (typeof completePendingLiveJourneyStart === "function") {
+          completePendingLiveJourneyStart();
+        }
       }
     }
 
@@ -2510,15 +2513,6 @@ async function init() {
     });
     document.querySelectorAll('input[name="startModeChoice"]').forEach(radio => {
       radio.checked = radio.value === $("startMode").value;
-      // A radio change event does not fire when the already-selected option
-      // is tapped. Treat that tap as an explicit gesture to retry compass
-      // startup, which may require user activation in the browser.
-      radio.addEventListener("click", () => {
-        if (radio.value === "live" && radio.checked &&
-            $("startMode").value === "live") {
-          startLiveLocation(true);
-        }
-      });
       radio.addEventListener("change", () => {
         if (!radio.checked) return;
         $("startMode").value = radio.value;
@@ -2722,8 +2716,8 @@ async function init() {
         : "")
     );
 
-    // Start in live-location mode so the user's current position is shown
-    // automatically on launch. The browser may ask for location permission.
+    // Default to current-location origin, but do not start GPS or compass
+    // until the user explicitly presses Start live route.
     // Shared-link destinations are not restored automatically on refresh.
     $("startMode").value = "live";
     document.querySelectorAll('input[name="startModeChoice"]').forEach(radio => {
@@ -2749,13 +2743,13 @@ async function init() {
       refreshShareControls();
     }
 
-    locationStatus("Requesting your current location…");
+    locationStatus("Location tracking is off. Press Start to begin.");
     status(
       "Vehicle: " + vehicleMode + ". " + roads.length + " eligible roads. " +
-      "Waiting for your current location."
+      "Select a destination, then press Start to begin live navigation."
     );
-    $("locate").disabled = false;
-    startLiveLocation();
+    $("locate").disabled = true;
+    $("stopLocation").disabled = true;
     window.laarNetworkBuildReady = true;
     hideMapLoadingDialog();
     window.recordMapLoadTiming?.("Application initialisation total", window.mapLoadTimingState?.startedAt ?? performance.now());

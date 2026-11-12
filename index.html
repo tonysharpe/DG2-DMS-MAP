@@ -155,7 +155,6 @@
         <label><input type="radio" name="startModeChoice" value="live" checked> Current Location</label>
         <label><input type="radio" name="startModeChoice" value="map"> Set on Map</label>
       </fieldset>
-      <p id="compassDiagnostic" class="field-help" role="status" aria-live="polite">Compass: not started.</p>
       <select id="startMode" hidden disabled aria-hidden="true" tabindex="-1">
         <option value="gate">Access Gate</option>
         <option value="live" selected>Current Location</option>
@@ -215,15 +214,6 @@
         aria-describedby="searchStatus" disabled>
       <p id="searchStatus" class="field-help" aria-live="polite"></p>
 
-      <section class="diagnostics-section" aria-labelledby="diagnosticsHeading">
-        <h3 id="diagnosticsHeading">Diagnostics</h3>
-        <p class="field-help">Destinations that cannot be reached with the selected vehicle and start location:</p>
-        <p id="diagnosticsStatus" class="field-help" aria-live="polite">Checking destination access…</p>
-        <ul id="unreachableDestinations" class="unreachable-destinations"></ul>
-        <h4 class="map-load-heading">Map load timings</h4>
-        <p id="mapLoadTimingSummary" class="field-help" aria-live="polite">Collecting timings…</p>
-        <ol id="mapLoadTimings" class="map-load-timings"></ol>
-      </section>
       </div>
     </section>
 

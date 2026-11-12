@@ -177,7 +177,9 @@
     const running = start.hidden && !stop.hidden;
     button.textContent = running ? "Stop" : "Start";
     button.classList.toggle("is-stop", running);
-    button.disabled = !running && !window.laarRouteAvailable;
+    const canStartLive = document.getElementById("startMode")?.value === "live" &&
+      Boolean(document.getElementById("end")?.value);
+    button.disabled = !running && !window.laarRouteAvailable && !canStartLive;
   }
   button.addEventListener("click", function () {
     if (button.disabled) return;

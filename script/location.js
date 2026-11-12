@@ -36,14 +36,11 @@ let locationWatchGeneration = 0;
 const LIVE_LOCATION_MAX_AGE = 60000;
 
 let locationStatusMessage = "Location off.";
-let compassDiagnosticMessage = "Compass: not started.";
-let compassStopTrace = "caller unknown";
+let liveJourneyStartPending = false;
 
 function renderLocationStatus() {
   const element = $("locationStatus");
-  if (element) element.textContent = locationStatusMessage + " " + compassDiagnosticMessage;
-  const visibleDiagnostic = $("compassDiagnostic");
-  if (visibleDiagnostic) visibleDiagnostic.textContent = locationStatusMessage + " | " + compassDiagnosticMessage;
+  if (element) element.textContent = locationStatusMessage;
 }
 
 function locationStatus(text) {
@@ -248,7 +245,6 @@ function removeLiveLocationLayers() {
 }
 
 function stopLiveLocation(showMessage = true) {
-  compassStopTrace = new Error().stack?.split("\n").slice(2, 5).map(line => line.trim()).join(" ← ") || "caller unknown";
   locationWatchGeneration += 1;
   if (locationWatchId !== null) {
     navigator.geolocation.clearWatch(locationWatchId);
@@ -309,17 +305,10 @@ function applyDeviceOrientationHeading(event) {
     heading = 360 - event.alpha + screenAngle;
   }
   if (!Number.isFinite(heading)) {
-    const alpha = Number.isFinite(event.alpha) ? Math.round(event.alpha) + "°" : "unavailable";
-    compassDiagnosticMessage = "Compass: " + event.type + ", alpha " + alpha +
-      ", absolute " + String(event.absolute) + " (no absolute heading)";
-    renderLocationStatus();
     return;
   }
   deviceHeadingDegrees = (heading + 360) % 360;
   liveHeadingDegrees = deviceHeadingDegrees;
-  compassDiagnosticMessage = "Compass: " + Math.round(deviceHeadingDegrees) +
-    "° via " + event.type;
-  renderLocationStatus();
   updateLiveMarkerHeading();
 }
 
@@ -328,16 +317,10 @@ function attachDeviceOrientationListeners() {
   window.addEventListener("deviceorientation", applyDeviceOrientationHeading, true);
   window.addEventListener("deviceorientationabsolute", applyDeviceOrientationHeading, true);
   deviceOrientationListening = true;
-  compassDiagnosticMessage = "Compass: listeners active; waiting for sensor readings.";
-  renderLocationStatus();
 }
 
 function startDeviceHeading(requestPermission = false) {
-  if (!isMobileOrientationDevice() || !("DeviceOrientationEvent" in window)) {
-    compassDiagnosticMessage = "Compass: device orientation API unavailable.";
-    renderLocationStatus();
-    return;
-  }
+  if (!isMobileOrientationDevice() || !("DeviceOrientationEvent" in window)) return;
   const OrientationEvent = window.DeviceOrientationEvent;
   if (typeof OrientationEvent.requestPermission === "function") {
     // iOS requires this call to originate directly from a user gesture.
@@ -361,8 +344,6 @@ function stopDeviceHeading() {
     deviceOrientationListening = false;
   }
   deviceHeadingDegrees = null;
-  compassDiagnosticMessage = "Compass: stopped by app (" + compassStopTrace + ").";
-  renderLocationStatus();
 }
 
 function updateLiveMarkerHeading() {
@@ -439,17 +420,29 @@ document.addEventListener("visibilitychange", () => {
 
 function startLiveRoute() {
   if (!livePosition) {
-    locationStatus("Waiting for GPS. Allow location access, then try Start route again.");
+    liveJourneyStartPending = true;
+    locationStatus("Starting location tracking and compass. Allow location access when prompted.");
+    startLiveLocation(true);
     return;
   }
   if (!routeLayer) {
-    locationStatus("Choose a LAAR destination and wait for the route preview before starting.");
+    liveJourneyStartPending = true;
+    locationStatus("Waiting for the route to be calculated from your location.");
+    calculate();
     return;
   }
+  liveJourneyStartPending = false;
+  confirmBeginJourney();
+}
+
+function completePendingLiveJourneyStart() {
+  if (!liveJourneyStartPending || !livePosition || !routeLayer) return;
+  liveJourneyStartPending = false;
   confirmBeginJourney();
 }
 
 function stopLiveRoute() {
+  liveJourneyStartPending = false;
   liveNavigationActive = false;
   liveCameraFollowEnabled = false;
   journeyStartConfirmed = false;
@@ -473,7 +466,8 @@ function stopLiveRoute() {
     }
   }
 
-  locationStatus("Routing stopped. Your location is still being tracked; start the route again or use Stop location to turn GPS off.");
+  stopLiveLocation(false);
+  locationStatus("Journey stopped. Location tracking and compass are off.");
 }
 
 function confirmBeginJourney() {
@@ -731,9 +725,10 @@ function initialiseLocationControls() {
     if ($("startMode").value === "live") {
       if (typeof setMapClickHitAreaEnabled === "function") setMapClickHitAreaEnabled(false);
       removeMapClickOrigin();
-      $("locate").disabled = false;
-      startLiveLocation(true);
+      $("locate").disabled = true;
+      $("stopLocation").disabled = true;
     } else if ($("startMode").value === "map") {
+      liveJourneyStartPending = false;
       stopLiveLocation(false);
       if (typeof setMapClickHitAreaEnabled === "function") setMapClickHitAreaEnabled(true);
       $("locate").disabled = true;
@@ -743,16 +738,15 @@ function initialiseLocationControls() {
       locationStatus("Click anywhere on the map. The origin snaps to the nearest road permitted for the selected vehicle within 15 km. The route follows mapped connections and road directions.");
       status("Step 1 of 2: click anywhere on the map to set the origin.");
     } else {
+      liveJourneyStartPending = false;
       if (typeof setMapClickHitAreaEnabled === "function") setMapClickHitAreaEnabled(false);
-      stopLiveLocation();
+      stopLiveLocation(false);
       removeMapClickOrigin();
       $("locate").disabled = true;
       if ($("end").value !== "") calculate();
       else status("Gate mode selected. Select a LAAR destination.");
     }
   };
-  $("locate").onclick = () => startLiveLocation(true);
-  $("stopLocation").onclick = () => stopLiveLocation();
   window.addEventListener("pagehide", () => stopLiveLocation(false));
 }
 
