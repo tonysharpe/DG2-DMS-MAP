@@ -419,10 +419,12 @@ document.addEventListener("visibilitychange", () => {
 });
 
 function startLiveRoute() {
+  // GPS is already running independently. The Start gesture is used only
+  // to request compass permission and activate live route guidance.
+  startDeviceHeading(true);
   if (!livePosition) {
     liveJourneyStartPending = true;
-    locationStatus("Starting location tracking and compass. Allow location access when prompted.");
-    startLiveLocation(true);
+    locationStatus("Waiting for your current GPS location to start live guidance.");
     return;
   }
   if (!routeLayer) {
@@ -466,8 +468,8 @@ function stopLiveRoute() {
     }
   }
 
-  stopLiveLocation(false);
-  locationStatus("Journey stopped. Location tracking and compass are off.");
+  stopDeviceHeading();
+  locationStatus("Journey stopped. GPS location tracking remains active; compass is off.");
 }
 
 function confirmBeginJourney() {
@@ -547,7 +549,6 @@ function startLiveLocation(requestOrientationPermission = false) {
   if ($("startMode").value !== "live") $("startMode").value = "live";
   removeMapClickOrigin();
   stopLiveLocation(false);
-  startDeviceHeading(requestOrientationPermission);
   clearRoute();
   $("start").selectedIndex = -1;
   if (!window.isSecureContext) {
@@ -727,6 +728,7 @@ function initialiseLocationControls() {
       removeMapClickOrigin();
       $("locate").disabled = true;
       $("stopLocation").disabled = true;
+      startLiveLocation(false);
     } else if ($("startMode").value === "map") {
       liveJourneyStartPending = false;
       stopLiveLocation(false);

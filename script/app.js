@@ -2716,8 +2716,8 @@ async function init() {
         : "")
     );
 
-    // Default to current-location origin, but do not start GPS or compass
-    // until the user explicitly presses Start live route.
+    // Default to current-location origin. GPS starts automatically; compass
+    // permission and sensor listening begin only when Start live route is tapped.
     // Shared-link destinations are not restored automatically on refresh.
     $("startMode").value = "live";
     document.querySelectorAll('input[name="startModeChoice"]').forEach(radio => {
@@ -2743,13 +2743,14 @@ async function init() {
       refreshShareControls();
     }
 
-    locationStatus("Location tracking is off. Press Start to begin.");
+    locationStatus("Requesting your current location…");
     status(
       "Vehicle: " + vehicleMode + ". " + roads.length + " eligible roads. " +
-      "Select a destination, then press Start to begin live navigation."
+      "Waiting for your current location."
     );
     $("locate").disabled = true;
     $("stopLocation").disabled = true;
+    startLiveLocation(false);
     window.laarNetworkBuildReady = true;
     hideMapLoadingDialog();
     window.recordMapLoadTiming?.("Application initialisation total", window.mapLoadTimingState?.startedAt ?? performance.now());
