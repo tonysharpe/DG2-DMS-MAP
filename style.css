@@ -2667,8 +2667,6 @@ body > aside .primary-button:active:not(:disabled) {
   height: 42px !important;
   border: 0 !important;
   background: transparent !important;
-  transform-origin: 50% 22px;
-  transform: rotate(var(--laar-route-bearing, 0deg));
   overflow: visible !important;
   pointer-events: auto;
 }
@@ -2789,6 +2787,11 @@ body > aside .primary-button:active:not(:disabled) {
 .laar-live-heading-marker {
   width: 32px !important;
   height: 42px !important;
+}
+.laar-live-heading-rotator {
+  position: absolute;
+  inset: 0;
+  display: block;
   transform-origin: 50% 22px;
   transform: rotate(var(--laar-live-heading, 0deg));
 }
