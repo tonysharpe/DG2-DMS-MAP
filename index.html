@@ -47,27 +47,14 @@
 
   <!-- APPLICATION: LOAD EACH SCRIPT ONCE -->
 
-  <script
-    defer
-    src="script/app.js?v=hide-map-attribution-1"
-  ></script>
-<script
-    defer
-    src="script/location.js?v=compass-stop-trace-4"
-  ></script>
-
-  <script
-    defer
-    src="script/routing.js?v=all-destinations-route-status-1"
-  ></script>
-
-  <script
-    defer
-    src="script/mapLayers.js?v=road-name-labels-1"
-  ></script>
-
-  <script defer src="script/routeDisplay.js?v=failed-route-start-destination-fit-1"></script>
-  <script defer src="script/map.js?v=road-name-labels-1"></script>
+  <!-- Shared classic-script namespace: preserve this dependency order.
+       main.js checks required globals before starting the application. -->
+  <script defer src="script/app.js"></script>
+  <script defer src="script/location.js"></script>
+  <script defer src="script/routeDisplay.js"></script>
+  <script defer src="script/map.js"></script>
+  <script defer src="script/routing.js"></script>
+  <script defer src="script/mapLayers.js"></script>
 </head>
 
 <body>
@@ -155,11 +142,7 @@
         <label><input type="radio" name="startModeChoice" value="live" checked> Current Location</label>
         <label><input type="radio" name="startModeChoice" value="map"> Set on Map</label>
       </fieldset>
-      <select id="startMode" hidden disabled aria-hidden="true" tabindex="-1">
-        <option value="gate">Access Gate</option>
-        <option value="live" selected>Current Location</option>
-        <option value="map">Set on Map</option>
-      </select>
+      <input id="startMode" type="hidden" value="live">
     </section>
 
 <!-- DESTINATION -->
@@ -202,9 +185,7 @@
 
 
 
-      <section class="start-gate-section" aria-label="Gate and location controls">
-        <label for="start">Selected gate</label>
-        <select id="start" disabled></select>
+      <section class="location-controls" aria-label="Location controls">
         <div class="button-row">
           <button id="locate" type="button" disabled>Locate me</button>
           <button id="stopLocation" type="button" disabled>Stop</button>
