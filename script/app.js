@@ -606,12 +606,29 @@ function ll(point) {
 }
 
 /* Length-weighted centre of the haul-road network only. */
-function roadNetworkCenter() {
+function roadNetworkCenter(roadData = null) {
   let weightedX = 0;
   let weightedY = 0;
   let totalLength = 0;
 
-  for (const road of allRoadCandidates) {
+  const candidates = roadData
+    ? features(roadData, ROADS_FILE)
+        .filter(feature => roadField(feature.properties || {}, "type") === "haul")
+        .flatMap(feature => {
+          const geometry = feature.geometry;
+          const parts = geometry?.type === "LineString"
+            ? [geometry.coordinates]
+            : geometry?.type === "MultiLineString"
+              ? geometry.coordinates
+              : [];
+          return parts.map(part => ({
+            properties: feature.properties || {},
+            pts: Array.isArray(part) ? part.map(xy) : []
+          }));
+        })
+    : allRoadCandidates;
+
+  for (const road of candidates) {
     if (roadField(road.properties || {}, "type") !== "haul") continue;
 
     for (let i = 0; i < road.pts.length - 1; i++) {
@@ -2161,15 +2178,34 @@ async function init() {
 
     map.invalidateSize({ pan: false, animate: false });
     map.fitBounds(siteBounds, { padding: [20, 20], animate: false });
+
+    // Apply the final operational centre and zoom before dismissing Map Loading.
+    // The haul-road centre is derived directly from the already-loaded GeoJSON,
+    // so routing graph construction does not delay the initial map presentation.
+    const movementBounds = siteBounds.pad(1.0);
+    map.setMaxBounds(movementBounds);
+    map.setMinZoom(Math.max(0, map.getBoundsZoom(movementBounds) - 1));
+    map.invalidateSize({ pan: false, animate: false });
+    const initialCenter = roadNetworkCenter(r);
+    const initialZoom = Math.log2(
+      156543.03392804097 * Math.cos(initialCenter.lat * Math.PI / 180) *
+      SCALE_BAR_MAX_WIDTH / INITIAL_SCALE_BAR_METRES
+    );
+    map.setView(initialCenter, initialZoom, { animate: false });
+    const sidebarWidth = document.querySelector("body > aside")?.getBoundingClientRect().width || 0;
+    const horizontalOffset = window.matchMedia("(max-width: 760px)").matches
+      ? 0
+      : sidebarWidth / 2;
+    if (horizontalOffset) map.panBy([horizontalOffset, 0], { animate: false });
+
     window.recordMapLoadTiming?.("Prepare and render initial boundary and road geometry", visibleGeometryStartedAt);
     window.initialMapGeometryReady = true;
     document.dispatchEvent(new Event("laar-initial-map-rendered"));
 
-    // Wait until Leaflet has painted the loaded geometry at the fitted,
-    // centred extent before dismissing the map-loading overlay.
+    // Wait for Leaflet to paint the final centred map before showing route loading.
     const paintWaitStartedAt = performance.now();
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    window.recordMapLoadTiming?.("Wait for initial map paint", paintWaitStartedAt);
+    window.recordMapLoadTiming?.("Wait for initial centred map paint", paintWaitStartedAt);
     setMapLoading(false);
     setRoutesLoading(true);
 
@@ -2209,22 +2245,7 @@ async function init() {
       metadata?.network_reviewed_at ??
       metadata?.routing?.network_reviewed_at;
 
-    // Road geometry is already visible; map clicks are handled by Leaflet's map-level event.
-       const movementBounds = siteBounds.pad(1.0);
-    map.setMaxBounds(movementBounds);
-    map.setMinZoom(Math.max(0, map.getBoundsZoom(movementBounds) - 1));
-    map.invalidateSize({ pan: false, animate: false });
-    const initialCenter = roadNetworkCenter();
-    const initialZoom = Math.log2(
-      156543.03392804097 * Math.cos(initialCenter.lat * Math.PI / 180) *
-      SCALE_BAR_MAX_WIDTH / INITIAL_SCALE_BAR_METRES
-    );
-    map.setView(initialCenter, initialZoom, { animate: false });
-    const sidebarWidth = document.querySelector("body > aside")?.getBoundingClientRect().width || 0;
-    const horizontalOffset = window.matchMedia("(max-width: 760px)").matches
-      ? 0
-      : sidebarWidth / 2;
-    if (horizontalOffset) map.panBy([horizontalOffset, 0], { animate: false });
+    // Initial map centring is complete before the routing data is loaded.
 
     destinationOptions = [];
 
