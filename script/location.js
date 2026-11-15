@@ -269,8 +269,7 @@ function stopLiveLocation(showMessage = true) {
   if ($("stopLocation")) $("stopLocation").disabled = true;
   if ($("startMode")?.value === "live") {
     clearRoute();
-    $("start").selectedIndex = -1;
-    status("Live location stopped. Start it again, or choose Best gate — automatic.");
+    status("Live location stopped. Start it again to refresh your position.");
   }
   if (showMessage) locationStatus("Live location is off.");
 }
@@ -550,7 +549,6 @@ function startLiveLocation(requestOrientationPermission = false) {
   removeMapClickOrigin();
   stopLiveLocation(false);
   clearRoute();
-  $("start").selectedIndex = -1;
   if (!window.isSecureContext) {
     locationStatus("Location requires HTTPS or a trusted localhost page.");
     return;
@@ -656,13 +654,6 @@ function recenterMapOnStart() {
     return;
   }
 
-  const selectedValue = $("start")?.value;
-  const selectedIndex = selectedValue === "" || selectedValue == null ? NaN : Number(selectedValue);
-  if (Number.isInteger(selectedIndex) && locations[selectedIndex]?.point) {
-    map.setView(L.latLng(ll(locations[selectedIndex].point)), map.getZoom(), {animate: true});
-    return;
-  }
-
   if (routeLayer && typeof routeLayer.getBounds === "function" && routeLayer.getLayers().length) {
     const bounds = routeLayer.getBounds();
     if (bounds.isValid()) {
@@ -672,7 +663,7 @@ function recenterMapOnStart() {
     }
   }
 
-  locationStatus("Select a start point or enable My location first.");
+  locationStatus("Waiting for your current location.");
 }
 
 function addRecenterControl() {
@@ -739,14 +730,6 @@ function initialiseLocationControls() {
       map.closePopup();
       locationStatus("Click anywhere on the map. The origin snaps to the nearest road permitted for the selected vehicle within 15 km. The route follows mapped connections and road directions.");
       status("Step 1 of 2: click anywhere on the map to set the origin.");
-    } else {
-      liveJourneyStartPending = false;
-      if (typeof setMapClickHitAreaEnabled === "function") setMapClickHitAreaEnabled(false);
-      stopLiveLocation(false);
-      removeMapClickOrigin();
-      $("locate").disabled = true;
-      if ($("end").value !== "") calculate();
-      else status("Gate mode selected. Select a LAAR destination.");
     }
   };
   window.addEventListener("pagehide", () => stopLiveLocation(false));
@@ -758,12 +741,7 @@ function prepareRoutingStart() {
     throw new Error("Click anywhere on the map to set an origin.");
   }
   if (startMode !== "live" && startMode !== "map") {
-    const sources = locations
-      .map((location, index) => ({location, index}))
-      .filter(item => item.location.kind === "gate" && item.location.valid &&
-        adjacency.has(item.location.node));
-    if (!sources.length) throw new Error("No valid starting gates.");
-    return {graph: adjacency, sources};
+    throw new Error("Unsupported start mode. Choose Current Location or Set on Map.");
   }
   if (startMode === "live" && !livePosition) {
     throw new Error("Your location is not available. Start live location and allow access.");
