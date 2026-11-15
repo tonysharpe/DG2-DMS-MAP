@@ -1916,7 +1916,7 @@ function calculate(collapseMobilePanelOnSuccess = false) {
         ? "Live navigation follows your position and checks for route deviations."
         : $("startMode").value === "map"
           ? "Route starts at the selected map point."
-          : "The selected starting gate is highlighted in teal.")
+          : "Route starts at your current location.")
     );
 
     if (!liveNavigationActive) fitSelectedResult();
@@ -2237,7 +2237,6 @@ async function init() {
       throw new Error("No destination areas.");
     }
 
-    $("start").disabled = true;
     $("startMode").value = "live";
 
     $("vehicleType").disabled = false;
