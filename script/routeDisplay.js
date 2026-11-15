@@ -40,6 +40,7 @@ function showDestinationArea(destination) {
   ).addTo(map);
 }
 
+// Called only after the user selects a new destination and its route is displayed.
 function fitSelectedResult(includeStart = false) {
   // Keep the boundary view authoritative while startup route rendering is in progress.
   if (window.laarInitialMapViewPending) return;
