@@ -2429,7 +2429,6 @@ async function init() {
     }
 
     status("Setup error: " + error.message);
-    hideMapLoadingDialog();
     console.error(error);
   }
 }
