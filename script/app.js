@@ -47,8 +47,6 @@ let vehicleChangeInProgress = false;
 
 function setVehicleUpdating(isUpdating) {
   vehicleChangeInProgress = isUpdating;
-  const dialog = $("vehicleRoutingUpdateDialog");
-  if (dialog) dialog.hidden = !isUpdating;
   document.querySelectorAll('input[name="vehicleTypeChoice"]').forEach(input => {
     input.disabled = isUpdating;
   });
@@ -319,8 +317,8 @@ const UTM =
 
 const $ = id => document.getElementById(id);
 
-const status = text => {
-  if ($("status")) $("status").textContent = text;
+const status = _text => {
+  // Status messages are intentionally not rendered as an on-screen dialog.
 };
 
 let map;
