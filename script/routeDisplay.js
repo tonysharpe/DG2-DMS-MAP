@@ -89,44 +89,6 @@ function fitSelectedResult(includeStart = false) {
 
 /* ROAD GEOMETRY — ALSO USED BY live-location.js */
 
-function showRouteSummary(destination, start, metres, seconds, roadNames, liveMode) {
-  $("summaryDestination").textContent = destination.name;
-  $("summaryStart").textContent = start.location.name;
-
-  $("summaryDistance").textContent = metres >= 1000
-    ? (metres / 1000).toFixed(2) + " km"
-    : metres.toFixed(0) + " m";
-
-  $("summaryTime").textContent =
-    (seconds / 60).toFixed(1) + " min";
-
-  if ($("journeyControls")) $("journeyControls").hidden = $("startMode")?.value !== "live";
-  // A reroute during an active journey must not reset the Start/Stop controls.
-  if (!liveNavigationActive) {
-    if ($("startLiveRoute")) $("startLiveRoute").hidden = false;
-    if ($("stopLiveRoute")) $("stopLiveRoute").hidden = true;
-    if ($("journeyGuidance")) $("journeyGuidance").hidden = true;
-  }
-
-  $("routeDetails").textContent =
-    "Roads: " +
-    (roadNames.length ? roadNames.join(" → ") : "Same network node") +
-    "\n\nStart-to-road offset: " +
-    start.location.offset.toFixed(1) + " m" +
-    "\nDestination centroid-to-road offset: " +
-    destination.offset.toFixed(1) + " m" +
-    "\n\nRoutes end at the centroid's nearest road position, " +
-    "not necessarily an approved entrance. Off-road gaps, " +
-    "small connection gaps, queues and delays are excluded." +
-    (liveMode
-      ? "\n\nLive navigation follows your GPS position. " +
-        "With GPS accuracy of 50 m or better, the route is recalculated when you are more than 75 m off route."
-      : "");
-
-  $("routeSummary").hidden = false;
-}
-
-
 /* CLEAR RESULT — USED BY live-location.js */
 
 function clearRoute() {
@@ -150,10 +112,6 @@ function clearRoute() {
   if (selectedAreaLayer) {
     map.removeLayer(selectedAreaLayer);
     selectedAreaLayer = null;
-  }
-
-  if ($("routeSummary")) {
-    $("routeSummary").hidden = true;
   }
 
   updateGateHighlights();
