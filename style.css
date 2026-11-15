@@ -3382,11 +3382,6 @@ body > #journeyControls.journey-controls {
 
 
 
-/* The start-gate controls are not part of the user-facing menu. */
-.start-gate-section {
-  display: none !important;
-}
-
 /* ---------------------------------------------------------------------
    SHARED · Typography for the sidebar, menus and application dialogs.
    --------------------------------------------------------------------- */
