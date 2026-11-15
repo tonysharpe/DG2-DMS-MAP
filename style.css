@@ -497,6 +497,23 @@ body > aside .primary-button:active:not(:disabled) {
   font-family: var(--font-main);
 }
 
+/* Map-click mode uses a crosshair across the map's interactive surface. */
+#map.map-click-selectable,
+#map.map-click-selectable .leaflet-pane canvas,
+#map.map-click-selectable .leaflet-pane path.leaflet-interactive {
+  cursor: crosshair;
+}
+
+/* Fixed stacking order for application-created Leaflet panes. */
+#map .leaflet-roadCasing-pane { z-index: 290; }
+#map .leaflet-siteReferenceRoads-pane { z-index: 300; }
+#map .leaflet-route-pane { z-index: 450; }
+#map .leaflet-destinationSelection-pane { z-index: 480; }
+#map .leaflet-selectedLaar-pane { z-index: 500; }
+#map .leaflet-gateMarker-pane { z-index: 670; }
+#map .leaflet-liveLocation-pane { z-index: 700; }
+
+
 .leaflet-bar {
   border: 1px solid rgba(21, 43, 66, 0.15) !important;
   border-radius: var(--radius-small) !important;
