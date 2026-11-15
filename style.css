@@ -58,34 +58,18 @@
    --------------------------------------------------------------------- */
 
 :root {
-  --page-background: #F5F2EB;
+  /* Page and component surfaces */
+  --page-background: #E8EAED;
   --panel-background: #FFFFFF;
+  --sand: #F5F2EB;
+  --paper: #FFFFFF;
 
-  --text-primary: #302C28;
-  --text-secondary: #625E56;
-  --text-muted: #827E76;
-
-  --border-color: #E5E1D8;
-  --border-strong: #D8D0C4;
-
-  --navy: #302C28;
-  --navy-hover: #454039;
-
-  --teal: #32665B;
-  --teal-dark: #254F46;
-  --teal-soft: #E8F0EC;
-  --danger: #A83F3A;
-  --danger-soft: #FAECEA;
-
-  --panel-width: 370px;
-
-  --radius-small: 7px;
-  --radius-medium: 10px;
-  --radius-large: 13px;
-
-  --shadow-small: 0 1px 5px rgba(48, 44, 40, 0.06);
-  --shadow-medium: 0 5px 16px rgba(48, 44, 40, 0.12);
-
+  /* Typography */
+  --text-primary: #50555B;
+  --text-secondary: #747A80;
+  --text-muted: #92979D;
+  --ink: #302C28;
+  --muted: #625E56;
   --font-main:
     -apple-system,
     BlinkMacSystemFont,
@@ -94,6 +78,75 @@
     Helvetica,
     Arial,
     sans-serif;
+
+  /* Borders and outlines */
+  --border-color: #DADCE0;
+  --border-strong: #C7C9CC;
+  --line: #E5E1D8;
+  --earth-outline: #827E76;
+
+  /* Interface accents */
+  --navy: #202124;
+  --navy-hover: #3C4043;
+  --teal: #1A73E8;
+  --teal-dark: #1558B0;
+  --teal-soft: #E8F0FE;
+  --route-color: #4285F4;
+  --danger: #D93025;
+  --danger-soft: #FCE8E6;
+
+  /* Layout, shape and elevation */
+  --panel-width: 370px;
+  --radius-small: 7px;
+  --radius-medium: 10px;
+  --radius-large: 13px;
+  --shadow-small: 0 1px 4px rgba(60, 64, 67, 0.22);
+  --shadow-medium: 0 4px 12px rgba(60, 64, 67, 0.28);
+
+  /* Map roads and route */
+  --map-major-road: #92A9C6;
+  --map-major-road-outline: #7189A8;
+  --map-public-road: #FFFFFF;
+  --map-haul-road: #F28C28;
+  --map-unknown-road: #DADCE0;
+  --map-road-outline: #C5C9CE;
+  --map-road-width: 4;
+  --map-route: #4285F4;
+  --map-route-width: 7.5;
+  --map-origin-connector: #AAB9CC;
+
+  /* Map area and location markers */
+  --map-area-outline: #1A73E8;
+  --map-area-fill: #8AB4F8;
+  --map-area-fill-opacity: 30%;
+  --map-location: #136DF5;
+  --map-location-outline: #FFFFFF;
+  --map-location-focus: #43C7EE;
+
+  /* Site overlay styles consumed by script/mapLayers.js */
+  --map-masterplan-fill: #DFAF7E;
+  --map-masterplan-fill-opacity: 0.00;
+  --map-masterplan-stroke: #232323;
+  --map-masterplan-stroke-opacity: 0.10;
+  --map-masterplan-stroke-width: 1;
+  --map-masterplan-dash-array: 1 3;
+  --map-masterplan-line-cap: round;
+
+  --map-communities-fill: #DFAF7E;
+  --map-communities-fill-opacity: 0.05;
+  --map-communities-stroke: #232323;
+  --map-communities-stroke-opacity: 0.25;
+  --map-communities-stroke-width: 1;
+  --map-communities-dash-array: 1 3;
+  --map-communities-line-cap: round;
+
+  --map-boundary-fill: #DFAF7E;
+  --map-boundary-fill-opacity: 0.25;
+  --map-boundary-stroke: #232323;
+  --map-boundary-stroke-opacity: 0.5;
+  --map-boundary-stroke-width: 0;
+  --map-boundary-dash-array: 1 4;
+  --map-boundary-line-cap: round;
 }
 
 
@@ -1008,9 +1061,7 @@ body > aside .primary-button:active:not(:disabled) {
    --------------------------------------------------------------------- */
 
 @media (max-width: 1100px) {
-  :root {
-    --panel-width: 330px;
-  }
+  
 
   body > aside {
     padding: 20px 18px;
@@ -1398,18 +1449,6 @@ body > aside .primary-button:active:not(:disabled) {
  * Load after style.css.
  * Keeps the existing application layout.
  */
-
-
-/* PALETTE */
-
-:root {
-  --sand: #F5F2EB;
-  --paper: #FFFFFF;
-  --ink: #302C28;
-  --muted: #625E56;
-  --line: #E5E1D8;
-  --earth-outline: #827E76;
-}
 
 
 /* BASE */
@@ -2092,101 +2131,7 @@ label[for="destinationSearch"] {
 /* ---------------------------------------------------------------------
    22. Map theme variables and overlay styles
    --------------------------------------------------------------------- */
-/* =========================================================
-   SINGLE SOURCE OF TRUTH — SITE AND MAP THEME
-   Change palette values here; JavaScript map layers read these
-   custom properties rather than defining a second theme.
-   ========================================================= */
-:root {
-  --page-background: #E8EAED;
-  --panel-background: #FFFFFF;
-  --text-primary: #202124;
-  --text-secondary: #5F6368;
-  --text-muted: #70757A;
-  --border-color: #DADCE0;
-  --border-strong: #C7C9CC;
-  --navy: #202124;
-  --navy-hover: #3C4043;
-  --teal: #1A73E8;
-  --teal-dark: #1558B0;
-  --teal-soft: #E8F0FE;
-  --route-color: #4285F4;
-  --danger: #D93025;
-  --danger-soft: #FCE8E6;
-
-  /* Map palette — shared by Leaflet road layers and the map key. */
-  --map-major-road: #92A9C6;
-  --map-major-road-outline: #7189A8;
-  --map-public-road: #FFFFFF;
-  --map-haul-road: #F28C28;
-  --map-unknown-road: #DADCE0;
-  --map-road-outline: #C5C9CE;
-  --map-road-width: 4;
-
-  --map-route: #4285F4;
-  --map-route-width: 7.5;
-  --map-origin-connector: #AAB9CC;
-
-  --map-area-outline: #1A73E8;
-  --map-area-fill: #8AB4F8;
-  --map-area-fill-opacity: 30%;
-
-  --map-location: #136DF5;
-  --map-location-outline: #FFFFFF;
-  --map-location-focus: #43C7EE;
-
-  /* Site overlay palette — consumed by js/mapLayers.js. */
-  /* Site overlay palette — consumed by js/mapLayers.js. */
-  --map-masterplan-fill: #DFAF7E;
-  --map-masterplan-fill-opacity: 0.00;
-  --map-masterplan-stroke: #232323;
-  --map-masterplan-stroke-opacity: 0.10;
-  --map-masterplan-stroke-width: 1;
-  --map-masterplan-dash-array: 1 3;
-  --map-masterplan-line-cap: round;
-
-  --map-communities-fill: #DFAF7E;
-  --map-communities-fill-opacity: 0.05;
-  --map-communities-stroke: #232323;
-  --map-communities-stroke-opacity: 0.25;
-  --map-communities-stroke-width: 1;
-  --map-communities-dash-array: 1 3;
-  --map-communities-line-cap: round;
-
-  --map-boundary-fill: #DFAF7E;
-  --map-boundary-fill-opacity: 0.25;
-  --map-boundary-stroke: #232323;
-  --map-boundary-stroke-opacity: 0.5;
-  --map-boundary-stroke-width: 0;
-  --map-boundary-dash-array: 1 4;
-  --map-boundary-line-cap: round;
-}
-
-
-/* THEME OVERRIDES — moved from JavaScript into this stylesheet */
-/* =========================================================
-   GOOGLE MAPS-INSPIRED LIGHT THEME
-   Presentation only; routing rules and permissions are unchanged.
-   ========================================================= */
-:root {
-  --page-background: #E8EAED;
-  --panel-background: #FFFFFF;
-  --text-primary: #202124;
-  --text-secondary: #5F6368;
-  --text-muted: #70757A;
-  --border-color: #DADCE0;
-  --border-strong: #C7C9CC;
-  --navy: #202124;
-  --navy-hover: #3C4043;
-  --teal: #1A73E8;
-  --teal-dark: #1558B0;
-  --teal-soft: #E8F0FE;
-  --route-color: #4285F4;
-  --danger: #D93025;
-  --danger-soft: #FCE8E6;
-  --shadow-small: 0 1px 4px rgba(60, 64, 67, 0.22);
-  --shadow-medium: 0 4px 12px rgba(60, 64, 67, 0.28);
-}
+/* GOOGLE MAPS-INSPIRED COMPONENT OVERRIDES */
 body > aside { box-shadow: 2px 0 8px rgba(60, 64, 67, 0.12); }
 a { color: #1A73E8; }
 :focus-visible { outline-color: rgba(26, 115, 232, 0.45); }
@@ -3844,11 +3789,7 @@ body > #journeyControls.journey-controls {
 
 
 /* Final typography and spacing pass: 12px interface text, softer greys. */
-:root {
-  --text-primary: #50555B;
-  --text-secondary: #747A80;
-  --text-muted: #92979D;
-}
+
 body {
   color: var(--text-primary);
 }
