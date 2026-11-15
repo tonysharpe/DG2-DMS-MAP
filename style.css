@@ -849,10 +849,13 @@ body > aside .primary-button:active:not(:disabled) {
 .laar-gate-card__metric-value {
   color: var(--navy);
 
-  font-size: 15px;
+  max-width: 60%;
+  font-size: 12px;
   font-weight: 800;
+  text-align: right;
 
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .laar-gate-popup .laar-gate-card__note {
@@ -3915,6 +3918,58 @@ body {
 
 
 /* Temporary live GPS coordinate readout for field verification. */
+/* ---------------------------------------------------------------------
+   MAP · Runtime-generated popup and route feedback presentation
+   --------------------------------------------------------------------- */
+
+.road-popup__details {
+  white-space: pre-line;
+}
+
+.route-failure-banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #b3261e;
+  border-radius: 8px;
+  background: #fce8e6;
+  color: #7f1d1d;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.22);
+  font: 600 13px/1.35 system-ui, sans-serif;
+  pointer-events: auto;
+  transform: translateX(-50%);
+}
+
+.route-failure-banner__text {
+  min-width: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.route-failure-banner__close {
+  flex: 0 0 auto;
+  margin: -5px -5px 0 0;
+  padding: 0 3px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: 700 24px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+#end option.is-unreachable {
+  color: #c62828;
+}
+
+
 /* ---------------------------------------------------------------------
    MAP · Leaflet attribution override
    --------------------------------------------------------------------- */
