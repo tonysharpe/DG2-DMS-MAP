@@ -1878,7 +1878,7 @@ button.primary-button {
   border-color: var(--map-route);
   box-shadow: none;
 }
-button.primary-button:not(:disabled):hover:not(:disabled):hover {
+button.primary-button:not(:disabled):hover {
   background: #2F6FD0;
   border-color: #2F6FD0;
 }
