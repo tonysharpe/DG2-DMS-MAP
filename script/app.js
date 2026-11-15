@@ -1910,7 +1910,7 @@ function calculate(collapseMobilePanelOnSuccess = false) {
     // after the user presses Start route; keep it active during a real reroute.
     liveNavigationActive = liveMode && journeyStartConfirmed;
 
-    status("Route ready for " + destination.name);
+    status("");
 
     if (!liveNavigationActive) fitSelectedResult();
     if (collapseMobilePanelOnSuccess) {
@@ -2435,7 +2435,7 @@ async function init() {
   } catch (error) {
     for (const id of [
       "vehicleType", "end", "startMode",
-      "locate", "stopLocation", "destinationSearch"
+      "destinationSearch"
     ]) {
       if ($(id)) $(id).disabled = true;
     }
