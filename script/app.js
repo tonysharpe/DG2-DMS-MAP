@@ -217,7 +217,7 @@ async function changeVehicle() {
   mark("allow progress dialog to paint", paintStartedAt);
   clearRoute();
   vehicleMode = $("vehicleType").value;
-  let networkSource = "built on demand";
+  let networkSource = "prebuilt routing network";
   try {
     const { r, d, metadata } = networkInputs;
     const networkStartedAt = performance.now();
