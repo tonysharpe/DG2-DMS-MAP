@@ -2081,7 +2081,8 @@ async function init() {
     map = L.map("map", {
       zoomControl: false,
       attributionControl: false,
-      maxBoundsViscosity: 1,
+      minZoom: -Infinity,
+      maxZoom: Infinity,
       scrollWheelZoom: true,
       preferCanvas: true,
       renderer: L.canvas({ padding: 0.5 })
@@ -2138,11 +2139,8 @@ async function init() {
 
     document.addEventListener("laar-mobile-layout-settled", () => {
       if (!window.matchMedia("(max-width: 760px)").matches) return;
-      // Preserve the initial full-boundary view when the mobile viewport settles.
+      // Recalculate the viewport only; never move or zoom the camera here.
       map.invalidateSize({ pan: false, animate: false });
-      if (window.laarInitialMapViewPending) {
-        map.fitBounds(siteBounds, { padding: [20, 20], animate: false });
-      }
     });
 
     map.createPane("roadCasingPane");
