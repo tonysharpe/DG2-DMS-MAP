@@ -188,6 +188,10 @@
       </div>
       <button id="destinationPickerToggle" class="destination-picker-toggle" type="button" aria-expanded="false" aria-controls="destinationPickerList" disabled>Select destination…</button>
       <div id="destinationPickerList" class="destination-picker-list" role="listbox" aria-label="Available destinations" hidden></div>
+      <label for="destinationSearch">Find destination</label>
+      <input id="destinationSearch" type="search" placeholder="Type to search…" autocomplete="off"
+        aria-describedby="searchStatus" disabled>
+      <p id="searchStatus" class="field-help" aria-live="polite"></p>
       <select id="end" disabled aria-hidden="true" tabindex="-1">
         <option value="" selected>Select destination…</option>
       </select>
@@ -209,11 +213,6 @@
       <p id="status" class="setup-status" role="status" aria-live="polite">
         Loading…
       </p>
-      <label for="destinationSearch">Find destination</label>
-      <input id="destinationSearch" type="search" placeholder="Type to search…" autocomplete="off"
-        aria-describedby="searchStatus" disabled>
-      <p id="searchStatus" class="field-help" aria-live="polite"></p>
-
       </div>
     </section>
 
