@@ -3269,12 +3269,9 @@ body > #journeyControls.journey-controls {
 }
 
 
-/* Vehicle updates use the same centered placement as initial map loading. */
-.vehicle-routing-update-dialog {
+/* Route loading sits above the initial map-loading overlay when needed. */
+.routes-loading-dialog {
   z-index: 10001;
-}
-.vehicle-routing-update-dialog[hidden] {
-  display: none;
 }
 
 
