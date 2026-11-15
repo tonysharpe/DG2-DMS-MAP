@@ -2104,7 +2104,7 @@ async function init() {
     const required = [
       "vehicleType", "map", "start", "end",
       "startMode", "locate", "stopLocation", "locationStatus",
-      "destinationSearch", "searchStatus", "networkDate"
+      "destinationSearch", "searchStatus"
     ];
 
     for (const id of required) {
@@ -2353,13 +2353,6 @@ async function init() {
     const reviewed =
       metadata?.network_reviewed_at ??
       metadata?.routing?.network_reviewed_at;
-
-    $("networkDate").textContent =
-      reviewed === undefined ||
-      reviewed === null ||
-      String(reviewed).trim() === ""
-        ? "Not recorded"
-        : String(reviewed);
 
     // Road geometry is already visible; map clicks are handled by Leaflet's map-level event.
        const movementBounds = siteBounds.pad(1.0);
