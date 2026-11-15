@@ -327,8 +327,6 @@
     setOptionText("vehicleType", "truck", "Truck");
 
 
-    setText("locate", "Locate me");
-    setText("stopLocation", "Stop");
     setText("clear", "Clear");
     setText("fit", "Whole site");
 
