@@ -2033,6 +2033,7 @@ function calculate(collapseMobilePanelOnSuccess = false) {
 /* INITIALISE */
 
 async function init() {
+  window.laarInitialMapViewPending = true;
   setMapLoading(true);
   setRoutesLoading(false);
 
@@ -2138,8 +2139,11 @@ async function init() {
 
     document.addEventListener("laar-mobile-layout-settled", () => {
       if (!window.matchMedia("(max-width: 760px)").matches) return;
+      // Preserve the initial full-boundary view when the mobile viewport settles.
       map.invalidateSize({ pan: false, animate: false });
-      fitSelectedResult();
+      if (window.laarInitialMapViewPending) {
+        map.fitBounds(siteBounds, { padding: [20, 20], animate: false });
+      }
     });
 
     map.createPane("roadCasingPane");
@@ -2518,6 +2522,7 @@ async function init() {
     window.laarNetworkBuildReady = true;
 
     await waitForInitialMapPresentation();
+    window.laarInitialMapViewPending = false;
 
     setRoutesLoading(false);
     setMapLoading(false);
@@ -2525,6 +2530,7 @@ async function init() {
     window.updateMapLoadTimingSummary?.();
 
   } catch (error) {
+    window.laarInitialMapViewPending = false;
     setMapLoading(false);
     setRoutesLoading(false);
     for (const id of [
