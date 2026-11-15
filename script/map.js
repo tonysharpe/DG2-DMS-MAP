@@ -323,7 +323,6 @@
     setText("vehicleHeading", "Vehicle Type:");
     setText("destinationHeading", "Destination");
     setText("startingHeading", "Start Location:");
-    setText("shareHeading", "Share");
 
     setLabel("vehicleType", "Vehicle");
     setLabel("destinationSearch", "Search");
@@ -339,7 +338,6 @@
 
     setText("locate", "Locate me");
     setText("stopLocation", "Stop");
-    setText("copyLink", "Copy link");
     setText("clear", "Clear");
     setText("fit", "Whole site");
 
