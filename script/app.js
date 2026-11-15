@@ -1935,12 +1935,6 @@ function calculate(collapseMobilePanelOnSuccess = false) {
 }
 
 
-function hideMapLoadingDialog() {
-  const dialog = document.getElementById("mapLoadingDialog");
-  if (dialog) dialog.classList.add("is-hidden");
-}
-
-
 /* INITIALISE */
 
 async function init() {
@@ -2086,11 +2080,7 @@ async function init() {
         pending.delete(filename);
 
         if (!failed) {
-          status(
-            pending.size
-              ? "Loading:\n" + [...pending].join("\n")
-              : "Files loaded. Preparing network…"
-          );
+
         }
 
         return data;
@@ -2109,7 +2099,6 @@ async function init() {
       }
     }
 
-    status("Loading network files…");
 
     // Load and render the visible map geometry first. Routing inputs are fetched
     // afterwards so graph construction cannot delay the first useful map frame.
@@ -2428,7 +2417,6 @@ async function init() {
     );
     startLiveLocation(false);
     window.laarNetworkBuildReady = true;
-    hideMapLoadingDialog();
     window.recordMapLoadTiming?.("Application initialisation total", window.mapLoadTimingState?.startedAt ?? performance.now());
     window.updateMapLoadTimingSummary?.();
 
