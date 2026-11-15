@@ -1143,11 +1143,10 @@ async function build(
   interiorConnections = Array.isArray(topology.connections) ? topology.connections : [];
   window.recordMapLoadTiming?.("Build: use backend road-shape connections", interiorConnectionStartedAt);
 
-  status("Building network: attaching destinations and gates…");
+  status("Building network: attaching destinations…");
 
   const locationAttachmentStartedAt = performance.now();
   const datasets = [
-    ["gate", gateData, "data/gates.geojson"],
     ["destination", destinationData, "data/destinations_points.geojson"]
   ];
 
@@ -1285,7 +1284,7 @@ async function build(
     }
   }
 
-  window.recordMapLoadTiming?.("Build: attach gates and destinations to roads", locationAttachmentStartedAt);
+  window.recordMapLoadTiming?.("Build: attach destinations to roads", locationAttachmentStartedAt);
   const adjacencyStartedAt = performance.now();
   for (const id of nodes.keys()) adjacency.set(id, []);
 
@@ -2167,8 +2166,8 @@ async function init() {
     L.control.scale({ imperial: false }).addTo(map);
 
     const pending = new Set([
-      ROADS_FILE, "data/gates.geojson",
-      "data/destinations_points.geojson", "data/meta.json", "data/destination_areas.geojson"
+      ROADS_FILE, "data/destinations_points.geojson", "data/meta.json",
+      "data/destination_areas.geojson", "data/routing-network.json"
     ]);
 
     let failed = false;
@@ -2258,10 +2257,10 @@ async function init() {
 
     const routingDataStartedAt = performance.now();
     const [g, d, metadata, topology] = await Promise.all([
-      load("data/gates.geojson"),
+      Promise.resolve({ type: "FeatureCollection", features: [] }),
       load("data/destinations_points.geojson"),
       load("data/meta.json", true),
-      load("data/routing-network.json", true)
+      load("data/routing-network.json")
     ]);
 
     if (
@@ -2276,14 +2275,17 @@ async function init() {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     window.recordMapLoadTiming?.("Load routing data set", routingDataStartedAt);
-    prebuiltRoutingNetwork = topology?.schemaVersion === 1 ? topology : null;
-    networkInputs = { r, g, d, metadata };
+    if (!topology || topology.schemaVersion !== 1 || !Array.isArray(topology.nodes) ||
+        !Array.isArray(topology.links) || topology.nodes.length === 0 || topology.links.length === 0) {
+      throw new Error("Required prebuilt routing network data/routing-network.json is missing or invalid. Run npm run build:routing-network and deploy the generated file.");
+    }
+    prebuiltRoutingNetwork = topology;
+    networkInputs = { r, d, metadata };
     vehicleMode = $("vehicleType").value;
     const networkBuildStartedAt = performance.now();
     const invalidAccessCount = reportAccessData(r);
-    if (!prebuiltRoutingNetwork) console.warn("Backend routing network unavailable; using browser graph build.");
-    else console.info("Using backend routing network", prebuiltRoutingNetwork.statistics);
-    await build(null, r, g, d, metadata);
+    console.info("Using required prebuilt routing network", prebuiltRoutingNetwork.statistics);
+    await build(null, r, null, d, metadata);
     window.recordMapLoadTiming?.("Build selected vehicle routing network (" + vehicleMode + ")", networkBuildStartedAt);
 
     const reviewed =
