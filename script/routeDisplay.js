@@ -114,7 +114,7 @@ function clearRoute() {
     selectedAreaLayer = null;
   }
 
-  updateGateHighlights();
+  updateGateMarkerHighlights();
 }
 
 
