@@ -45,6 +45,16 @@ let displayedRoadLayer = null;
 let displayedRoadLayerGroup = null;
 let vehicleChangeInProgress = false;
 
+function setMapLoading(isLoading) {
+  const dialog = $("mapLoadingDialog");
+  if (dialog) dialog.hidden = !isLoading;
+}
+
+function setRoutesLoading(isLoading) {
+  const dialog = $("routesLoadingDialog");
+  if (dialog) dialog.hidden = !isLoading;
+}
+
 function setVehicleUpdating(isUpdating) {
   vehicleChangeInProgress = isUpdating;
   document.querySelectorAll('input[name="vehicleTypeChoice"]').forEach(input => {
@@ -209,6 +219,7 @@ async function changeVehicle() {
   const selectedStartMode = $("startMode").value;
 
   setVehicleUpdating(true);
+  setRoutesLoading(true);
   const paintStartedAt = performance.now();
   // Let the browser paint the progress indicator before graph construction starts.
   await new Promise(resolve => requestAnimationFrame(() => resolve()));
@@ -270,6 +281,7 @@ async function changeVehicle() {
       graphBuild: networkSource
     });
     setVehicleUpdating(false);
+    setRoutesLoading(false);
   }
 }
 
@@ -2149,11 +2161,13 @@ async function init() {
     window.recordMapLoadTiming?.("Prepare and render initial boundary and road geometry", visibleGeometryStartedAt);
     window.initialMapGeometryReady = true;
     document.dispatchEvent(new Event("laar-initial-map-rendered"));
+    setMapLoading(false);
 
     // Let the browser paint the map before fetching/building the routing graph.
     const paintWaitStartedAt = performance.now();
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     window.recordMapLoadTiming?.("Wait for initial map paint", paintWaitStartedAt);
+    setRoutesLoading(true);
 
     const routingDataStartedAt = performance.now();
     const [d, metadata, topology] = await Promise.all([
@@ -2415,10 +2429,14 @@ async function init() {
     );
     startLiveLocation(false);
     window.laarNetworkBuildReady = true;
+    setRoutesLoading(false);
+    setMapLoading(false);
     window.recordMapLoadTiming?.("Application initialisation total", window.mapLoadTimingState?.startedAt ?? performance.now());
     window.updateMapLoadTimingSummary?.();
 
   } catch (error) {
+    setMapLoading(false);
+    setRoutesLoading(false);
     for (const id of [
       "vehicleType", "end", "startMode",
       "destinationSearch"
