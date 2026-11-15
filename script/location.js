@@ -39,8 +39,7 @@ let locationStatusMessage = "Location off.";
 let liveJourneyStartPending = false;
 
 function renderLocationStatus() {
-  const element = $("locationStatus");
-  if (element) element.textContent = locationStatusMessage;
+  // Location feedback is intentionally not rendered in the side menu.
 }
 
 function locationStatus(text) {
@@ -266,12 +265,11 @@ function stopLiveLocation(showMessage = true) {
   lastLiveRerouteAt = 0;
   removeLiveLocationLayers();
   syncHeaderLiveRouteButton();
-  if ($("stopLocation")) $("stopLocation").disabled = true;
   if ($("startMode")?.value === "live") {
     clearRoute();
     status("Live location stopped. Start it again to refresh your position.");
   }
-  if (showMessage) locationStatus("Live location is off.");
+  if (showMessage) locationStatus("");
 }
 
 function bearingDegrees(lat1, lon1, lat2, lon2) {
@@ -612,10 +610,9 @@ function startLiveLocation(requestOrientationPermission = false) {
           liveLocationMarker.setLatLng(latlng);
         }
         // No accuracy circle: keep the map clean and make the 2D position marker prominent.
-        $("stopLocation").disabled = false;
         updateJourneyGuidance();
         followLiveLocation();
-        locationStatus(journeyStartConfirmed ? "Journey started" : "Journey ended");
+        locationStatus(journeyStartConfirmed ? "Journey started" : "");
       },
       error => {
         if (generation !== locationWatchGeneration || $("startMode").value !== "live") return;
@@ -629,7 +626,6 @@ function startLiveLocation(requestOrientationPermission = false) {
       },
       {enableHighAccuracy: true, timeout: 20000, maximumAge: 0}
     );
-    $("stopLocation").disabled = false;
   } catch (error) {
     stopLiveLocation(false);
     locationStatus("Cannot start live location: " + error.message);
@@ -701,7 +697,7 @@ calculate = function () {
 function initialiseLocationControls() {
   $("startLiveRoute")?.addEventListener("click", startLiveRoute);
   $("stopLiveRoute")?.addEventListener("click", stopLiveRoute);
-  for (const id of ["startMode", "locate", "stopLocation", "locationStatus"]) {
+  for (const id of ["startMode"]) {
     if (!$(id)) throw new Error("index.html is missing element id='" + id + "'.");
   }
   addRecenterControl();
@@ -709,15 +705,12 @@ function initialiseLocationControls() {
     if (liveNavigationActive) liveCameraFollowEnabled = false;
   });
   $("startMode").disabled = false;
-  $("locate").disabled = true;
   $("stopLocation").disabled = true;
   $("startMode").onchange = () => {
     clearRoute();
     if ($("startMode").value === "live") {
       if (typeof setMapClickHitAreaEnabled === "function") setMapClickHitAreaEnabled(false);
       removeMapClickOrigin();
-      $("locate").disabled = true;
-      $("stopLocation").disabled = true;
       startLiveLocation(false);
     } else if ($("startMode").value === "map") {
       liveJourneyStartPending = false;
