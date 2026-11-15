@@ -8,7 +8,6 @@
 { "type": "Feature", "properties": { "Name": "GATE 2A", "ShortName": "2A", "District": "SOUTHERN" }, "geometry": { "type": "Point", "coordinates": [ 46.591523727668083, 24.716705916502921 ] } },
 { "type": "Feature", "properties": { "Name": "GATE 2P", "ShortName": "2P", "District": null }, "geometry": { "type": "Point", "coordinates": [ 46.60943435127016, 24.712331599208582 ] } },
 { "type": "Feature", "properties": { "Name": "GATE 2R", "ShortName": "2R", "District": null }, "geometry": { "type": "Point", "coordinates": [ 46.612068013376444, 24.715202045579439 ] } },
-{ "type": "Feature", "properties": { "Name": "GATE 2N", "ShortName": "2N", "District": "NORTHERN" }, "geometry": { "type": "Point", "coordinates": [ 46.590422771278369, 24.731319225893358 ] } },
 { "type": "Feature", "properties": { "Name": "GATE 2Q", "ShortName": "2Q", "District": null }, "geometry": { "type": "Point", "coordinates": [ 46.601716959261545, 24.72286067002063 ] } }
 ]
 }
