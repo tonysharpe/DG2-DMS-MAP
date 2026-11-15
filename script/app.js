@@ -143,7 +143,7 @@ function bindRoadPopup(feature, layer) {
     const title = document.createElement("strong");
     title.textContent = p.Name || p.name || p.road_id || "Road";
     const details = document.createElement("div");
-    details.style.whiteSpace = "pre-line";
+    details.className = "road-popup__details";
     details.textContent = "Type: " + (roadField(p, "type") || "missing") +
       "\nTruck: " + (roadField(p, "truck") || "missing") +
       "\nVehicle: " + vehicleMode +
@@ -373,53 +373,20 @@ function showRouteFailureBanner(message) {
   clearRouteFailureBanner();
   const container = document.getElementById("map");
   if (!container) return;
-  if (getComputedStyle(container).position === "static") {
-    container.style.position = "relative";
-  }
-
   const banner = document.createElement("div");
   banner.id = "routeFailureBanner";
+  banner.className = "route-failure-banner";
   banner.setAttribute("role", "alert");
-  banner.style.cssText = [
-    "position:absolute",
-    "top:12px",
-    "left:50%",
-    "transform:translateX(-50%)",
-    "z-index:2000",
-    "display:flex",
-    "align-items:center",
-    "gap:8px",
-    "width:fit-content",
-    "max-width:calc(100% - 24px)",
-    "box-sizing:border-box",
-    "padding:12px 14px",
-    "border:1px solid #b3261e",
-    "border-radius:8px",
-    "background:#fce8e6",
-    "color:#7f1d1d",
-    "box-shadow:0 3px 12px rgba(0,0,0,.22)",
-    "font:600 13px/1.35 system-ui,sans-serif",
-    "pointer-events:auto"
-  ].join(";");
 
   const text = document.createElement("span");
+  text.className = "route-failure-banner__text";
   text.textContent = message;
-  text.style.cssText = "min-width:0;text-align:center;overflow-wrap:anywhere";
   const close = document.createElement("button");
   close.type = "button";
   close.textContent = "×";
   close.setAttribute("aria-label", "Dismiss route error");
   close.title = "Dismiss";
-  close.style.cssText = [
-    "flex:0 0 auto",
-    "margin:-5px -5px 0 0",
-    "padding:0 3px",
-    "border:0",
-    "background:transparent",
-    "color:inherit",
-    "font:700 24px/1 system-ui,sans-serif",
-    "cursor:pointer"
-  ].join(";");
+  close.className = "route-failure-banner__close";
   close.addEventListener("click", () => banner.remove());
   banner.append(text, close);
   container.appendChild(banner);
@@ -1425,7 +1392,6 @@ function createGatePopup(location, selected = false) {
     const r = el("div", "laar-gate-card__metric");
     const text = Array.isArray(value) ? value.join(", ") : String(value ?? "").trim();
     const v = el("span", "laar-gate-card__metric-value", text || "Not provided");
-    Object.assign(v.style, {whiteSpace:"normal", overflowWrap:"anywhere", fontSize:"12px", textAlign:"right", maxWidth:"60%"});
     r.append(el("span", "laar-gate-card__metric-label", label), v);
     return r;
   }
@@ -1677,7 +1643,7 @@ function renderDestinationOptions() {
     option.textContent = item.name +
       (item.contractor ? " — " + item.contractor : "") +
       (item.reachable === false ? " — no route found" : "");
-    if (item.reachable === false) option.style.color = "#c62828";
+    if (item.reachable === false) option.classList.add("is-unreachable");
     end.appendChild(option);
   }
   end.value = selected ? previous : "";
