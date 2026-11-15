@@ -2164,8 +2164,8 @@ async function init() {
     L.control.scale({ imperial: false }).addTo(map);
 
     const pending = new Set([
-      ROADS_FILE, "data/destinations_points.geojson", "data/meta.json",
-      "data/destination_areas.geojson", "data/routing-network.json"
+      ROADS_FILE, "data/boundary.geojson", "data/destinations_points.geojson",
+      "data/meta.json", "data/destination_areas.geojson", "data/routing-network.json"
     ]);
 
     let failed = false;
@@ -2200,8 +2200,9 @@ async function init() {
 
     // Load and render the visible map geometry first. Routing inputs are fetched
     // afterwards so graph construction cannot delay the first useful map frame.
-    const [r, areas] = await Promise.all([
+    const [r, boundary, areas] = await Promise.all([
       load(ROADS_FILE),
+      load("data/boundary.geojson"),
       load("data/destination_areas.geojson")
     ]);
 
@@ -2234,37 +2235,24 @@ async function init() {
     displayedRoadLayer = roadLayer;
     displayedRoadLayerGroup = L.layerGroup([roadCasingLayer, roadLayer]).addTo(map);
 
-    siteBounds = roadLayer.getBounds();
-    if (!siteBounds.isValid()) throw new Error("Invalid map extent.");
-    if (destinationAreas.size) {
-      const areaBounds = L.geoJSON({
-        type: "FeatureCollection",
-        features: [...destinationAreas.values()].flat()
-      }).getBounds();
-      if (areaBounds.isValid()) siteBounds.extend(areaBounds);
+    // The first view is defined by boundary.geojson, not by the road network
+    // or destination extents. This guarantees the complete site boundary is
+    // visible and centred on both desktop and mobile.
+    const boundaryBounds = L.geoJSON(boundary).getBounds();
+    if (!boundaryBounds.isValid()) {
+      throw new Error("Invalid or empty data/boundary.geojson map extent.");
     }
+    siteBounds = boundaryBounds;
 
     map.invalidateSize({ pan: false, animate: false });
-    map.fitBounds(siteBounds, { padding: [20, 20], animate: false });
-
-    // Apply the final operational centre and zoom before dismissing Map Loading.
-    // The haul-road centre is derived directly from the already-loaded GeoJSON,
-    // so routing graph construction does not delay the initial map presentation.
-    const movementBounds = siteBounds.pad(1.0);
+    const movementBounds = boundaryBounds.pad(1.0);
     map.setMaxBounds(movementBounds);
-    map.setMinZoom(Math.max(0, map.getBoundsZoom(movementBounds) - 1));
+    map.setMinZoom(Math.max(0, map.getBoundsZoom(boundaryBounds, false, [20, 20]) - 1));
     map.invalidateSize({ pan: false, animate: false });
-    const initialCenter = roadNetworkCenter(r);
-    const initialZoom = Math.log2(
-      156543.03392804097 * Math.cos(initialCenter.lat * Math.PI / 180) *
-      SCALE_BAR_MAX_WIDTH / INITIAL_SCALE_BAR_METRES
-    );
-    map.setView(initialCenter, initialZoom, { animate: false });
-    const sidebarWidth = document.querySelector("body > aside")?.getBoundingClientRect().width || 0;
-    const horizontalOffset = window.matchMedia("(max-width: 760px)").matches
-      ? 0
-      : sidebarWidth / 2;
-    if (horizontalOffset) map.panBy([horizontalOffset, 0], { animate: false });
+    map.fitBounds(boundaryBounds, {
+      padding: [20, 20],
+      animate: false
+    });
 
     window.recordMapLoadTiming?.("Prepare and render initial boundary and road geometry", visibleGeometryStartedAt);
     window.initialMapGeometryReady = true;
