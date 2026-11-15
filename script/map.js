@@ -322,12 +322,10 @@
     setLabel("vehicleType", "Vehicle");
     setLabel("destinationSearch", "Search");
     setLabel("end", "LAAR");
-    setLabel("startMode", "Start from");
 
     setOptionText("vehicleType", "car", "Car");
     setOptionText("vehicleType", "truck", "Truck");
 
-    setOptionText("startMode", "live", "My location");
 
     setText("locate", "Locate me");
     setText("stopLocation", "Stop");
