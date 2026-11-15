@@ -202,12 +202,6 @@ button {
   cursor: pointer;
 }
 
-button:disabled,
-input:disabled,
-select:disabled {
-  cursor: not-allowed;
-}
-
 [hidden] {
   display: none !important;
 }
@@ -1616,10 +1610,6 @@ button.primary-button {
 
   border-color:
     var(--teal);
-}
-
-button.primary-button:not(:disabled):hover:not(:disabled):hover {
-  background: #2F6FD0;
 }
 
 
