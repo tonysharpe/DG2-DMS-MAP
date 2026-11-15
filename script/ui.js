@@ -193,37 +193,7 @@
 })();
 
 
-/* URL-gated collapsible Development Features section. */
-(function () {
-  const section = document.querySelector(".development-section");
-  const toggle = document.getElementById("developmentToggle");
-  const content = document.getElementById("developmentContent");
-  if (!section || !toggle || !content) return;
 
-  // Development controls are available only through an explicit URL opt-in.
-  // Keep the whole section out of the layout unless the query is exactly
-  // ?dev=true (or includes &dev=true alongside other parameters).
-  const developmentEnabled =
-    new URLSearchParams(window.location.search).get("dev") === "true";
-  if (!developmentEnabled) {
-    section.hidden = true;
-    return;
-  }
-  section.hidden = false;
-
-  function setExpanded(expanded) {
-    content.hidden = !expanded;
-    toggle.setAttribute("aria-expanded", String(expanded));
-    toggle.setAttribute("aria-label", (expanded ? "Collapse" : "Expand") + " Development Features");
-    toggle.textContent = expanded ? "−" : "+";
-  }
-
-  toggle.addEventListener("click", function () {
-    setExpanded(toggle.getAttribute("aria-expanded") !== "true");
-  });
-
-  setExpanded(false);
-})();
 
 
 /* Keep the selected vehicle symbol and destination name visible in the collapsed mobile bar. */
