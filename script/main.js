@@ -34,6 +34,7 @@ function startApplication() {
       ". Check the ordered script references in index.html.";
     const statusElement = document.getElementById("status");
     if (statusElement) statusElement.textContent = message;
+    if (typeof hideMapLoadingDialog === "function") hideMapLoadingDialog();
     console.error(message);
     return;
   }
