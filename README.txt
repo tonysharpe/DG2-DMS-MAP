@@ -1,19 +1,40 @@
-SITE NAVIGATION PROTOTYPE
+DIRIYAH 2 MAP — VEHICLE ROUTING
 
-Project layout:
-- index.html and style.css remain in the repository root.
-- Browser JavaScript is stored in script/.
-- Active GeoJSON and related data files are stored in data/.
-- Unused, legacy and diagnostic GeoJSON files are retained in data/archive/.
+Project structure:
+- index.html and style.css are the browser entry point and presentation layer.
+- Browser application scripts are in script/.
+- Active GeoJSON and the prebuilt routing graph are in data/.
+- Archived source/diagnostic datasets are retained in data/archive/.
 
-To run locally, open a terminal in the repository root and run:
-  python -m http.server 8000 --bind 127.0.0.1
-Then open http://localhost:8000 in your browser. Do not double-click index.html.
+Required routing graph:
+- data/routing-network.json is a mandatory runtime dependency.
+- Generate it after changing data/roads.geojson with:
+    npm install
+    npm run build:routing-network
+- Commit and deploy the generated data/routing-network.json with the application.
+- The application stops during startup and reports a clear setup error if the
+  file is absent, empty, or has an unsupported schema. There is no browser-side
+  fallback graph builder.
 
-Internet access is required for Leaflet and proj4 from CDNs. No external basemap tiles are used.
-The blank background is deliberate: only site roads and locations are displayed.
-Routing uses explicit node IDs and supplied lengths/speeds. Off-road offsets and delays are excluded.
-Locations are attached to their nearest road; a 25 m limit is enforced. Review access suitability.
-MultiLineString roads must have exactly one part. Road endpoints must match junctions within 1 m.
-This is a prototype, not GPS/turn-by-turn navigation. Closures and vehicle restrictions are not implemented.
-For offline use or stricter security policies, vendor the libraries locally and update index.html.
+Run locally from the repository root:
+    python -m http.server 8000 --bind 127.0.0.1
+Then open http://localhost:8000. Do not double-click index.html.
+
+Internet access is required for Leaflet and Proj4, which are loaded from CDNs.
+No external basemap tiles are used; the map displays the site datasets.
+
+Starting points:
+- Current Location (GPS)
+- Set on Map (the selected point is attached to a permitted road)
+
+Destinations are loaded from data/destinations_points.geojson and matched to
+areas in data/destination_areas.geojson. Vehicle permissions and directed road
+connections are applied from the prebuilt routing graph and source road data.
+
+The browser scripts use a shared classic-script namespace. Keep their explicit
+dependency order in index.html; script/main.js validates required runtime
+dependencies before initialisation.
+
+This application is a prototype. Test GPS permission handling, road access,
+network connectivity and route correctness against operational data before
+relying on it for field navigation.
