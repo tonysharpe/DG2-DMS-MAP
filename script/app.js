@@ -14,7 +14,7 @@ function themeNumber(property) {
  *   Leaflet, Proj4, app.js, live-location.js, backgrounds.js
  *
  * Required GeoJSON:
- *   roads, gates, destinations, destination_areas, routing-network.json
+ *   roads, destinations, destination_areas, routing-network.json
  *
  * Naming:
  *   Reads Name first, then name.
@@ -219,9 +219,9 @@ async function changeVehicle() {
   vehicleMode = $("vehicleType").value;
   let networkSource = "built on demand";
   try {
-    const { r, g, d, metadata } = networkInputs;
+    const { r, d, metadata } = networkInputs;
     const networkStartedAt = performance.now();
-    await build(null, r, g, d, metadata);
+    await build(null, r, d, metadata);
     mark("build selected vehicle network", networkStartedAt);
 
     const destinationsStartedAt = performance.now();
@@ -960,7 +960,7 @@ async function connectJunctionsToRoadLinks() {
 async function build(
   junctionData,
   roadData,
-   destinationData,
+  destinationData,
   metadata
 ) {
   nodes = new Map();
@@ -1662,7 +1662,7 @@ function loadDestinationFromUrl() {
   selectedContractors.clear();
   selectedDestinationTypes.clear();
   $("destinationSearch").value = "";
-  $("startMode").value = "gate";
+  $("startMode").value = "live";
   $("end").value = destination.hasAccessPoint
     ? String(destination.index)
     : "missing:" + destination.name;
@@ -2170,8 +2170,7 @@ async function init() {
     window.recordMapLoadTiming?.("Wait for initial map paint", paintWaitStartedAt);
 
     const routingDataStartedAt = performance.now();
-    const [g, d, metadata, topology] = await Promise.all([
-      Promise.resolve({ type: "FeatureCollection", features: [] }),
+    const [d, metadata, topology] = await Promise.all([
       load("data/destinations_points.geojson"),
       load("data/meta.json", true),
       load("data/routing-network.json")
