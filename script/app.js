@@ -2161,7 +2161,7 @@ function hideMapLoadingDialog() {
 async function init() {
   try {
     const required = [
-      "vehicleType", "map", "status", "start", "end", "clear", "fit",
+      "vehicleType", "map", "start", "end",
       "startMode", "locate", "stopLocation", "locationStatus",
       "destinationSearch", "searchStatus", "copyLink",
       "shareStatus", "shareFallback", "shareLink",
@@ -2195,7 +2195,7 @@ async function init() {
     }
 
     const controlIds = [
-      "vehicleType", "start", "end", "clear", "fit", "startMode",
+      "vehicleType", "start", "end", "startMode",
       "locate", "stopLocation", "destinationSearch", "copyLink"
     ];
 
@@ -2617,9 +2617,6 @@ async function init() {
         }
       });
     }
-    $("clear").disabled = false;
-    $("fit").disabled = false;
-
     $("destinationSearch").oninput = renderDestinationOptions;
 
     // Enter in the search box only filters the list; it must not silently
@@ -2643,29 +2640,6 @@ async function init() {
     };
 
     $("copyLink").onclick = copyDestinationLink;
-
-    $("clear").onclick = () => {
-      clearRoute();
-
-      $("start").selectedIndex = -1;
-      $("end").value = "";
-      $("destinationSearch").value = "";
-
-      renderDestinationOptions();
-      updateDestinationUrl();
-      refreshShareControls();
-
-      status(
-        "Selection cleared.\n" +
-        ($("startMode").value === "live"
-          ? "Location tracking is unchanged. Use Stop location to stop it."
-          : "Select another LAAR.")
-      );
-    };
-
-    $("fit").onclick = () => {
-      map.fitBounds(siteBounds.pad(0.1));
-    };
 
     initialiseLocationControls();
     refreshShareControls();
@@ -2758,7 +2732,7 @@ async function init() {
 
   } catch (error) {
     for (const id of [
-      "vehicleType", "start", "end", "clear", "fit", "startMode",
+      "vehicleType", "start", "end", "startMode",
       "locate", "stopLocation", "destinationSearch", "copyLink"
     ]) {
       if ($(id)) $(id).disabled = true;
