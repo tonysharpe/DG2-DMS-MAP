@@ -1948,6 +1948,9 @@ function calculate(collapseMobilePanelOnSuccess = false) {
 /* INITIALISE */
 
 async function init() {
+  setMapLoading(true);
+  setRoutesLoading(false);
+
   try {
     const required = [
       "vehicleType", "map", "end",
@@ -2161,12 +2164,13 @@ async function init() {
     window.recordMapLoadTiming?.("Prepare and render initial boundary and road geometry", visibleGeometryStartedAt);
     window.initialMapGeometryReady = true;
     document.dispatchEvent(new Event("laar-initial-map-rendered"));
-    setMapLoading(false);
 
-    // Let the browser paint the map before fetching/building the routing graph.
+    // Wait until Leaflet has painted the loaded geometry at the fitted,
+    // centred extent before dismissing the map-loading overlay.
     const paintWaitStartedAt = performance.now();
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     window.recordMapLoadTiming?.("Wait for initial map paint", paintWaitStartedAt);
+    setMapLoading(false);
     setRoutesLoading(true);
 
     const routingDataStartedAt = performance.now();
