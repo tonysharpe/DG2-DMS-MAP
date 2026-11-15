@@ -41,6 +41,9 @@ function showDestinationArea(destination) {
 }
 
 function fitSelectedResult(includeStart = false) {
+  // Keep the boundary view authoritative while startup route rendering is in progress.
+  if (window.laarInitialMapViewPending) return;
+
   let bounds = null;
 
   const extendBounds = candidate => {
