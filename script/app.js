@@ -2198,7 +2198,7 @@ async function init() {
     const networkBuildStartedAt = performance.now();
     const invalidAccessCount = reportAccessData(r);
     console.info("Using required prebuilt routing network", prebuiltRoutingNetwork.statistics);
-    await build(null, r, null, d, metadata);
+    await build(null, r, d, metadata);
     window.recordMapLoadTiming?.("Build selected vehicle routing network (" + vehicleMode + ")", networkBuildStartedAt);
 
     const reviewed =
