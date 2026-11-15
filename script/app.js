@@ -1910,14 +1910,7 @@ function calculate(collapseMobilePanelOnSuccess = false) {
     // after the user presses Start route; keep it active during a real reroute.
     liveNavigationActive = liveMode && journeyStartConfirmed;
 
-    status(
-      "Route ready for " + destination.name + ".\n" +
-      (liveMode
-        ? "Live navigation follows your position and checks for route deviations."
-        : $("startMode").value === "map"
-          ? "Route starts at the selected map point."
-          : "Route starts at your current location.")
-    );
+    status("Route ready for " + destination.name);
 
     if (!liveNavigationActive) fitSelectedResult();
     if (collapseMobilePanelOnSuccess) {
@@ -1954,8 +1947,7 @@ async function init() {
   try {
     const required = [
       "vehicleType", "map", "end",
-      "startMode", "locate", "stopLocation", "locationStatus",
-      "destinationSearch", "searchStatus"
+      "startMode", "destinationSearch", "searchStatus"
     ];
 
     for (const id of required) {
@@ -1985,7 +1977,7 @@ async function init() {
 
     const controlIds = [
       "vehicleType", "end", "startMode",
-      "locate", "stopLocation", "destinationSearch"
+      "destinationSearch"
     ];
 
     controlIds.forEach(id => $(id).disabled = true);
@@ -2434,8 +2426,6 @@ async function init() {
       "Vehicle: " + vehicleMode + ". " + roads.length + " eligible roads. " +
       "Waiting for your current location."
     );
-    $("locate").disabled = true;
-    $("stopLocation").disabled = true;
     startLiveLocation(false);
     window.laarNetworkBuildReady = true;
     hideMapLoadingDialog();
