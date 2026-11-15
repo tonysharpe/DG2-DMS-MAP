@@ -482,121 +482,31 @@ body > aside .primary-button:active:not(:disabled) {
    08. Route summary and destination sharing
    --------------------------------------------------------------------- */
 
-.route-summary {
-  margin-bottom: 22px;
-  padding: 16px;
 
-  background: #f4faf8;
 
-  border: 1px solid #cce4dc;
-  border-radius: var(--radius-medium);
-}
 
-.route-summary h2 {
-  margin-bottom: 12px;
 
-  color: var(--navy);
 
-  font-size: 14px;
-  font-weight: 800;
-}
 
-.summary-destination {
-  margin-bottom: 5px;
 
-  color: var(--navy);
 
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1.25;
 
-  overflow-wrap: anywhere;
-}
 
-.summary-start {
-  margin-bottom: 15px;
 
-  color: var(--text-secondary);
 
-  font-size: 12px;
-  line-height: 1.5;
-}
 
-#summaryStart {
-  color: var(--text-primary);
-  font-weight: 700;
-}
 
-.summary-metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 
-  gap: 10px;
-  margin-bottom: 14px;
-}
 
-.summary-metrics > div {
-  min-width: 0;
-  padding: 10px;
 
-  background: #ffffff;
 
-  border: 1px solid #dcebe5;
-  border-radius: var(--radius-small);
-}
 
-.metric-label {
-  display: block;
-  margin-bottom: 4px;
 
-  color: var(--text-muted);
 
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1.4;
-}
 
-.metric-value {
-  display: block;
 
-  color: var(--teal-dark);
 
-  font-size: 19px;
-  font-weight: 800;
-  line-height: 1.25;
 
-  overflow-wrap: anywhere;
-}
-
-.route-details {
-  padding-top: 12px;
-  border-top: 1px solid #d2e5dd;
-}
-
-.route-details > summary {
-  color: var(--text-secondary);
-
-  font-size: 11px;
-  font-weight: 700;
-
-  cursor: pointer;
-}
-
-.route-details > summary:hover {
-  color: var(--teal-dark);
-}
-
-#routeDetails {
-  margin: 10px 0 0;
-
-  color: var(--text-secondary);
-
-  font-size: 11px;
-  line-height: 1.7;
-
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
 
 
 /* ---------------------------------------------------------------------
@@ -1243,13 +1153,9 @@ body > aside .primary-button:active:not(:disabled) {
     font-size: 11px;
   }
 
-  .summary-metrics {
-    gap: 8px;
-  }
 
-  .metric-value {
-    font-size: 17px;
-  }
+
+
 
   .map-legend {
     min-width: 155px;
@@ -1431,10 +1337,7 @@ body > aside .primary-button:active:not(:disabled) {
     font-weight: 700;
   }
 
-  .route-summary {
-    margin: 8px 0 12px;
-    padding: 12px;
-  }
+
 
   .route-summary h2 {
     margin-top: 0;
@@ -1450,21 +1353,15 @@ body > aside .primary-button:active:not(:disabled) {
     overflow-wrap: anywhere;
   }
 
-  .summary-metrics > div {
-    padding: 8px;
-  }
 
-  .metric-value {
-    font-size: 17px;
-  }
+
+
 
   .summary-metrics {
     gap: 12px;
   }
 
-  .metric-value {
-    font-size: 18px;
-  }
+
 
   .map-legend {
     max-width: min(190px, calc(100vw - 32px));
@@ -1771,8 +1668,7 @@ select:disabled {
 /* HELP TEXT */
 
 .field-help,
-.note,
-.summary-start {
+.note {
   color: var(--muted);
 }
 
@@ -1787,36 +1683,15 @@ select:disabled {
 
 /* ROUTE SUMMARY */
 
-.route-summary {
-  background: var(--sand);
-  color: var(--ink);
 
-  border: 1px solid var(--line);
 
-  border-left:
-    4px solid var(--map-route);
 
-  border-radius: 10px;
-}
 
-.summary-destination,
-.metric-value {
-  color: var(--ink);
-}
 
-.metric-label {
-  color: var(--muted);
-}
 
-.route-details {
-  border-color: var(--line);
-}
 
-#routeDetails {
-  white-space: pre-line;
 
-  color: var(--muted);
-}
+
 
 
 /* STATUS */
@@ -2083,12 +1958,7 @@ body > aside {
 .control-section h2 {
   margin-bottom: 9px;
 }
-.route-summary {
-  background: #F7F5F0;
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--map-route);
-  border-radius: 9px;
-}
+
 .metric-value {
   color: var(--map-route);
 }
@@ -3021,10 +2891,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* Hide the route summary card entirely; routing and map rendering remain active. */
-#routeSummary,
-.route-summary {
-  display: none !important;
-}
+
 
 
 /* ---------------------------------------------------------------------
