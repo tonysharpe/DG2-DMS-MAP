@@ -67,10 +67,10 @@ function setMapClickHoverCursor(_latlng) {
   const container = map.getContainer();
   // Map-click mode accepts clicks anywhere; snapping and route eligibility
   // are resolved after the click rather than by the cursor hit-test.
-  const cursor = destinationSelectionMode || $("startMode")?.value === "map" ? "crosshair" : "";
-  container.style.cursor = cursor;
-  container.querySelectorAll(".leaflet-pane canvas, .leaflet-pane path.leaflet-interactive")
-    .forEach(element => { element.style.cursor = cursor; });
+  container.classList.toggle(
+    "map-click-selectable",
+    Boolean(destinationSelectionMode || $("startMode")?.value === "map")
+  );
 }
 
 function roadField(properties, field) {
@@ -2144,25 +2144,25 @@ async function init() {
     });
 
     map.createPane("roadCasingPane");
-    map.getPane("roadCasingPane").style.zIndex = "290";
+
 
     map.createPane("siteReferenceRoads");
-    map.getPane("siteReferenceRoads").style.zIndex = "300";
+
 
     map.createPane("destinationSelectionPane");
-    map.getPane("destinationSelectionPane").style.zIndex = "480";
+
 
     map.createPane("selectedLaarPane");
-    map.getPane("selectedLaarPane").style.zIndex = "500";
+
 
     map.createPane("routePane");
-    map.getPane("routePane").style.zIndex = "450";
+
 
     map.createPane("gateMarkerPane");
-    map.getPane("gateMarkerPane").style.zIndex = "670";
+
 
     map.createPane("liveLocationPane");
-    map.getPane("liveLocationPane").style.zIndex = "700";
+
 
     L.control.scale({ imperial: false }).addTo(map);
 
