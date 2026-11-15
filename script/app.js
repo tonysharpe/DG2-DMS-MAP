@@ -32,7 +32,6 @@ function themeNumber(property) {
 /* SETTINGS */
 
 const MAX_SNAP = 200;
-const MAX_GATE_CONNECTOR_DISTANCE = 10;
 
 const ROADS_FILE = "data/roads.geojson";
 const ENDPOINT_SNAP_DISTANCE = 10;
@@ -244,8 +243,6 @@ async function changeVehicle() {
     mark("prepare and render destination options", destinationsStartedAt);
 
     const mapRefreshStartedAt = performance.now();
-    updateGateMarkerHighlights();
-    $("start").selectedIndex = -1;
     refreshVehicleRoads();
     updateDestinationUrl(retainedDestination?.name || null);
     mark("refresh map and controls", mapRefreshStartedAt);
@@ -415,8 +412,6 @@ let destinationSelectionMode = false;
 let destinationSelectionLayer = null;
 let selectedContractors = new Set();
 let selectedDestinationTypes = new Set();
-let gateMarkers = new Map();
-let gateMarkerLayer = null;
 
 let costMode = "distance";
 const routeEstimateSpeedKmh = 30;
@@ -965,8 +960,7 @@ async function connectJunctionsToRoadLinks() {
 async function build(
   junctionData,
   roadData,
-  gateData,
-  destinationData,
+   destinationData,
   metadata
 ) {
   nodes = new Map();
@@ -1156,11 +1150,7 @@ async function build(
     const sourceFeatures = features(data, filename);
     for (let sourceFeatureIndex = 0; sourceFeatureIndex < sourceFeatures.length; sourceFeatureIndex++) {
       const feature = sourceFeatures[sourceFeatureIndex];
-      // Destination labels and lookup keys must come from the GeoJSON
-      // properties.name field, not longname or the gate Name/name fallback.
-      const name = kind === "destination"
-        ? String(feature.properties?.name ?? "").trim()
-        : nameOf(feature.properties, filename);
+      const name = String(feature.properties?.name ?? "").trim();
       if (!name) {
         throw new Error(
           filename + " feature " + sourceFeatureIndex +
@@ -1179,13 +1169,9 @@ async function build(
       }
 
       if (usedNames.has(name)) {
-        if (kind === "destination") {
-          ignoredDestinationNames.push(name);
-          console.warn("Ignoring duplicate destination:", name);
-          continue;
-        }
-
-        throw new Error("Duplicate gate name: " + name);
+        ignoredDestinationNames.push(name);
+        console.warn("Ignoring duplicate destination:", name);
+        continue;
       }
 
       usedNames.add(name);
@@ -1206,22 +1192,8 @@ async function build(
         ? roads.find(candidate => candidate.id === nearestMappedRoad.candidate.id)
         : null;
 
-      if (kind === "destination") {
-        // Keep endpoint-first snapping, but only on the nearest mapped road
-        // when that road belongs to this vehicle's permitted network.
-        match = permittedRoad
-          ? snapToNetwork(point, [permittedRoad])
-          : null;
-      } else {
-        // Origins retain their coordinates and need a close, permitted
-        // connection to the nearest mapped road.
-        if (permittedRoad && nearestMappedRoad.offset <= MAX_GATE_CONNECTOR_DISTANCE) {
-          const projection = nearest(point, permittedRoad.pts);
-          match = { road: permittedRoad, ...projection, snapType: "origin-connector" };
-        } else {
-          match = null;
-        }
-      }
+      // Destination points attach only to the nearest road permitted for this vehicle.
+      match = permittedRoad ? snapToNetwork(point, [permittedRoad]) : null;
       const best = match || { offset: Infinity };
       const road = match?.road || null;
 
@@ -1264,9 +1236,7 @@ async function build(
         point,
         node: cut.node,
         offset: best.offset,
-        valid: kind === "gate"
-          ? best.offset <= MAX_GATE_CONNECTOR_DISTANCE
-          : best.offset <= MAX_SNAP,
+        valid: best.offset <= MAX_SNAP,
         snapType: best.snapType,
         attachedRoadId: road.id,
         nearestRoadType: nearestMappedRoad
@@ -1350,44 +1320,6 @@ async function build(
 }
 
 
-/* SECURITY GUARD GATE ICON */
-
-/* Shared by map markers and the map legend. */
-function gateSvg() {
-  return `
-    <svg class="security-guard-symbol" viewBox="0 0 44 44" aria-hidden="true" focusable="false">
-      <path class="security-guard-symbol__body" d="M3.5 41c.6-12.8 6.8-20 18.5-20s17.9 7.2 18.5 20z"/>
-      <circle class="security-guard-symbol__head" cx="22" cy="14.5" r="6"/>
-      <path class="security-guard-symbol__cap" d="M13.5 13a8.5 8.5 0 0 1 17 0v1.5h-17z"/>
-      <path class="security-guard-symbol__badge" d="M22 25l3 3-3 3-3-3z"/>
-    </svg>
-  `;
-}
-
-function createGateIcon(selected = false) {
-  return L.divIcon({
-    className: "laar-gate-icon",
-
-    html: `
-      <div class="laar-gate-marker${selected ? " is-selected" : ""}">
-        ${gateSvg()}
-      </div>
-    `,
-
-    iconSize: [33, 33],
-    iconAnchor: [16.5, 16.5],
-    tooltipAnchor: [0, -16.5]
-  });
-}
-
-function updateGateMarkerHighlights(selectedIndex = null) {
-  for (const [index, marker] of gateMarkers) {
-    const selected = index === selectedIndex;
-    marker.setIcon(createGateIcon(selected));
-    marker.setZIndexOffset(selected ? 1000 : 0);
-  }
-}
-
 /* MAP LEGEND */
 
 function addMapLegend() {
@@ -1401,14 +1333,6 @@ function addMapLegend() {
       <div class="map-legend__row"><svg class="map-key-svg" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#7189A8" stroke-width="6" stroke-linecap="round"/><path d="M3 4 H27" stroke="#92A9C6" stroke-width="4" stroke-linecap="round"/></svg><span>Main Road</span></div>
       <div class="map-legend__row"><svg class="map-key-svg" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#B0C2D4" stroke-width="5" stroke-linecap="round"/><path d="M3 4 H27" stroke="#D9E1E8" stroke-width="3.5" stroke-linecap="round"/></svg><span>Minor Roads</span></div>
       <div class="map-legend__row"><svg class="map-key-svg" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#7189A8" stroke-width="6" stroke-linecap="round"/><path d="M3 4 H27" stroke="#92A9C6" stroke-width="4" stroke-linecap="round"/></svg><span>Haul road</span></div>
-      <div class="map-legend__row">
-        <span class="legend-gate">${gateSvg()}</span>
-        <span>Site gate</span>
-      </div>
-      <div class="map-legend__row">
-        <span class="legend-gate legend-gate--selected">${gateSvg()}</span>
-        <span>Selected starting gate</span>
-      </div>
       <div class="map-legend__row">
         <span class="legend-location"></span>
         <span>Live location</span>
@@ -1747,8 +1671,6 @@ function loadDestinationFromUrl() {
   // selected value so their labels and selected states stay in sync.
   renderDestinationOptions();
   clearRoute();
-  $("start").selectedIndex = -1;
-
   status(
     destination.hasAccessPoint
       ? "Shared destination loaded: " + destination.name + ". Press Show / update LAAR route to calculate it."
@@ -1765,8 +1687,6 @@ function calculate(collapseMobilePanelOnSuccess = false) {
   clearRoute();
   clearRouteDebugHighlight();
   clearRouteFailureBanner();
-  $("start").selectedIndex = -1;
-
   const baseGraph = adjacency;
 
   try {
@@ -1894,17 +1814,13 @@ function calculate(collapseMobilePanelOnSuccess = false) {
           ? "No connected road route from your attached position."
           : $("startMode").value === "map"
             ? "No connected route from this map click to the selected LAAR. Try a nearby click or check the road network connections."
-            : "No valid gate has a connected route to this LAAR."
+            : "No connected road route from the current location."
       );
     }
 
     const start = source.get(endStateKey);
     if (!start) throw new Error("Starting point unavailable.");
 
-    if (start.index !== null) {
-      $("start").value = String(start.index);
-      updateGateMarkerHighlights(start.index);
-    }
 
     const edges = [];
     let currentKey = endStateKey;
@@ -2037,7 +1953,7 @@ function hideMapLoadingDialog() {
 async function init() {
   try {
     const required = [
-      "vehicleType", "map", "start", "end",
+      "vehicleType", "map", "end",
       "startMode", "locate", "stopLocation", "locationStatus",
       "destinationSearch", "searchStatus"
     ];
@@ -2068,7 +1984,7 @@ async function init() {
     }
 
     const controlIds = [
-      "vehicleType", "start", "end", "startMode",
+      "vehicleType", "end", "startMode",
       "locate", "stopLocation", "destinationSearch"
     ];
 
@@ -2156,8 +2072,6 @@ async function init() {
 
     map.createPane("routePane");
 
-
-    map.createPane("gateMarkerPane");
 
 
     map.createPane("liveLocationPane");
@@ -2309,48 +2223,12 @@ async function init() {
       : sidebarWidth / 2;
     if (horizontalOffset) map.panBy([horizontalOffset, 0], { animate: false });
 
-    gateMarkers = new Map();
-    gateMarkerLayer = L.layerGroup().addTo(map);
-    if (window.laarLayerControl) {
-      window.laarLayerControl.addOverlay(gateMarkerLayer, "Gates");
-    }
     destinationOptions = [];
-
-    $("start").replaceChildren();
 
     const missingPolygons = [];
 
-    locations.forEach((location, index) => {
-      if (location.kind === "gate") {
-        const option = document.createElement("option");
-        option.value = String(index);
-        option.textContent = location.name;
-        $("start").appendChild(option);
-
-        const marker = L.marker(ll(location.point), {
-          icon: createGateIcon(),
-          pane: "gateMarkerPane",
-          title: location.name,
-          alt: "Site gate: " + location.name,
-          keyboard: true,
-          riseOnHover: true
-        }).addTo(gateMarkerLayer);
-
-        const label = document.createElement("span");
-        label.textContent = location.name;
-
-        marker.bindTooltip(label, {
-          permanent: true,
-          direction: "top",
-          offset: [0, 0],
-          className: "laar-gate-label"
-        });
-
-        gateMarkers.set(index, marker);
-
-      } else {
-        if (!destinationAreas.has(location.name)) missingPolygons.push(location.name);
-      }
+    locations.forEach(location => {
+      if (!destinationAreas.has(location.name)) missingPolygons.push(location.name);
     });
 
     buildDestinationOptions();
@@ -2359,9 +2237,8 @@ async function init() {
       throw new Error("No destination areas.");
     }
 
-    $("start").selectedIndex = -1;
     $("start").disabled = true;
-    $("startMode").value = "gate";
+    $("startMode").value = "live";
 
     $("vehicleType").disabled = false;
     $("vehicleType").onchange = changeVehicle;
@@ -2492,7 +2369,6 @@ async function init() {
     $("end").onchange = () => {
       if ($("end").value === "") {
         clearRoute();
-        $("start").selectedIndex = -1;
         updateDestinationUrl();
         status("Select a destination.");
       } else {
@@ -2503,33 +2379,11 @@ async function init() {
     initialiseLocationControls();
     addMapLegend();
 
-    const gateCount = locations.filter(item => {
-      return item.kind === "gate" && item.valid;
-    }).length;
-    const permittedRoadIds = new Set(roads.map(road => road.id));
-    const reachableFromGates = new Set();
-    const queue = locations
-      .filter(item => item.kind === "gate" && item.valid && item.node !== null)
-      .map(item => item.node);
-    for (const node of queue) reachableFromGates.add(node);
-    for (let cursor = 0; cursor < queue.length; cursor += 1) {
-      for (const edge of adjacency.get(queue[cursor]) || []) {
-        if (!permittedRoadIds.has(edge.roadId) || reachableFromGates.has(edge.to)) continue;
-        reachableFromGates.add(edge.to);
-        queue.push(edge.to);
-      }
-    }
     const health = {
       roads: features(r, ROADS_FILE).length,
       permittedRoads: roads.length,
       invalidAccessRoads: invalidAccessCount,
-      validGates: gateCount,
-      invalidGates: locations.filter(item => item.kind === "gate" && !item.valid).length,
-      unavailableDestinations: locations.filter(item => item.kind === "destination" && !item.valid).length,
-      disconnectedDestinations: locations.filter(item =>
-        item.kind === "destination" && item.valid &&
-        (item.node === null || !reachableFromGates.has(item.node))
-      ).length,
+      unavailableDestinations: locations.filter(item => !item.valid).length,
       missingDestinationPolygons: missingPolygons.length,
       duplicateDestinations: ignoredDestinationNames.length
     };
@@ -2538,7 +2392,6 @@ async function init() {
     status(
       "Vehicle: " + vehicleMode + ". " + roads.length + " eligible roads, " +
       destinationOptions.length + " unique destinations.\n" +
-      "Valid gates: " + gateCount + ". " +
       "Snap limit: " + MAX_SNAP + " m.\n" +
       "Blocked roads with invalid access fields: " + invalidAccessCount + ".\n" +
       "Skipped duplicate centroids: " +
@@ -2555,7 +2408,6 @@ async function init() {
     document.querySelectorAll('input[name="startModeChoice"]').forEach(radio => {
       radio.checked = radio.value === $("startMode").value;
     });
-    $("start").selectedIndex = -1;
     $("destinationSearch").value = "";
     $("searchStatus").textContent = "";
     clearRoute();
@@ -2587,7 +2439,7 @@ async function init() {
 
   } catch (error) {
     for (const id of [
-      "vehicleType", "start", "end", "startMode",
+      "vehicleType", "end", "startMode",
       "locate", "stopLocation", "destinationSearch"
     ]) {
       if ($(id)) $(id).disabled = true;
