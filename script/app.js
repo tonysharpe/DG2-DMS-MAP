@@ -2106,6 +2106,13 @@ async function init() {
       } catch (error) {
         window.recordMapLoadTiming?.("Failed loading " + filename, loadStartedAt);
         failed = true;
+        if (filename === "data/routing-network.json") {
+          throw new Error(
+            "Required prebuilt routing network data/routing-network.json is unavailable. " +
+            "Generate it with npm run build:routing-network, commit it, and deploy it with the application. " +
+            "Load error: " + (error?.message || String(error))
+          );
+        }
         throw error;
       }
     }
