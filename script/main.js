@@ -32,8 +32,6 @@ function startApplication() {
     const message = "Application startup blocked. Missing dependencies: " +
       missing.join(", ") +
       ". Check the ordered script references in index.html.";
-    const statusElement = document.getElementById("status");
-    if (statusElement) statusElement.textContent = message;
     console.error(message);
     return;
   }
