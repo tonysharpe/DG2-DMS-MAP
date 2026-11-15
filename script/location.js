@@ -35,16 +35,10 @@ const MAIN_ROAD_40_PERCENT_BUFFER_METRES = 50;
 let locationWatchGeneration = 0;
 const LIVE_LOCATION_MAX_AGE = 60000;
 
-let locationStatusMessage = "Location off.";
 let liveJourneyStartPending = false;
 
-function renderLocationStatus() {
+function locationStatus(_text) {
   // Location feedback is intentionally not rendered in the side menu.
-}
-
-function locationStatus(text) {
-  locationStatusMessage = text;
-  renderLocationStatus();
 }
 
 function removeMapClickOrigin() {
@@ -466,7 +460,7 @@ function stopLiveRoute() {
   }
 
   stopDeviceHeading();
-  locationStatus("Journey stopped. GPS location tracking remains active; compass is off.");
+  locationStatus("");
 }
 
 function confirmBeginJourney() {
