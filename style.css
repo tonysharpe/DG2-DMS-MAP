@@ -4,12 +4,10 @@
    01. Base theme variables and typography
    02. Reset and page layout
    03. Map container and page grid
-   04. Site header and network-date display
+   04. Site header
    05. Sidebar sections and form fields
    06. Button rows and shared button styles
    07. Location status, setup status and notes
-   08. Route summary and destination sharing
-   09. Share-link controls and feedback
    10. Base Leaflet controls and map presentation
    11. Base gate marker icons and placement
    12. Gate marker labels and positioning
@@ -46,14 +44,7 @@
 /* =========================================================
    LAAR NAVIGATION — COMPLETE STYLESHEET
 
-   Requires the updated gate-icons-and-popups.js containing:
-     .vehicle-barrier
-     .vehicle-barrier__ground
-     .vehicle-barrier__cabinet
-     .vehicle-barrier__arm
-     .vehicle-barrier__support
-
-   Gate symbols are drawn entirely with CSS.
+   Gate barrier symbols are drawn entirely with CSS.
    ========================================================= */
 
 
@@ -523,9 +514,7 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 
-/* ---------------------------------------------------------------------
-   08. Route summary and destination sharing
-   --------------------------------------------------------------------- */
+
 
 
 
@@ -557,7 +546,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   10. Leaflet controls and map presentation
+   08. Leaflet controls and map presentation
    --------------------------------------------------------------------- */
 
 .leaflet-container {
@@ -632,7 +621,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   11. Gate marker icons and marker placement
+   09. Gate marker icons and marker placement
    --------------------------------------------------------------------- */
 
 .laar-gate-icon {
@@ -738,7 +727,7 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 /* ---------------------------------------------------------------------
-   12. Gate marker labels and label positioning
+   10. Gate marker labels and label positioning
    --------------------------------------------------------------------- */
 
 
@@ -809,7 +798,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   13. Gate popup card styling
+   11. Gate popup card styling
    --------------------------------------------------------------------- */
 
 .laar-gate-popup .leaflet-popup-content-wrapper {
@@ -933,7 +922,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   14. Map legend and road swatches
+   12. Map legend and road swatches
    --------------------------------------------------------------------- */
 
 .map-legend {
@@ -1055,7 +1044,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   15. Responsive layout and reduced-motion rules
+   13. Responsive layout and reduced-motion rules
    --------------------------------------------------------------------- */
 
 @media (max-width: 1100px) {
@@ -1182,7 +1171,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   16. Mobile panel toggle and responsive overrides
+   14. Mobile panel toggle and responsive overrides
    --------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1436,7 +1425,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   17. Diriyah theme palette and component overrides
+   15. Diriyah theme palette and component overrides
    --------------------------------------------------------------------- */
 /* ================================================================
    DIRIYAH THEME
@@ -1446,7 +1435,7 @@ body > aside .primary-button:active:not(:disabled) {
 /*
  * DIRIYAH-INSPIRED PRESENTATION
  *
- * Load after style.css.
+ * Theme rules are embedded in this stylesheet.
  * Keeps the existing application layout.
  */
 
@@ -1643,7 +1632,7 @@ select:disabled {
 
 
 /* ---------------------------------------------------------------------
-   18. Help text
+   16. Help text
    --------------------------------------------------------------------- */
 /* HELP TEXT */
 
@@ -1727,7 +1716,7 @@ select:disabled {
 
 
 /* ---------------------------------------------------------------------
-   19. Theme overrides for Leaflet, gate labels and popups
+   17. Theme overrides for Leaflet, gate labels and popups
    --------------------------------------------------------------------- */
 /* MAP */
 
@@ -1858,7 +1847,7 @@ select:disabled {
 
 
 /* ---------------------------------------------------------------------
-   20. Legacy map legend theme and small-screen overrides
+   18. Legacy map legend theme and small-screen overrides
    --------------------------------------------------------------------- */
 /* LEGEND */
 
@@ -1916,7 +1905,7 @@ select:disabled {
 
 
 /* ---------------------------------------------------------------------
-   21. Application component theme overrides
+   19. Application component theme overrides
    --------------------------------------------------------------------- */
 /* MINIMALIST DIRIYAH SYSTEM
    Keep the map quiet; reserve saturated colours for navigation meaning. */
@@ -2125,7 +2114,7 @@ label[for="destinationSearch"] {
 
 
 /* ---------------------------------------------------------------------
-   22. Google Maps-inspired shared component overrides
+   20. Google Maps-inspired shared component overrides
    --------------------------------------------------------------------- */
 /* GOOGLE MAPS-INSPIRED COMPONENT OVERRIDES */
 body > aside { box-shadow: 2px 0 8px rgba(60, 64, 67, 0.12); }
@@ -2199,7 +2188,7 @@ body > aside .primary-button:active:not(:disabled) {
 }
 
 /* ---------------------------------------------------------------------
-   23. Recenter control and live-location marker
+   21. Recenter control and live-location marker
    --------------------------------------------------------------------- */
 /* High-visibility map recenter / live-location control */
 .leaflet-top.leaflet-right { z-index: 1200; }
@@ -2261,7 +2250,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   24. Journey controls and direction guidance
+   22. Journey controls and direction guidance
    --------------------------------------------------------------------- */
 /* LIVE JOURNEY OVERVIEW AND DIRECTION GUIDANCE */
 .journey-controls {
@@ -2295,7 +2284,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   25. Journey prompts and mobile planner layout
+   23. Journey prompts and mobile planner layout
    --------------------------------------------------------------------- */
 /* Map-anchored live journey prompts: compact and positioned away from the
    central route corridor. The route overview remains fully visible behind it. */
@@ -2457,7 +2446,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   26. Live-routing controls and journey panels
+   24. Live-routing controls and journey panels
    --------------------------------------------------------------------- */
 /* Live-routing controls: clear actions, accessible tap targets, and no overlap. */
 .journey-controls[hidden],
@@ -2582,7 +2571,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   27. Mobile map stacking and touch behavior
+   25. Mobile map stacking and touch behavior
    --------------------------------------------------------------------- */
 /* Mobile: reserve pinch-zoom for the map, not the UI panels.
    Vertical scrolling and normal control interaction remain available. */
@@ -2653,7 +2642,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   28. Mobile live-route launcher and map controls
+   26. Mobile live-route launcher and map controls
    --------------------------------------------------------------------- */
 /* Mobile live-routing popup with a persistent, identifiable map-pin launcher. */
 
@@ -2758,7 +2747,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   29. Destination picker and radio groups
+   27. Destination picker and radio groups
    --------------------------------------------------------------------- */
 /* Navigation panel radio groups */
 .radio-options {
@@ -2824,7 +2813,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   30. Final gate marker and map-key overrides
+   28. Final gate marker and map-key overrides
    --------------------------------------------------------------------- */
 /* Final gate-icon overrides: keep the guard and map key light in every theme. */
 .leaflet-container .laar-gate-marker,
@@ -2979,7 +2968,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   31. Map loading overlay and animation
+   29. Map loading overlay and animation
    --------------------------------------------------------------------- */
 /* Initial application loading overlay. */
 .map-loading-dialog {
@@ -3032,7 +3021,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   32. Live-routing panel and header controls
+   30. Live-routing panel and header controls
    --------------------------------------------------------------------- */
 /* Compact live-routing panel: fixed title, small Start/Stop controls. */
 body > #journeyControls.journey-controls {
@@ -3370,7 +3359,7 @@ body > #journeyControls.journey-controls {
 
 /* Destination reachability diagnostics within Development Features. */
 /* ---------------------------------------------------------------------
-   33. Vehicle type selector and responsive tiles
+   31. Vehicle type selector and responsive tiles
    --------------------------------------------------------------------- */
 /* Vehicle type selector: compact icon tiles with labels underneath. */
 .vehicle-options {
@@ -3476,7 +3465,7 @@ body > #journeyControls.journey-controls {
 
 
 /* ---------------------------------------------------------------------
-   34. Final map-key symbol rendering
+   32. Final map-key symbol rendering
    Kept late in source order to preserve the existing cascade.
    --------------------------------------------------------------------- */
 
@@ -3724,7 +3713,7 @@ body {
 }
 
 /* ---------------------------------------------------------------------
-   35. Map-key and Leaflet control typography
+   33. Map-key and Leaflet control typography
    --------------------------------------------------------------------- */
 /* Map key and Leaflet map-layer menu use the same 12px interface typography. */
 .map-legend,
@@ -3931,7 +3920,7 @@ body {
 
 
 /* ---------------------------------------------------------------------
-   36. Road-name labels and legend controls
+   34. Road-name labels and legend controls
    --------------------------------------------------------------------- */
 /* Road-name labels rendered from data/road_names.geojson. */
 .leaflet-tooltip.site-road-label {
@@ -3987,7 +3976,7 @@ body {
 
 /* Temporary live GPS coordinate readout for field verification. */
 /* ---------------------------------------------------------------------
-   37. Leaflet attribution override
+   35. Leaflet attribution override
    --------------------------------------------------------------------- */
 /* Hide any Leaflet attribution badge in the map's bottom-right corner. */
 #map .leaflet-control-attribution {
