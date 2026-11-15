@@ -342,7 +342,6 @@
     setText("copyLink", "Copy link");
     setText("clear", "Clear");
     setText("fit", "Whole site");
-    setText("routeSummaryHeading", "Route");
 
     const search = document.getElementById(
       "destinationSearch"
