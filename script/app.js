@@ -247,7 +247,6 @@ async function changeVehicle() {
     updateGateHighlights();
     $("start").selectedIndex = -1;
     refreshVehicleRoads();
-    refreshShareControls();
     updateDestinationUrl(retainedDestination?.name || null);
     mark("refresh map and controls", mapRefreshStartedAt);
 
@@ -1726,7 +1725,7 @@ function renderDestinationOptions() {
 }
 
 
-/* URL AND SHARING */
+/* URL STATE AND SHARED DESTINATION LOADING */
 
 function updateDestinationUrl(destinationName = null) {
   try {
@@ -1738,7 +1737,7 @@ function updateDestinationUrl(destinationName = null) {
       url.searchParams.set("destination", destinationName);
     }
 
-    // Keep the current vehicle in every shareable URL.
+    // Keep the current vehicle in the URL.
     url.searchParams.set("vehicle", $("vehicleType").value || vehicleMode);
 
     window.history.replaceState(
@@ -1778,50 +1777,6 @@ function selectedDestination() {
 }
 
 
-function refreshShareControls() {
-  const destination = selectedDestination();
-
-  $("copyLink").disabled = !destination;
-  $("shareFallback").hidden = true;
-
-  $("shareStatus").textContent = destination
-    ? "Copy a link to " + destination.name + "."
-    : "Select a destination to create a link.";
-}
-
-
-async function copyDestinationLink() {
-  const destination = selectedDestination();
-  if (!destination) return;
-
-  const url = new URL(window.location.href);
-  url.searchParams.set("destination", destination.name);
-  url.searchParams.set("vehicle", $("vehicleType").value || vehicleMode);
-
-  try {
-    if (!navigator.clipboard?.writeText) {
-      throw new Error("Clipboard access unavailable.");
-    }
-
-    await navigator.clipboard.writeText(url.href);
-
-    $("shareFallback").hidden = true;
-    $("shareStatus").textContent =
-      "Link copied for " + destination.name + ".";
-
-  } catch (error) {
-    $("shareFallback").hidden = false;
-    $("shareLink").value = url.href;
-    $("shareLink").focus();
-    $("shareLink").select();
-
-    $("shareStatus").textContent =
-      "Automatic copy was unavailable. " +
-      "Copy the selected link below manually.";
-  }
-}
-
-
 function loadDestinationFromUrl() {
   const requested = new URLSearchParams(
     window.location.search
@@ -1856,7 +1811,6 @@ function loadDestinationFromUrl() {
   // Rebuild both the native select and the custom visible picker from the
   // selected value so their labels and selected states stay in sync.
   renderDestinationOptions();
-  refreshShareControls();
   clearRoute();
   $("start").selectedIndex = -1;
 
@@ -1889,7 +1843,6 @@ function calculate(collapseMobilePanelOnSuccess = false) {
     }
 
     updateDestinationUrl(destination.name);
-    refreshShareControls();
 
     showDestinationArea(destination);
 
@@ -2151,9 +2104,7 @@ async function init() {
     const required = [
       "vehicleType", "map", "start", "end",
       "startMode", "locate", "stopLocation", "locationStatus",
-      "destinationSearch", "searchStatus", "copyLink",
-      "shareStatus", "shareFallback", "shareLink",
-      "networkDate"
+      "destinationSearch", "searchStatus", "networkDate"
     ];
 
     for (const id of required) {
@@ -2183,7 +2134,7 @@ async function init() {
 
     const controlIds = [
       "vehicleType", "start", "end", "startMode",
-      "locate", "stopLocation", "destinationSearch", "copyLink"
+      "locate", "stopLocation", "destinationSearch"
     ];
 
     controlIds.forEach(id => $(id).disabled = true);
@@ -2619,17 +2570,13 @@ async function init() {
         clearRoute();
         $("start").selectedIndex = -1;
         updateDestinationUrl();
-        refreshShareControls();
         status("Select a destination.");
       } else {
         calculate();
       }
     };
 
-    $("copyLink").onclick = copyDestinationLink;
-
     initialiseLocationControls();
-    refreshShareControls();
     addMapLegend();
 
     const gateCount = locations.filter(item => {
@@ -2687,8 +2634,6 @@ async function init() {
     $("start").selectedIndex = -1;
     $("destinationSearch").value = "";
     $("searchStatus").textContent = "";
-    $("shareFallback").hidden = true;
-    $("shareLink").value = "";
     clearRoute();
 
     // Apply a shared destination after all startup defaults have been set.
@@ -2701,7 +2646,6 @@ async function init() {
     } else {
       $("end").value = "";
       updateDestinationUrl();
-      refreshShareControls();
     }
 
     locationStatus("Requesting your current location…");
@@ -2720,7 +2664,7 @@ async function init() {
   } catch (error) {
     for (const id of [
       "vehicleType", "start", "end", "startMode",
-      "locate", "stopLocation", "destinationSearch", "copyLink"
+      "locate", "stopLocation", "destinationSearch"
     ]) {
       if ($(id)) $(id).disabled = true;
     }
