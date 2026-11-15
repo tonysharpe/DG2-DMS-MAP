@@ -713,7 +713,6 @@ function initialiseLocationControls() {
   $("stopLocation").disabled = true;
   $("startMode").onchange = () => {
     clearRoute();
-    $("start").selectedIndex = -1;
     if ($("startMode").value === "live") {
       if (typeof setMapClickHitAreaEnabled === "function") setMapClickHitAreaEnabled(false);
       removeMapClickOrigin();
