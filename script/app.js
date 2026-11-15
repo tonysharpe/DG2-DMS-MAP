@@ -2102,15 +2102,6 @@ function calculate(collapseMobilePanelOnSuccess = false) {
       }
     }
 
-    const roadNames = [];
-
-    for (const edge of edges) {
-      if (edge.topologyConnection) continue;
-      if (roadNames[roadNames.length - 1] !== edge.name) {
-        roadNames.push(edge.name);
-      }
-    }
-
     // Showing a live route is a preview only. Activate camera-following only
     // after the user presses Start route; keep it active during a real reroute.
     liveNavigationActive = liveMode && journeyStartConfirmed;
