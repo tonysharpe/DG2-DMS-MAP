@@ -302,26 +302,9 @@ function themeNumber(property) {
           )
         );
 
-        /*
-         * Do not interrupt a selected LAAR route if the
-         * backgrounds finish loading after user selection.
-         */
-        if (
-          typeof selectedAreaLayer === "undefined" ||
-          !selectedAreaLayer
-        ) {
-          const initialCenter = typeof roadNetworkCenter === "function" ? roadNetworkCenter() : siteBounds.getCenter();
-          const initialZoom = Math.log2(
-            156543.03392804097 * Math.cos(initialCenter.lat * Math.PI / 180) *
-            100 / 800
-          );
-          map.setView(initialCenter, initialZoom, { animate: false });
-          const sidebarWidth = document.querySelector("body > aside")?.getBoundingClientRect().width || 0;
-          const horizontalOffset = window.matchMedia("(max-width: 760px)").matches
-            ? 0
-            : sidebarWidth / 2;
-          if (horizontalOffset) map.panBy([horizontalOffset, 0], { animate: false });
-        }
+        // Background layers must never change the camera. The initial view
+        // is fitted once to boundary.geojson by app.js; later camera changes
+        // are reserved for explicit user actions and route previews.
       }
     }
   }
