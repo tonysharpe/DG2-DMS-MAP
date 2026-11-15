@@ -574,6 +574,11 @@ body > aside .primary-button:active:not(:disabled) {
   overflow: visible !important;
 }
 
+/* Inherit the map cursor instead of using Leaflet's default pointer cursor. */
+.leaflet-marker-icon.laar-gate-icon {
+  cursor: inherit !important;
+}
+
 /*
  * Do not set a transform on .laar-gate-icon:
  * Leaflet controls its map positioning.
