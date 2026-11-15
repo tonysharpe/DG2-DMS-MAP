@@ -2269,15 +2269,6 @@ body > aside .primary-button:active:not(:disabled) {
   padding-top: 12px;
   border-top: 1px solid var(--border-color, #DADCE0);
 }
-.journey-controls p {
-  color: var(--text-secondary, #5F6368);
-  font-size: 12px;
-  line-height: 1.45;
-}
-.journey-controls button {
-  width: 100%;
-  margin-top: 8px;
-}
 .journey-guidance {
   display: flex;
   align-items: center;
@@ -2300,10 +2291,6 @@ body > aside .primary-button:active:not(:disabled) {
   color: #FFFFFF;
   font-size: 30px;
   transition: transform 180ms ease;
-}
-#journeyDirectionText {
-  font-size: 11px;
-  line-height: 1.4;
 }
 
 
