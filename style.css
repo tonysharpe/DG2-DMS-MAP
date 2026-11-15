@@ -3278,7 +3278,7 @@ body > #journeyControls.journey-controls {
 .destination-filter-groups { display:grid; grid-template-columns:1fr; gap:2px !important; min-height:0; overflow-y:auto; margin-top:3px; }
 .destination-filter-group { min-width:0; margin:0 !important; padding:2px 5px 3px; border:1px solid var(--border-color, #e2e5e8); border-radius:6px; }
 .destination-filter-group legend { padding:0 3px; font-size:11px; font-weight:700; line-height:12px; }
-.contractor-filter-options { display:grid; grid-template-columns:minmax(0,1fr); gap:0 !important; row-gap:0 !important; max-height:120px; overflow-y:auto; }
+.contractor-filter-options { display:grid; grid-template-columns:minmax(0,1fr); gap:0 !important; max-height:120px; overflow-y:auto; }
 .contractor-filter-options > .contractor-filter-option { box-sizing:border-box; display:flex !important; align-items:center; gap:4px; width:100%; min-width:0; min-height:13px !important; height:13px; margin:0 !important; padding:0 !important; font-size:11px; line-height:12px !important; cursor:pointer; }
 .contractor-filter-option span { display:block; overflow-wrap:anywhere; line-height:12px !important; }
 .contractor-filter-options > .contractor-filter-option input { flex:0 0 12px; width:12px; height:12px; margin:0 !important; padding:0; }
@@ -3700,7 +3700,6 @@ body {
 .contractor-filter-options {
   grid-template-columns: minmax(0, 1fr) !important;
   gap: 0 !important;
-  row-gap: 0 !important;
 }
 .contractor-filter-options > .contractor-filter-option {
   display: flex !important;
@@ -3769,8 +3768,7 @@ body {
 .leaflet-control-layers-expanded { padding: 8px 10px !important; }
 
 /* Vehicle names: readable grey text rather than black. */
-.vehicle-options .vehicle-label,
-.vehicle-options label .vehicle-label {
+.vehicle-options .vehicle-label {
   font-family: var(--font-main) !important;
   font-size: 12px !important;
   line-height: 1.15 !important;
@@ -3785,7 +3783,6 @@ body {
   grid-auto-rows: minmax(22px, auto) !important;
   align-content: start !important;
   gap: 1px !important;
-  row-gap: 1px !important;
 }
 .contractor-filter-options > label.contractor-filter-option {
   position: relative !important;
