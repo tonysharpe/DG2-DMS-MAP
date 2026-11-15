@@ -55,6 +55,52 @@ function setRoutesLoading(isLoading) {
   if (dialog) dialog.hidden = !isLoading;
 }
 
+/*
+ * Wait for the mobile map viewport and its Leaflet layers to finish their
+ * first visible render. RAF callbacks run before paint, so use multiple
+ * frames and re-check the actual container dimensions before releasing the
+ * route-loading overlay.
+ */
+async function waitForInitialMapPresentation() {
+  if (!map) return;
+
+  await new Promise(resolve => map.whenReady(resolve));
+
+  const container = map.getContainer();
+  let previousSize = "";
+  let stableFrames = 0;
+
+  for (let frame = 0; frame < 30 && stableFrames < 3; frame++) {
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    const rect = container.getBoundingClientRect();
+    const size = map.getSize();
+    const currentSize = [
+      Math.round(rect.width),
+      Math.round(rect.height),
+      size.x,
+      size.y
+    ].join("x");
+
+    if (currentSize === previousSize && rect.width > 0 && rect.height > 0) {
+      stableFrames++;
+    } else {
+      stableFrames = 0;
+      previousSize = currentSize;
+    }
+  }
+
+  // Recalculate Leaflet's viewport after mobile CSS/browser viewport changes.
+  map.invalidateSize({ pan: false, animate: false });
+
+  // Allow the invalidated map, centred view and all added vector paths to
+  // pass through successive browser paint opportunities before hiding.
+  await new Promise(resolve => requestAnimationFrame(() =>
+    requestAnimationFrame(() =>
+      requestAnimationFrame(resolve)
+    )
+  ));
+}
+
 function setVehicleUpdating(isUpdating) {
   vehicleChangeInProgress = isUpdating;
   document.querySelectorAll('input[name="vehicleTypeChoice"]').forEach(input => {
@@ -2242,6 +2288,11 @@ async function init() {
     await build(null, r, d, metadata);
     window.recordMapLoadTiming?.("Build selected vehicle routing network (" + vehicleMode + ")", networkBuildStartedAt);
 
+    // Reapply the selected vehicle's road styling after its graph is ready.
+    // Keep Routes Loading visible until the mobile viewport and rendered map
+    // layers have settled and passed through browser paint frames.
+    refreshVehicleRoads();
+
     const reviewed =
       metadata?.network_reviewed_at ??
       metadata?.routing?.network_reviewed_at;
@@ -2455,6 +2506,9 @@ async function init() {
     );
     startLiveLocation(false);
     window.laarNetworkBuildReady = true;
+
+    await waitForInitialMapPresentation();
+
     setRoutesLoading(false);
     setMapLoading(false);
     window.recordMapLoadTiming?.("Application initialisation total", window.mapLoadTimingState?.startedAt ?? performance.now());
