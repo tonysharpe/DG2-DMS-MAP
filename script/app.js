@@ -1776,7 +1776,7 @@ function loadDestinationFromUrl() {
 
 /* ROUTE SUMMARY */
 
-function calculate(collapseMobilePanelOnSuccess = false) {
+function calculate(collapseMobilePanelOnSuccess = false, fitMapToNewRoute = false) {
   window.laarRouteAvailable = false;
   document.dispatchEvent(new CustomEvent("laar-route-state-change"));
   clearRoute();
@@ -2007,7 +2007,7 @@ function calculate(collapseMobilePanelOnSuccess = false) {
 
     status("");
 
-    if (!liveNavigationActive) fitSelectedResult();
+    if (!liveNavigationActive && fitMapToNewRoute) fitSelectedResult();
     if (collapseMobilePanelOnSuccess) {
       document.dispatchEvent(new CustomEvent("laar-route-ready"));
     }
@@ -2015,7 +2015,6 @@ function calculate(collapseMobilePanelOnSuccess = false) {
   } catch (error) {
     console.error(error);
     const routeFailure = Boolean(selectedDestination());
-    if (!liveNavigationActive) fitSelectedResult(routeFailure);
     if (routeFailure) {
       showRouteFailureBanner("No route found");
       status("No route found for the selected destination and vehicle.");
@@ -2249,9 +2248,6 @@ async function init() {
     siteBounds = boundaryBounds;
 
     map.invalidateSize({ pan: false, animate: false });
-    const movementBounds = boundaryBounds.pad(1.0);
-    map.setMaxBounds(movementBounds);
-    map.setMinZoom(Math.max(0, map.getBoundsZoom(boundaryBounds, false, [20, 20]) - 1));
     map.invalidateSize({ pan: false, animate: false });
     map.fitBounds(boundaryBounds, {
       padding: [20, 20],
@@ -2461,7 +2457,7 @@ async function init() {
         updateDestinationUrl();
         status("Select a destination.");
       } else {
-        calculate();
+        calculate(false, true);
       }
     };
 
