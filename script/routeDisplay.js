@@ -60,23 +60,13 @@ function fitSelectedResult(includeStart = false) {
   // When no route exists, frame the destination area together with its
   // applicable origin so the user can see both ends of the failed journey.
   if (includeStart) {
-    const startMode = $("startMode")?.value || "gate";
-
+    const startMode = $("startMode")?.value || "live";
     if (startMode === "live" && livePosition) {
       const point = L.latLng(livePosition.latitude, livePosition.longitude);
       extendBounds(L.latLngBounds(point, point));
     } else if (startMode === "map" && mapClickOrigin?.point) {
       const point = L.latLng(ll(mapClickOrigin.point));
       extendBounds(L.latLngBounds(point, point));
-    } else if (startMode !== "live" && startMode !== "map") {
-      // Gate mode uses all valid gates as candidate origins. Include those
-      // candidates because no single gate can be selected when no path exists.
-      locations
-        .filter(location => location.kind === "gate" && location.valid && location.point)
-        .forEach(location => {
-          const point = L.latLng(ll(location.point));
-          extendBounds(L.latLngBounds(point, point));
-        });
     }
   }
 
@@ -114,7 +104,6 @@ function clearRoute() {
     selectedAreaLayer = null;
   }
 
-  updateGateMarkerHighlights();
 }
 
 
