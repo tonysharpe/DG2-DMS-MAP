@@ -92,12 +92,34 @@ async function waitForInitialMapPresentation() {
   // Recalculate Leaflet's viewport after mobile CSS/browser viewport changes.
   map.invalidateSize({ pan: false, animate: false });
 
-  // Allow the invalidated map, centred view and all added vector paths to
-  // pass through successive browser paint opportunities before hiding.
+  // Leaflet's Canvas renderer schedules vector drawing separately from the
+  // map's layout/centering. Wait for every active renderer to finish its
+  // pending redraw, then require several idle frames before hiding the dialog.
+  const renderers = new Set();
+  if (map._renderer) renderers.add(map._renderer);
+  map.eachLayer(layer => {
+    if (layer._renderer) renderers.add(layer._renderer);
+    if (typeof layer.eachLayer === "function") {
+      layer.eachLayer(child => {
+        if (child._renderer) renderers.add(child._renderer);
+      });
+    }
+  });
+
+  let idleFrames = 0;
+  for (let frame = 0; frame < 180 && idleFrames < 3; frame++) {
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    const pendingRedraw = [...renderers].some(renderer =>
+      renderer._redrawRequest !== null &&
+      renderer._redrawRequest !== undefined
+    );
+    idleFrames = pendingRedraw ? 0 : idleFrames + 1;
+  }
+
+  // Give the completed canvas/vector paint an additional browser paint
+  // opportunity, especially important on slower mobile GPUs.
   await new Promise(resolve => requestAnimationFrame(() =>
-    requestAnimationFrame(() =>
-      requestAnimationFrame(resolve)
-    )
+    requestAnimationFrame(resolve)
   ));
 }
 
