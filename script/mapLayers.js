@@ -293,18 +293,9 @@ function themeNumber(property) {
       if (bounds.isValid()) {
         siteBounds.extend(bounds);
 
-        map.setMaxBounds(siteBounds.pad(1.5));
-
-        map.setMinZoom(
-          Math.max(
-            0,
-            map.getBoundsZoom(siteBounds.pad(1.5)) - 1
-          )
-        );
-
-        // Background layers must never change the camera. The initial view
-        // is fitted once to boundary.geojson by app.js; later camera changes
-        // are reserved for explicit user actions and route previews.
+        // Do not constrain the map camera to the site boundary. Users may
+        // zoom out or pan freely; app.js owns the initial boundary fit and
+        // routeDisplay.js frames only explicitly selected destinations.
       }
     }
   }
