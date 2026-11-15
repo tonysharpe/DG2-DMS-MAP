@@ -211,12 +211,7 @@
             <span>Destination</span>
           </div>
 
-          <div class="map-legend__row">
-            <span class="legend-gate">${gateSvg()}</span>
-            <span>Gate</span>
-          </div>
-
-          <div class="map-legend__row">
+<div class="map-legend__row">
             <span class="legend-location" aria-hidden="true"></span>
             <span>My Location</span>
           </div>
@@ -328,12 +323,10 @@
     setLabel("destinationSearch", "Search");
     setLabel("end", "LAAR");
     setLabel("startMode", "Start from");
-    setLabel("start", "Selected Gate");
 
     setOptionText("vehicleType", "car", "Car");
     setOptionText("vehicleType", "truck", "Truck");
 
-    setOptionText("startMode", "gate", "Best gate");
     setOptionText("startMode", "live", "My location");
 
     setText("locate", "Locate me");
