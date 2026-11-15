@@ -2208,6 +2208,7 @@ async function init() {
     window.recordMapLoadTiming?.("Wait for initial centred map paint", paintWaitStartedAt);
     setMapLoading(false);
     setRoutesLoading(true);
+    await new Promise(resolve => requestAnimationFrame(() => resolve()));
 
     const routingDataStartedAt = performance.now();
     const [d, metadata, topology] = await Promise.all([
