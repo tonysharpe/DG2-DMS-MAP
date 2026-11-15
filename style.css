@@ -10,19 +10,19 @@
    07. Location status, setup status and notes
    08. Route summary and destination sharing
    09. Share-link controls and feedback
-   10. Leaflet controls and map presentation
-   11. Gate marker icons and marker placement
-   12. Gate marker labels and label positioning
+   10. Base Leaflet controls and map presentation
+   11. Base gate marker icons and placement
+   12. Gate marker labels and positioning
    13. Gate popup card styling
-   14. Map legend and road swatches
+   14. Base map legend layout and symbols
    15. Responsive layout and reduced-motion rules
    16. Mobile panel toggle and responsive overrides
    17. Diriyah theme palette and component overrides
    18. Help text
-   19. Map and Leaflet control overrides
-   20. Map legend and small-screen overrides
+   19. Theme overrides for Leaflet, gate labels and popups
+   20. Legacy map legend theme and small-screen overrides
    21. Application component theme overrides
-   22. Map theme variables and overlay styles
+   22. Google Maps-inspired shared component overrides
    23. Recenter control and live-location marker
    24. Journey controls and direction guidance
    25. Journey prompts and mobile planner layout
@@ -30,13 +30,17 @@
    27. Mobile map stacking and touch behavior
    28. Mobile live-route launcher and map controls
    29. Destination picker and radio groups
-   30. Gate icon and map-key overrides
+   30. Final gate marker and map-key overrides
    31. Map loading overlay and animation
-   32. Live-routing panel, header controls and diagnostics
+   32. Live-routing panel and header controls
    33. Vehicle type selector and responsive tiles
-   Sections follow source order, not a rewritten cascade order. Later rules
-   intentionally override earlier rules; keep that order unless testing
-   confirms a safe refactor.
+   34. Final map-key symbol rendering
+   35. Map-key and Leaflet control typography
+   36. Road-name labels and legend controls
+   37. Leaflet attribution override
+   Map-related rules remain in their original source positions to preserve
+   the existing CSS cascade. Later map-specific sections are grouped here
+   for navigation; they intentionally override earlier base styles.
    ===================================================================== */
 
 /* =========================================================
@@ -1733,7 +1737,7 @@ select:disabled {
 
 
 /* ---------------------------------------------------------------------
-   19. Map and Leaflet control overrides
+   19. Theme overrides for Leaflet, gate labels and popups
    --------------------------------------------------------------------- */
 /* MAP */
 
@@ -1864,7 +1868,7 @@ select:disabled {
 
 
 /* ---------------------------------------------------------------------
-   20. Map legend and small-screen overrides
+   20. Legacy map legend theme and small-screen overrides
    --------------------------------------------------------------------- */
 /* LEGEND */
 
@@ -2131,7 +2135,7 @@ label[for="destinationSearch"] {
 
 
 /* ---------------------------------------------------------------------
-   22. Map theme variables and overlay styles
+   22. Google Maps-inspired shared component overrides
    --------------------------------------------------------------------- */
 /* GOOGLE MAPS-INSPIRED COMPONENT OVERRIDES */
 body > aside { box-shadow: 2px 0 8px rgba(60, 64, 67, 0.12); }
@@ -2843,7 +2847,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   30. Gate icon and map-key overrides
+   30. Final gate marker and map-key overrides
    --------------------------------------------------------------------- */
 /* Final gate-icon overrides: keep the guard and map key light in every theme. */
 .leaflet-container .laar-gate-marker,
@@ -3051,7 +3055,7 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* ---------------------------------------------------------------------
-   32. Live-routing panel, header controls and diagnostics
+   32. Live-routing panel and header controls
    --------------------------------------------------------------------- */
 /* Compact live-routing panel: fixed title, small Start/Stop controls. */
 body > #journeyControls.journey-controls {
@@ -3494,6 +3498,11 @@ body > #journeyControls.journey-controls {
 
 
 
+/* ---------------------------------------------------------------------
+   34. Final map-key symbol rendering
+   Kept late in source order to preserve the existing cascade.
+   --------------------------------------------------------------------- */
+
 /* Map-key symbol rendering — explicit rules for the current addMapLegend markup.
    !important prevents older theme overrides from suppressing the samples. */
 .map-legend .legend-symbol-main-road,
@@ -3573,6 +3582,7 @@ body > #journeyControls.journey-controls {
 }
 
 
+/* SVG road and destination samples in the map key. */
 /* Map key SVG symbols use explicit geometry and colors matching map layers. */
 .map-legend .map-key-svg {
   display: block !important;
@@ -3737,6 +3747,9 @@ body {
   color: #30343A !important;
 }
 
+/* ---------------------------------------------------------------------
+   35. Map-key and Leaflet control typography
+   --------------------------------------------------------------------- */
 /* Map key and Leaflet map-layer menu use the same 12px interface typography. */
 .map-legend,
 .map-legend :where(*),
@@ -3943,6 +3956,9 @@ body {
 }
 
 
+/* ---------------------------------------------------------------------
+   36. Road-name labels and legend controls
+   --------------------------------------------------------------------- */
 /* Road-name labels rendered from data/road_names.geojson. */
 .leaflet-tooltip.site-road-label {
   background: rgba(245, 246, 247, 0.94);
@@ -3996,6 +4012,9 @@ body {
 
 
 /* Temporary live GPS coordinate readout for field verification. */
+/* ---------------------------------------------------------------------
+   37. Leaflet attribution override
+   --------------------------------------------------------------------- */
 /* Hide any Leaflet attribution badge in the map's bottom-right corner. */
 #map .leaflet-control-attribution {
   display: none !important;
