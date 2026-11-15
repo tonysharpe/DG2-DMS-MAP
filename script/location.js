@@ -705,7 +705,6 @@ function initialiseLocationControls() {
     if (liveNavigationActive) liveCameraFollowEnabled = false;
   });
   $("startMode").disabled = false;
-  $("stopLocation").disabled = true;
   $("startMode").onchange = () => {
     clearRoute();
     if ($("startMode").value === "live") {
@@ -716,8 +715,6 @@ function initialiseLocationControls() {
       liveJourneyStartPending = false;
       stopLiveLocation(false);
       if (typeof setMapClickHitAreaEnabled === "function") setMapClickHitAreaEnabled(true);
-      $("locate").disabled = true;
-      $("stopLocation").disabled = true;
       removeMapClickOrigin();
       map.closePopup();
       locationStatus("Click anywhere on the map. The origin snaps to the nearest road permitted for the selected vehicle within 15 km. The route follows mapped connections and road directions.");
