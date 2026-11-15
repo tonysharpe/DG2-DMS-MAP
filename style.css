@@ -2330,6 +2330,50 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* Crisp, flat 2D live-location marker: bold arrow plus high-contrast position dot. */
+.laar-live-heading-marker {
+  width: 32px !important;
+  height: 42px !important;
+  border: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+  pointer-events: auto;
+}
+.laar-live-heading-core {
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  display: block;
+  transform: translate(-50%, -50%);
+  border: 3px solid var(--map-location-outline);
+  border-radius: 50%;
+  background: #1769FF;
+  box-shadow: 0 0 0 1.5px #1249A8;
+}
+.laar-live-heading-arrow {
+  position: absolute;
+  left: 50%;
+  top: 1px;
+  width: 23px;
+  height: 24px;
+  transform: translateX(-50%);
+  background: #1769FF;
+  clip-path: polygon(50% 0, 100% 92%, 50% 72%, 0 92%);
+  filter: drop-shadow(0 1px 0 #FFFFFF) drop-shadow(0 1px 1px rgba(0,0,0,.35));
+}
+.laar-live-heading-arrow::after {
+  content: "";
+  position: absolute;
+  inset: 3px 5px 7px;
+  background: #FFFFFF;
+  opacity: .95;
+  clip-path: polygon(50% 0, 100% 92%, 50% 72%, 0 92%);
+}
+.journey-guidance .journey-direction-arrow,
+#journeyDirectionText { display: none !important; }
+.journey-guidance { padding: 8px 10px; }
 
 
 
@@ -2414,6 +2458,52 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 /* Refined live-location icon: a crisp heading arrow, strong position dot,
+   and subtle halo for contrast on pale or detailed map backgrounds. */
+.laar-live-heading-marker {
+  width: 32px !important;
+  height: 42px !important;
+}
+.laar-live-heading-rotator {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-origin: 50% 22px;
+  transform: rotate(var(--laar-live-heading, 0deg));
+}
+.laar-live-heading-marker::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 13px;
+  width: 30px;
+  height: 30px;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(26, 115, 232, 0.26);
+  border-radius: 50%;
+  background: rgba(26, 115, 232, 0.12);
+}
+.laar-live-heading-core {
+  top: 22px;
+  width: 17px;
+  height: 17px;
+  border: 3px solid var(--map-location-outline);
+  background: #1A73E8;
+  box-shadow: 0 0 0 1.5px #174EA6, 0 1px 4px rgba(32, 33, 36, 0.35);
+}
+.laar-live-heading-arrow {
+  top: 0;
+  width: 26px;
+  height: 27px;
+  background: #1A73E8;
+  clip-path: polygon(50% 0, 96% 92%, 50% 73%, 4% 92%);
+  filter: drop-shadow(0 1px 1px rgba(32, 33, 36, 0.42));
+}
+.laar-live-heading-arrow::after {
+  inset: 4px 8px 8px;
+  background: #FFFFFF;
+  clip-path: polygon(50% 0, 100% 92%, 50% 72%, 0 92%);
+}
    and subtle halo for contrast on pale or detailed map backgrounds. */
 
 
