@@ -509,34 +509,6 @@ body > aside .primary-button:active:not(:disabled) {
 
 
 
-/* ---------------------------------------------------------------------
-   09. Share-link controls and feedback
-   --------------------------------------------------------------------- */
-
-.share-section {
-  padding-top: 18px;
-  border-top: 1px solid var(--border-color);
-}
-
-#copyLink {
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-#shareStatus {
-  margin-top: 0;
-}
-
-#shareFallback {
-  margin-bottom: 12px;
-}
-
-#shareLink {
-  margin-bottom: 0;
-
-  background: #f7f9fb;
-  font-size: 11px;
-}
 
 
 /* ---------------------------------------------------------------------
@@ -4164,9 +4136,7 @@ body > #journeyControls.journey-controls {
 .development-content[hidden] {
   display: none !important;
 }
-/* These controls remain in the DOM for application logic, but are not
-   part of the user-facing navigation menu. */
-.share-section,
+/* The start-gate controls are not part of the user-facing menu. */
 .start-gate-section {
   display: none !important;
 }
