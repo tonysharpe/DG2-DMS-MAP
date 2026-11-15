@@ -2111,9 +2111,6 @@ function calculate(collapseMobilePanelOnSuccess = false) {
       }
     }
 
-    showRouteSummary(
-      destination, start, metres, seconds, roadNames, liveMode
-    );
     // Showing a live route is a preview only. Activate camera-following only
     // after the user presses Start route; keep it active during a real reroute.
     liveNavigationActive = liveMode && journeyStartConfirmed;
@@ -2165,8 +2162,7 @@ async function init() {
       "startMode", "locate", "stopLocation", "locationStatus",
       "destinationSearch", "searchStatus", "copyLink",
       "shareStatus", "shareFallback", "shareLink",
-      "routeSummary", "summaryDestination", "summaryStart",
-      "summaryDistance", "summaryTime", "routeDetails", "networkDate"
+      "networkDate"
     ];
 
     for (const id of required) {
