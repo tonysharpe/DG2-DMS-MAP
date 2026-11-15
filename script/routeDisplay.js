@@ -74,9 +74,24 @@ function fitSelectedResult(includeStart = false) {
   }
 
   if (bounds?.isValid()) {
-    map.fitBounds(bounds.pad(0.15), {
+    const targetBounds = bounds.pad(0.15);
+    const currentZoom = map.getZoom();
+    const targetZoom = map.getBoundsZoom(targetBounds, false);
+    const zoomChange = targetZoom - currentZoom;
+    const zoomMagnitude = Math.abs(zoomChange);
+
+    // Scale transition time with the size and direction of the zoom change.
+    // Large zoom-ins take slightly longer to keep the approach readable;
+    // zoom-outs remain a little quicker while still feeling smooth.
+    const secondsPerZoomLevel = zoomChange > 0 ? 0.34 : 0.29;
+    const duration = Math.max(
+      0.7,
+      Math.min(2.5, 0.7 + zoomMagnitude * secondsPerZoomLevel)
+    );
+
+    map.fitBounds(targetBounds, {
       animate: true,
-      duration: 1.5,
+      duration,
       easeLinearity: 0.25
     });
   }
