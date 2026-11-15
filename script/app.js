@@ -244,7 +244,7 @@ async function changeVehicle() {
     mark("prepare and render destination options", destinationsStartedAt);
 
     const mapRefreshStartedAt = performance.now();
-    updateGateHighlights();
+    updateGateMarkerHighlights();
     $("start").selectedIndex = -1;
     refreshVehicleRoads();
     updateDestinationUrl(retainedDestination?.name || null);
@@ -1377,47 +1377,17 @@ function createGateIcon(selected = false) {
 
     iconSize: [33, 33],
     iconAnchor: [16.5, 16.5],
-    popupAnchor: [0, -16.5],
     tooltipAnchor: [0, -16.5]
   });
 }
 
-function createGatePopup(location, selected = false) {
-  function el(tag, cls, text) {
-    const e = document.createElement(tag); e.className = cls;
-    if (text !== undefined) e.textContent = text;
-    return e;
-  }
-  function row(label, value) {
-    const r = el("div", "laar-gate-card__metric");
-    const text = Array.isArray(value) ? value.join(", ") : String(value ?? "").trim();
-    const v = el("span", "laar-gate-card__metric-value", text || "Not provided");
-    r.append(el("span", "laar-gate-card__metric-label", label), v);
-    return r;
-  }
-  const card = el("div", "laar-gate-card");
-  const header = el("div", "laar-gate-card__header");
-  header.append(el("div", "laar-gate-card__eyebrow", selected ? "SELECTED STARTING GATE" : "SITE ACCESS"), el("h2", "laar-gate-card__title", location.name));
-  const body = el("div", "laar-gate-card__body");
-  body.append(row("Operating hours", location.operatingHours), row("Permitted vehicles", location.permittedVehicleTypes),
-    el("p", "laar-gate-card__note", "Confirm current gate arrangements and access permission before travelling."));
-  card.append(header, body);
-  return card;
-}
-
-
-function updateGateHighlights(selectedIndex = null) {
+function updateGateMarkerHighlights(selectedIndex = null) {
   for (const [index, marker] of gateMarkers) {
     const selected = index === selectedIndex;
-
     marker.setIcon(createGateIcon(selected));
     marker.setZIndexOffset(selected ? 1000 : 0);
-    marker.setPopupContent(
-      createGatePopup(locations[index], selected)
-    );
   }
 }
-
 
 /* MAP LEGEND */
 
@@ -1934,7 +1904,7 @@ function calculate(collapseMobilePanelOnSuccess = false) {
 
     if (start.index !== null) {
       $("start").value = String(start.index);
-      updateGateHighlights(start.index);
+      updateGateMarkerHighlights(start.index);
     }
 
     const edges = [];
@@ -2372,13 +2342,6 @@ async function init() {
           direction: "top",
           offset: [0, 0],
           className: "laar-gate-label"
-        });
-
-        marker.bindPopup(createGatePopup(location), {
-          className: "laar-gate-popup",
-          minWidth: 240,
-          maxWidth: 290,
-          autoPanPadding: [20, 20]
         });
 
         gateMarkers.set(index, marker);
