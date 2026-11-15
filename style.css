@@ -2813,6 +2813,9 @@ body > aside .primary-button:active:not(:disabled) {
   visibility: hidden;
   pointer-events: none;
 }
+.map-loading-dialog[hidden] {
+  display: none;
+}
 .map-loading-dialog__spinner {
   width: 17px;
   height: 17px;
