@@ -18,26 +18,18 @@
     let rendering = false;
 
     function routingContext() {
-      if (($("startMode")?.value || "gate") === "live") {
-        try {
-          const prepared = prepareRoutingStart();
-          if (!prepared || !(prepared.graph instanceof Map) || !Array.isArray(prepared.sources)) {
-            return { graph: new Map(), sources: [], ready: false };
-          }
-          const sources = prepared.sources
-            .map(source => source.location?.node)
-            .filter(node => node !== null && node !== undefined);
-          return { graph: prepared.graph, sources, ready: sources.length > 0 };
-        } catch (_) {
+      try {
+        const prepared = prepareRoutingStart();
+        if (!prepared || !(prepared.graph instanceof Map) || !Array.isArray(prepared.sources)) {
           return { graph: new Map(), sources: [], ready: false };
         }
+        const sources = prepared.sources
+          .map(source => source.location?.node)
+          .filter(node => node !== null && node !== undefined);
+        return { graph: prepared.graph, sources, ready: sources.length > 0 };
+      } catch (_) {
+        return { graph: new Map(), sources: [], ready: false };
       }
-
-      const sources = locations
-        .filter(location => location.kind === "gate" && location.valid &&
-          location.node !== null && location.node !== undefined)
-        .map(location => location.node);
-      return { graph: adjacency, sources, ready: sources.length > 0 };
     }
 
     function reachableNodes(context) {
@@ -115,7 +107,7 @@
       };
     }
 
-    for (const id of ["startMode", "start"]) {
+    for (const id of ["startMode"]) {
       $(id)?.addEventListener("change", renderWithStatus);
     }
 
