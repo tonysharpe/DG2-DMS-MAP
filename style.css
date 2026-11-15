@@ -1294,15 +1294,6 @@ body > aside .primary-button:active:not(:disabled) {
     font-size: 13px;
   }
 
-  #route {
-    width: 100%;
-    min-height: 52px;
-    margin: 8px 0 12px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-  }
-
 
 
 
@@ -1574,8 +1565,7 @@ button:not(:disabled):hover {
     var(--earth-outline);
 }
 
-button.primary-button,
-#route {
+button.primary-button {
   background: var(--teal);
   color: var(--paper);
 
@@ -1583,8 +1573,7 @@ button.primary-button,
     var(--teal);
 }
 
-button.primary-button:not(:disabled):hover,
-#route:not(:disabled):hover {
+button.primary-button:not(:disabled):hover:not(:disabled):hover {
   background: #2F6FD0;
 }
 
@@ -1914,14 +1903,12 @@ body > aside {
 }
 
 
-button.primary-button,
-#route {
+button.primary-button {
   background: var(--map-route);
   border-color: var(--map-route);
   box-shadow: none;
 }
-button.primary-button:not(:disabled):hover,
-#route:not(:disabled):hover {
+button.primary-button:not(:disabled):hover:not(:disabled):hover {
   background: #2F6FD0;
   border-color: #2F6FD0;
 }
@@ -3454,46 +3441,6 @@ body > #journeyControls.journey-controls {
 
 
 /* Destination reachability diagnostics within Development Features. */
-.diagnostics-section {
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border-color);
-}
-.diagnostics-section h3 {
-  margin: 0 0 8px;
-  font-size: 0.95rem;
-}
-.unreachable-destinations {
-  margin: 8px 0 0;
-  padding-left: 22px;
-  max-height: 240px;
-  overflow-y: auto;
-  overflow-wrap: anywhere;
-}
-.unreachable-destinations li {
-  margin: 0 0 4px;
-}
-
-
-/* Map-loading timing output in Development Features diagnostics. */
-.map-load-heading {
-  margin: 14px 0 6px;
-  font-size: 0.9rem;
-}
-.map-load-timings {
-  margin: 6px 0 0;
-  padding-left: 22px;
-  max-height: 260px;
-  overflow-y: auto;
-  overflow-wrap: anywhere;
-  font-size: 0.8rem;
-}
-.map-load-timings li {
-  margin-bottom: 4px;
-  font-variant-numeric: tabular-nums;
-}
-
-
 /* ---------------------------------------------------------------------
    33. Vehicle type selector and responsive tiles
    --------------------------------------------------------------------- */
@@ -3820,316 +3767,7 @@ body > #journeyControls.journey-controls {
 
 
 
-/* Previously identified unused styles, retained and disabled for review. */
-/*
 
-/* Unused selectors: .eyebrow; .network-date; .vehicle-barrier; .vehicle-barrier > span; .vehicle-barrier__ground; .vehicle-barrier__cabinet; .vehicle-barrier__cabinet::before; .vehicle-barrier__cabinet::after; .vehicle-barrier__arm; .vehicle-barrier__support; .vehicle-barrier__support::before; .laar-gate-card__badge; .laar-gate-card__badge--valid; .laar-gate-card__badge--invalid; .eyebrow; .network-date; .diriyah-swatch--major; .eyebrow; .diriyah-swatch--main, .diriyah-swatch--major; .diriyah-swatch--public; .journey-footnote; .journey-popup-toggle; #journeyControls .journey-footnote * /
-.eyebrow {
-  display: block;
-  margin-bottom: 7px;
-
-  color: var(--teal);
-
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  line-height: 1.4;
-}
-
-.network-date {
-  display: inline-block;
-
-  max-width: 100%;
-  padding: 6px 9px;
-
-  background: #f3f6f9;
-  color: var(--text-secondary);
-
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-small);
-
-  font-size: 11px;
-  line-height: 1.5;
-
-  overflow-wrap: anywhere;
-}
-
-.vehicle-barrier {
-  position: relative;
-
-  display: block;
-  flex: 0 0 auto;
-
-  width: 30px;
-  height: 26px;
-
-  margin: 0;
-  padding: 0;
-
-  background: transparent;
-  border: none;
-
-  pointer-events: none;
-}
-
-.vehicle-barrier > span {
-  position: absolute;
-  display: block;
-
-  margin: 0;
-  padding: 0;
-
-  box-sizing: border-box;
-}
-
-.vehicle-barrier__ground {
-  left: 1px;
-  bottom: 2px;
-
-  width: 28px;
-  height: 2px;
-
-  background: #ffffff;
-  border-radius: 1px;
-}
-
-.vehicle-barrier__cabinet {
-  z-index: 2;
-
-  left: 3px;
-  bottom: 4px;
-
-  width: 8px;
-  height: 15px;
-
-  background: #ffffff;
-  border-radius: 2px 2px 1px 1px;
-}
-
-.vehicle-barrier__cabinet::before {
-  content: "";
-
-  position: absolute;
-  top: 4px;
-  left: 2px;
-
-  display: block;
-
-  width: 4px;
-  height: 3px;
-
-  background: #43c7ee;
-  border-radius: 1px;
-}
-
-.vehicle-barrier__cabinet::after {
-  content: "";
-
-  position: absolute;
-  left: 2px;
-  bottom: 3px;
-
-  display: block;
-
-  width: 4px;
-  height: 1px;
-
-  background: #9aafbd;
-}
-
-.vehicle-barrier__arm {
-  z-index: 3;
-
-  left: 7px;
-  top: 7px;
-
-  width: 22px;
-  height: 4px;
-
-  background-color: #ffffff;
-  background-image: repeating-linear-gradient(
-    115deg,
-    #ffffff 0,
-    #ffffff 4px,
-    #ed5a5a 4px,
-    #ed5a5a 7px
-  );
-
-  border-radius: 1px;
-}
-
-.vehicle-barrier__support {
-  z-index: 1;
-
-  right: 3px;
-  bottom: 4px;
-
-  width: 3px;
-  height: 11px;
-
-  background: #ffffff;
-  border-radius: 1px;
-}
-
-.vehicle-barrier__support::before {
-  content: "";
-
-  position: absolute;
-  top: 0;
-  left: -1px;
-
-  display: block;
-
-  width: 5px;
-  height: 2px;
-
-  background: #ffffff;
-  border-radius: 1px;
-}
-
-.laar-gate-card__badge {
-  display: inline-block;
-
-  max-width: 100%;
-  margin-bottom: 13px;
-  padding: 5px 8px;
-
-  border-radius: 5px;
-
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 1.4;
-}
-
-.laar-gate-card__badge--valid {
-  background: var(--teal-soft);
-  color: var(--teal-dark);
-}
-
-.laar-gate-card__badge--invalid {
-  background: var(--danger-soft);
-  color: var(--danger);
-}
-
-.eyebrow {
-  color: var(--earth-outline);
-
-  font-weight: 700;
-  letter-spacing: 0.13em;
-}
-
-.network-date {
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.eyebrow {
-  color: var(--public-road);
-  letter-spacing: 0.09em;
-}
-
-.journey-footnote {
-  margin-top: 8px;
-  color: var(--text-secondary, #5F6368);
-  font-size: 10px;
-  line-height: 1.35;
-}
-
-.journey-popup-toggle { display: none; }
-
-#journeyControls .journey-footnote {
-  display: none !important;
-}
-
-/* Unused selectors: body > #journeyPopupToggle.journey-popup-toggle; #journeyPopupToggle svg; body > #journeyPopupToggle.journey-popup-toggle.is-open; body > #journeyPopupToggle.journey-popup-toggle; body > #journeyPopupToggle.journey-popup-toggle; body > #journeyPopupToggle.journey-popup-toggle * /
-@media (max-width: 760px) {
-  body > #journeyPopupToggle.journey-popup-toggle {
-      position: fixed;
-      z-index: 1100;
-      top: max(14px, env(safe-area-inset-top));
-      right: max(14px, env(safe-area-inset-right));
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      min-height: 46px;
-      padding: 9px 13px;
-      border: 1px solid #244f46;
-      border-radius: 999px;
-      background: #32665B;
-      color: #fff;
-      box-shadow: 0 4px 14px rgba(0,0,0,.24);
-      font-size: 12px;
-      font-weight: 800;
-      line-height: 1;
-    }
-  
-  #journeyPopupToggle svg {
-      display: block;
-      width: 21px;
-      height: 21px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 1.8;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-  
-  body > #journeyPopupToggle.journey-popup-toggle.is-open {
-      background: #254F46;
-    }
-  
-  body > #journeyPopupToggle.journey-popup-toggle {
-      top: calc(max(12px, env(safe-area-inset-top)) + 58px);
-      right: max(12px, env(safe-area-inset-right));
-    }
-  
-  body > #journeyPopupToggle.journey-popup-toggle {
-      top: calc(max(12px, env(safe-area-inset-top)) + 52px) !important;
-      right: max(12px, env(safe-area-inset-right)) !important;
-    }
-  
-  body > #journeyPopupToggle.journey-popup-toggle {
-      display: none !important;
-    }
-}
-
-*/
-
-
-/* Development tools are available only on desktop and stay collapsed by default. */
-.development-section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-.development-section-heading h2 {
-  margin: 0;
-}
-.development-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  min-width: 16px;
-  padding: 0;
-  border: 1px solid var(--border, #cbd5d1);
-  border-radius: 3px;
-  background: transparent;
-  color: inherit;
-  font-size: 11px;
-  line-height: 1;
-  cursor: pointer;
-}
-.development-toggle:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-.development-content[hidden] {
-  display: none !important;
-}
 /* The start-gate controls are not part of the user-facing menu. */
 .start-gate-section {
   display: none !important;
