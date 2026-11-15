@@ -49,7 +49,7 @@
 
   <!-- Shared classic-script namespace: preserve this dependency order.
        main.js checks required globals before starting the application. -->
-  <script defer src="script/app.js?v=remove-loading-dialog-1"></script>
+  <script defer src="script/app.js?v=remove-status-panels-1"></script>
   <script defer src="script/location.js?v=main-refactor-20261115"></script>
   <script defer src="script/routeDisplay.js?v=main-refactor-20261115"></script>
   <script defer src="script/map.js?v=main-refactor-20261115"></script>
@@ -58,12 +58,6 @@
 </head>
 
 <body>
-
-  <div id="vehicleRoutingUpdateDialog" class="map-loading-dialog vehicle-routing-update-dialog" role="status" aria-live="polite" hidden>
-    <span class="map-loading-dialog__spinner" aria-hidden="true"></span>
-    <span>Updating vehicle routes...</span>
-  </div>
-
 
   <aside id="navigationPanel" aria-label="Navigation controls">
 
@@ -180,8 +174,6 @@
 
 
 
-      <p id="status" class="setup-status" role="status" aria-live="polite"></p>
-
     <noscript>
       <p class="setup-status">
         Enable JavaScript to use navigation.
@@ -217,7 +209,7 @@
   </div>
 
   <script defer src="script/ui.js?v=bottom-sheet-swipe-direction-1"></script>
-  <script defer src="script/main.js?v=remove-loading-dialog-1"></script>
+  <script defer src="script/main.js?v=remove-status-panels-1"></script>
 
 </body>
 </html>
