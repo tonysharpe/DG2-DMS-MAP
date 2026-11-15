@@ -30,7 +30,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=remove-status-panels-1"
+    href="style.css?v=map-and-routes-loading-1"
   >
 <!-- LIBRARIES -->
 
@@ -49,7 +49,7 @@
 
   <!-- Shared classic-script namespace: preserve this dependency order.
        main.js checks required globals before starting the application. -->
-  <script defer src="script/app.js?v=remove-status-panels-1"></script>
+  <script defer src="script/app.js?v=map-and-routes-loading-1"></script>
   <script defer src="script/location.js?v=main-refactor-20261115"></script>
   <script defer src="script/routeDisplay.js?v=main-refactor-20261115"></script>
   <script defer src="script/map.js?v=main-refactor-20261115"></script>
@@ -58,6 +58,15 @@
 </head>
 
 <body>
+
+  <div id="mapLoadingDialog" class="map-loading-dialog" role="status" aria-live="polite">
+    <span class="map-loading-dialog__spinner" aria-hidden="true"></span>
+    <span>Map Loading...</span>
+  </div>
+  <div id="routesLoadingDialog" class="map-loading-dialog routes-loading-dialog" role="status" aria-live="polite" hidden>
+    <span class="map-loading-dialog__spinner" aria-hidden="true"></span>
+    <span>Routes Loading...</span>
+  </div>
 
   <aside id="navigationPanel" aria-label="Navigation controls">
 
