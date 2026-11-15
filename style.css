@@ -251,12 +251,6 @@ body > aside::-webkit-scrollbar-thumb {
 }
 
 
-#networkDate {
-  color: var(--text-primary);
-  font-weight: 700;
-}
-
-
 /* ---------------------------------------------------------------------
    05. Sidebar sections and form fields
    --------------------------------------------------------------------- */
