@@ -1061,7 +1061,9 @@ body > aside .primary-button:active:not(:disabled) {
    --------------------------------------------------------------------- */
 
 @media (max-width: 1100px) {
-  
+  :root {
+    --panel-width: 330px;
+  }
 
   body > aside {
     padding: 20px 18px;
