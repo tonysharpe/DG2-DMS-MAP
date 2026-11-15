@@ -75,7 +75,9 @@ function fitSelectedResult(includeStart = false) {
 
   if (bounds?.isValid()) {
     map.fitBounds(bounds.pad(0.15), {
-      animate: false
+      animate: true,
+      duration: 1.5,
+      easeLinearity: 0.25
     });
   }
 }
