@@ -1,13 +1,5 @@
 "use strict";
 
-function themeColor(property) {
-  return getComputedStyle(document.documentElement).getPropertyValue(property).trim();
-}
-
-function themeNumber(property) {
-  return Number.parseFloat(themeColor(property));
-}
-
 (async function initialiseBackgroundLayers() {
   const definitions = [
     {
