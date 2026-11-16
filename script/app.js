@@ -2045,7 +2045,7 @@ async function init() {
     // On mobile, start about 50% closer than the full-boundary overview.
     // A 0.6 Leaflet zoom-level increase is approximately a 1.5x scale change.
     if (window.matchMedia("(max-width: 760px)").matches) {
-      map.setZoom(map.getZoom() + 0.6, { animate: false });
+      map.setZoom(map.getZoom() + 0.26, { animate: false });
     }
 
     window.recordMapLoadTiming?.("Prepare and render initial boundary and road geometry", visibleGeometryStartedAt);
