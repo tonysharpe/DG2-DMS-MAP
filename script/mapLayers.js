@@ -121,66 +121,6 @@
     return "";
   }
 
-  function addPopup(feature, layer, definition) {
-    const container = document.createElement("div");
-
-    const heading = document.createElement("strong");
-    heading.textContent = definition.label;
-    container.appendChild(heading);
-
-    let count = 0;
-
-    for (
-      const [key, value]
-      of Object.entries(feature.properties || {})
-    ) {
-      if (
-        value === null ||
-        value === undefined ||
-        value === "" ||
-        key.toLowerCase() === "description" ||
-        typeof value === "object"
-      ) {
-        continue;
-      }
-
-      const row = document.createElement("div");
-      const text = String(value);
-
-      row.textContent =
-        key + ": " +
-        (text.length > 300 ? text.slice(0, 300) + "…" : text);
-
-      container.appendChild(row);
-
-      count += 1;
-
-      if (count >= 15) {
-        break;
-      }
-    }
-
-    if (!count) {
-      const row = document.createElement("div");
-      row.textContent = "No descriptive attributes.";
-      container.appendChild(row);
-    }
-
-    layer.bindPopup(container);
-
-    // In map-origin mode, a background road click selects the origin rather
-    // than showing its metadata popup. Outside that mode, popups still work.
-    layer.off("click", layer._openPopup, layer);
-    layer.on("click", event => {
-      if (document.getElementById("startMode")?.value === "map") {
-        // Let the map-level handler receive the click and set the origin.
-        map.closePopup();
-        return;
-      }
-      layer.openPopup(event.latlng);
-    });
-  }
-
   async function fetchLayerData(definition) {
     const startedAt = performance.now();
     const response = await fetch(definition.file, {
@@ -204,7 +144,7 @@
     return data;
   }
 
-  function loadLayer(definition, control, data) {
+  function loadLayer(definition, data) {
 
     const interactive = definition.interactive !== false;
 
@@ -224,10 +164,6 @@
       },
 
       onEachFeature: function (feature, featureLayer) {
-        if (interactive) {
-          addPopup(feature, featureLayer, definition);
-        }
-
         if (definition.showLabels) {
           const label = findLabel(feature.properties || {}, definition.labelField);
 
@@ -255,8 +191,6 @@
       layer.on("add", () => casingLayer.addTo(map));
       layer.on("remove", () => map.removeLayer(casingLayer));
     }
-
-    control.addOverlay(layer, definition.label);
 
     if (definition.id === "roadNames") {
       window.setRoadNameLabelsVisible = function (visible) {
@@ -311,27 +245,9 @@
   pane("siteFacilities", 320);
   pane("siteReferenceLabels", 350);
 
-  // Keep the overlay registry for layer setup, but do not add a
-  // layer-switcher control to the map interface.
-  const control = L.control.layers(
-    null,
-    {},
-    { collapsed: true }
-  );
-  window.laarLayerControl = control;
-
-  if (typeof displayedRoadLayerGroup !== "undefined" && displayedRoadLayerGroup) {
-    control.addOverlay(displayedRoadLayerGroup, "Roads");
-  } else if (typeof displayedRoadLayer !== "undefined" && displayedRoadLayer) {
-    control.addOverlay(displayedRoadLayer, "Roads");
-  }
-  // Gate markers are created after routing completes; the routing build adds
-  // them to this shared layer control when available.
-
   const errors = [];
 
-  // Download and parse background GeoJSON concurrently, then add layers
-  // in their declared order so the layer-control ordering remains stable.
+  // Download and parse background GeoJSON concurrently, then render in declared order.
   const loadedData = await Promise.all(definitions.map(async definition => {
     try {
       return { definition, data: await fetchLayerData(definition) };
@@ -346,7 +262,7 @@
     if (item.error) continue;
 
     try {
-      loadLayer(item.definition, control, item.data);
+      loadLayer(item.definition, item.data);
     } catch (error) {
       errors.push(item.definition.label + ": " + error.message);
       console.error("Could not render " + item.definition.file, error);
