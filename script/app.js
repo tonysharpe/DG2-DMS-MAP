@@ -1866,6 +1866,7 @@ async function init() {
       attributionControl: false,
       minZoom: -Infinity,
       maxZoom: Infinity,
+      zoomSnap: 0.1,
       scrollWheelZoom: true,
       preferCanvas: true,
       renderer: L.canvas({ padding: 0.5 })
@@ -2040,6 +2041,12 @@ async function init() {
       padding: [20, 20],
       animate: false
     });
+
+    // On mobile, start about 50% closer than the full-boundary overview.
+    // A 0.6 Leaflet zoom-level increase is approximately a 1.5x scale change.
+    if (window.matchMedia("(max-width: 760px)").matches) {
+      map.setZoom(map.getZoom() + 0.6, { animate: false });
+    }
 
     window.recordMapLoadTiming?.("Prepare and render initial boundary and road geometry", visibleGeometryStartedAt);
     window.initialMapGeometryReady = true;
