@@ -68,29 +68,6 @@
 
         originalRender();
 
-        const unreachable = context.ready
-          ? destinationOptions.filter(option => option.reachable === false)
-          : [];
-        const diagnosticsStatus = $("diagnosticsStatus");
-        const unreachableList = $("unreachableDestinations");
-        if (diagnosticsStatus && unreachableList) {
-          unreachableList.replaceChildren();
-          if (!context.ready) {
-            diagnosticsStatus.textContent =
-              "Choose a valid start location to check destination reachability.";
-          } else if (!unreachable.length) {
-            diagnosticsStatus.textContent =
-              "All destinations are reachable for the selected vehicle and start location.";
-          } else {
-            diagnosticsStatus.textContent = unreachable.length + " destination(s) have no route:";
-            unreachable.sort((a, b) => a.name.localeCompare(b.name))
-              .forEach(option => {
-                const item = document.createElement("li");
-                item.textContent = option.name + " (no route found)";
-                unreachableList.appendChild(item);
-              });
-          }
-        }
       } finally {
         rendering = false;
       }
