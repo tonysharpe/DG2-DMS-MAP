@@ -1415,6 +1415,68 @@ async function build(
 }
 
 
+/* DISPLAY-ONLY SITE GATE MARKERS */
+
+function gateSvg() {
+  return `
+    <svg class="security-guard-symbol" viewBox="0 0 44 44" aria-hidden="true" focusable="false">
+      <path class="security-guard-symbol__body" d="M3.5 41c.6-12.8 6.8-20 18.5-20s17.9 7.2 18.5 20z"/>
+      <circle class="security-guard-symbol__head" cx="22" cy="14.5" r="6"/>
+      <path class="security-guard-symbol__cap" d="M13.5 13a8.5 8.5 0 0 1 17 0v1.5h-17z"/>
+      <path class="security-guard-symbol__badge" d="M22 25l3 3-3 3-3-3z"/>
+    </svg>
+  `;
+}
+
+function createGateIcon() {
+  return L.divIcon({
+    className: "laar-gate-icon",
+    html: `<div class="laar-gate-marker">${gateSvg()}</div>`,
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+    tooltipAnchor: [0, -22]
+  });
+}
+
+function renderGateMarkers(gateData) {
+  const features = Array.isArray(gateData?.features) ? gateData.features : [];
+  const markers = [];
+
+  for (const feature of features) {
+    if (feature?.geometry?.type !== "Point") continue;
+    const coordinates = feature.geometry.coordinates;
+    if (!Array.isArray(coordinates) || coordinates.length < 2 ||
+        !coordinates.slice(0, 2).every(Number.isFinite)) continue;
+
+    const properties = feature.properties || {};
+    const name = String(properties.Name ?? properties.name ?? properties.ShortName ?? "").trim();
+    if (!name) continue;
+
+    const marker = L.marker([coordinates[1], coordinates[0]], {
+      icon: createGateIcon(),
+      pane: "gateMarkerPane",
+      title: name,
+      alt: "Site gate: " + name,
+      interactive: false,
+      keyboard: false,
+      riseOnHover: false
+    });
+    marker.bindTooltip(name, {
+      permanent: true,
+      direction: "top",
+      offset: [0, 0],
+      className: "laar-gate-label",
+      interactive: false
+    });
+    markers.push(marker);
+  }
+
+  if (window.laarGateMarkerLayer) map.removeLayer(window.laarGateMarkerLayer);
+  window.laarGateMarkerLayer = L.layerGroup(markers).addTo(map);
+  console.info("Rendered display-only site gates:", markers.length);
+}
+
+
 /* MAP LEGEND */
 
 function addMapLegend() {
@@ -1428,6 +1490,10 @@ function addMapLegend() {
       <div class="map-legend__row"><svg class="map-key-svg" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#7189A8" stroke-width="6" stroke-linecap="round"/><path d="M3 4 H27" stroke="#92A9C6" stroke-width="4" stroke-linecap="round"/></svg><span>Main Road</span></div>
       <div class="map-legend__row"><svg class="map-key-svg" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#B0C2D4" stroke-width="5" stroke-linecap="round"/><path d="M3 4 H27" stroke="#D9E1E8" stroke-width="3.5" stroke-linecap="round"/></svg><span>Minor Roads</span></div>
       <div class="map-legend__row"><svg class="map-key-svg" width="30" height="8" viewBox="0 0 30 8" aria-hidden="true"><path d="M3 4 H27" stroke="#7189A8" stroke-width="6" stroke-linecap="round"/><path d="M3 4 H27" stroke="#92A9C6" stroke-width="4" stroke-linecap="round"/></svg><span>Haul road</span></div>
+      <div class="map-legend__row">
+        <span class="legend-gate">${gateSvg()}</span>
+        <span>Site gate</span>
+      </div>
       <div class="map-legend__row">
         <span class="legend-location"></span>
         <span>Live location</span>
@@ -2151,6 +2217,8 @@ async function init() {
 
     map.createPane("destinationSelectionPane");
 
+    map.createPane("gateMarkerPane");
+
 
     map.createPane("selectedLaarPane");
 
@@ -2165,7 +2233,7 @@ async function init() {
     L.control.scale({ imperial: false }).addTo(map);
 
     const pending = new Set([
-      ROADS_FILE, "data/boundary.geojson", "data/destinations_points.geojson",
+      ROADS_FILE, "data/boundary.geojson", "data/gates.geojson", "data/destinations_points.geojson",
       "data/meta.json", "data/destination_areas.geojson", "data/routing-network.json"
     ]);
 
@@ -2201,10 +2269,11 @@ async function init() {
 
     // Load and render the visible map geometry first. Routing inputs are fetched
     // afterwards so graph construction cannot delay the first useful map frame.
-    const [r, boundary, areas] = await Promise.all([
+    const [r, boundary, areas, gates] = await Promise.all([
       load(ROADS_FILE),
       load("data/boundary.geojson"),
-      load("data/destination_areas.geojson")
+      load("data/destination_areas.geojson"),
+      load("data/gates.geojson", true)
     ]);
 
     const visibleGeometryStartedAt = performance.now();
@@ -2235,6 +2304,9 @@ async function init() {
     });
     displayedRoadLayer = roadLayer;
     displayedRoadLayerGroup = L.layerGroup([roadCasingLayer, roadLayer]).addTo(map);
+
+    // Gate symbols are map references only; they are not selectable origins.
+    renderGateMarkers(gates);
 
     // The first view is defined by boundary.geojson, not by the road network
     // or destination extents. This guarantees the complete site boundary is
