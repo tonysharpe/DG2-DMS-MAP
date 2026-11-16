@@ -438,7 +438,7 @@ const checkNodesGeoJson = {
 };
 fs.writeFileSync(CHECK_NODES_GEOJSON_OUTPUT, JSON.stringify(checkNodesGeoJson));
 console.log("Generated", CHECK_NODES_GEOJSON_OUTPUT, checkNodeFeatures.length, "manual-review shape-point pairs");
-console.log("Generated", CHECK_NODES_GEOJSON_OUTPUT, checkNodeFeatures.length, "manual-review shape-point pairs");
+
 
 // Export connections whose distinct source shape points were snapped together
 // using the configured 0.1 m topology tolerance. Distances below 0.001 m are

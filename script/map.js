@@ -32,16 +32,6 @@
   }
 
 
-  /* Visual values are defined centrally in style.css. */
-  function themeColor(property) {
-    return getComputedStyle(document.documentElement).getPropertyValue(property).trim();
-  }
-
-  function themeNumber(property) {
-    return Number(themeColor(property));
-  }
-
-
   /* ROAD PRESENTATION */
 
   roadStyle = function (feature) {
