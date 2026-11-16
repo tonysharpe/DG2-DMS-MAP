@@ -1,7 +1,3 @@
-function themeColor(property) {
-  return getComputedStyle(document.documentElement).getPropertyValue(property).trim();
-}
-
 function showDestinationArea(destination) {
   const matching = destinationAreas.get(destination.name);
 
