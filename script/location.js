@@ -1,9 +1,5 @@
 "use strict";
 
-function themeColor(property) {
-  return getComputedStyle(document.documentElement).getPropertyValue(property).trim();
-}
-
 let locationWatchId = null;
 let livePosition = null;
 let previousHeadingPosition = null;
