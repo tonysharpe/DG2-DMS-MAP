@@ -4,7 +4,7 @@ function themeColor(property) {
   return getComputedStyle(document.documentElement).getPropertyValue(property).trim();
 }
 function themeNumber(property) {
-  return Number(themeColor(property));
+  return Number.parseFloat(themeColor(property));
 }
 
 /*
@@ -298,7 +298,7 @@ async function changeVehicle() {
   try {
     const { r, d, metadata } = networkInputs;
     const networkStartedAt = performance.now();
-    await build(null, r, d, metadata);
+    await build(r, d, metadata);
     mark("build selected vehicle network", networkStartedAt);
 
     const destinationsStartedAt = performance.now();
@@ -382,12 +382,7 @@ function snapToNetwork(point, eligibleRoads = roads) {
 }
 
 
-const ENDPOINT_TOLERANCE = 0.01;
-const AUTO_NODE_MERGE_TOLERANCE = 0.01;
-const JUNCTION_TO_LINK_TOLERANCE = 1.0;
-const GENERATED_NODE_TO_LINK_TOLERANCE = 0.05;
 const ROAD_CUT_TOLERANCE = 0.01;
-const JUNCTION_AMBIGUITY_TOLERANCE = 0.01;
 
 const UTM =
   "+proj=utm +zone=38 +datum=WGS84 +units=m +no_defs";
@@ -407,37 +402,7 @@ let siteBounds;
 let routeLayer = null;
 let routeOutlineLayer = null;
 let startConnectorLayer = null;
-let routeDebugLayer = null;
-let routeDebugRoadIds = new Set();
 
-function clearRouteDebugHighlight() {
-  if (routeDebugLayer && map) map.removeLayer(routeDebugLayer);
-  routeDebugLayer = null;
-  routeDebugRoadIds = new Set();
-}
-
-function highlightRouteSearchLinks() {
-  if (!map || !routeDebugRoadIds.size) return 0;
-  const layers = [];
-  for (const road of roads) {
-    if (!routeDebugRoadIds.has(road.id) ||
-        !Array.isArray(road.pts) || road.pts.length < 2) continue;
-    const line = L.polyline(road.pts.map(ll), {
-      color: "#ff2d55",
-      weight: 7,
-      opacity: 0.95,
-      lineCap: "round",
-      lineJoin: "round",
-      pane: "routePane",
-      interactive: true
-    });
-    line.bindTooltip("Route search examined: " + (road.name || road.id));
-    layers.push(line);
-  }
-  if (!layers.length) return 0;
-  routeDebugLayer = L.layerGroup(layers).addTo(map);
-  return layers.length;
-}
 
 function clearRouteFailureBanner() {
   const existing = document.getElementById("routeFailureBanner");
@@ -474,10 +439,8 @@ let roads = [];
 let allRoadCandidates = [];
 
 let nodes = new Map();
-let junctionNodes = new Map();
 let adjacency = new Map();
 
-let generatedEndpointIds = new Set();
 
 let roadConnections = [];
 let interiorConnections = [];
@@ -673,49 +636,6 @@ function ll(point) {
   return [coordinates[1], coordinates[0]];
 }
 
-/* Length-weighted centre of the haul-road network only. */
-function roadNetworkCenter(roadData = null) {
-  let weightedX = 0;
-  let weightedY = 0;
-  let totalLength = 0;
-
-  const candidates = roadData
-    ? features(roadData, ROADS_FILE)
-        .filter(feature => roadField(feature.properties || {}, "type") === "haul")
-        .flatMap(feature => {
-          const geometry = feature.geometry;
-          const parts = geometry?.type === "LineString"
-            ? [geometry.coordinates]
-            : geometry?.type === "MultiLineString"
-              ? geometry.coordinates
-              : [];
-          return parts.map(part => ({
-            properties: feature.properties || {},
-            pts: Array.isArray(part) ? part.map(xy) : []
-          }));
-        })
-    : allRoadCandidates;
-
-  for (const road of candidates) {
-    if (roadField(road.properties || {}, "type") !== "haul") continue;
-
-    for (let i = 0; i < road.pts.length - 1; i++) {
-      const a = road.pts[i];
-      const b = road.pts[i + 1];
-      const length = dist(a, b);
-      if (!Number.isFinite(length) || length <= 0) continue;
-
-      weightedX += ((a[0] + b[0]) / 2) * length;
-      weightedY += ((a[1] + b[1]) / 2) * length;
-      totalLength += length;
-    }
-  }
-
-  if (!totalLength) return siteBounds.getCenter();
-  return L.latLng(ll([weightedX / totalLength, weightedY / totalLength]));
-}
-
-
 function dist(a, b) {
   return Math.hypot(a[0] - b[0], a[1] - b[1]);
 }
@@ -863,205 +783,15 @@ function section(road, startPosition, endPosition) {
 }
 
 
-/* ROAD ENDPOINTS */
-
-function nearestJunction(point) {
-  let first = null;
-  let second = null;
-
-  for (const [id, junctionPoint] of junctionNodes) {
-    if (generatedEndpointIds.has(id)) continue;
-
-    const candidate = {
-      id,
-      distance: dist(point, junctionPoint)
-    };
-
-    if (!first || candidate.distance < first.distance) {
-      second = first;
-      first = candidate;
-    } else if (!second || candidate.distance < second.distance) {
-      second = candidate;
-    }
-  }
-
-  if (first && first.distance <= ENDPOINT_TOLERANCE) {
-    return {
-      ...first,
-
-      ambiguous:
-        second !== null &&
-        second.distance <= ENDPOINT_TOLERANCE &&
-        Math.abs(second.distance - first.distance) <=
-          JUNCTION_AMBIGUITY_TOLERANCE,
-
-      generated: false
-    };
-  }
-
-  let shared = null;
-
-  for (const id of generatedEndpointIds) {
-    const offset = dist(point, junctionNodes.get(id));
-
-    if (
-      offset <= AUTO_NODE_MERGE_TOLERANCE &&
-      (!shared || offset < shared.distance)
-    ) {
-      shared = { id, distance: offset };
-    }
-  }
-
-  if (shared) {
-    return {
-      ...shared,
-      ambiguous: false,
-      generated: true
-    };
-  }
-
-  let number = generatedEndpointIds.size;
-  let id = "__auto_endpoint_" + number;
-
-  while (nodes.has(id) || junctionNodes.has(id)) {
-    number += 1;
-    id = "__auto_endpoint_" + number;
-  }
-
-  const endpoint = [...point];
-
-  nodes.set(id, endpoint);
-  junctionNodes.set(id, endpoint);
-  generatedEndpointIds.add(id);
-
-  return {
-    id,
-    distance: 0,
-    ambiguous: false,
-    generated: true
-  };
-}
-
-
-async function connectJunctionsToRoadLinks() {
-  const connections = [];
-  // Index road segments into a 10 m spatial grid. Junctions only need to
-  // inspect segments whose bounding boxes are within the maximum 1 m snap
-  // tolerance, rather than scanning every vertex of every road.
-  const cellSize = 10;
-  const cellKey = (x, y) =>
-    Math.floor(x / cellSize) + ":" + Math.floor(y / cellSize);
-  const segmentGrid = new Map();
-  const addSegmentToCell = (x, y, segment) => {
-    const key = cellKey(x, y);
-    let bucket = segmentGrid.get(key);
-    if (!bucket) segmentGrid.set(key, bucket = []);
-    bucket.push(segment);
-  };
-
-  for (const road of roads) {
-    for (let i = 0; i < road.pts.length - 1; i++) {
-      const a = road.pts[i];
-      const b = road.pts[i + 1];
-      const length = road.ms[i + 1] - road.ms[i];
-      if (!length) continue;
-      const segment = { road, a, b, startM: road.ms[i], length };
-      const minX = Math.floor((Math.min(a[0], b[0]) - JUNCTION_TO_LINK_TOLERANCE) / cellSize);
-      const maxX = Math.floor((Math.max(a[0], b[0]) + JUNCTION_TO_LINK_TOLERANCE) / cellSize);
-      const minY = Math.floor((Math.min(a[1], b[1]) - JUNCTION_TO_LINK_TOLERANCE) / cellSize);
-      const maxY = Math.floor((Math.max(a[1], b[1]) + JUNCTION_TO_LINK_TOLERANCE) / cellSize);
-      for (let x = minX; x <= maxX; x++) {
-        for (let y = minY; y <= maxY; y++) addSegmentToCell(x, y, segment);
-      }
-    }
-  }
-
-  // Find the closest segment on each road for each junction using the index.
-  const matchesByRoad = new Map();
-  for (const [nodeId, point] of junctionNodes) {
-    const bucket = segmentGrid.get(cellKey(point[0], point[1])) || [];
-    const bestByRoad = new Map();
-    for (const segment of bucket) {
-      const road = segment.road;
-      if (nodeId === road.startNode || nodeId === road.endNode) continue;
-      const dx = segment.b[0] - segment.a[0];
-      const dy = segment.b[1] - segment.a[1];
-      const fraction = Math.max(0, Math.min(1,
-        ((point[0] - segment.a[0]) * dx + (point[1] - segment.a[1]) * dy) /
-        (segment.length * segment.length)
-      ));
-      const q = [segment.a[0] + fraction * dx, segment.a[1] + fraction * dy];
-      const offset = dist(point, q);
-      const match = { offset, m: segment.startM + fraction * segment.length, q };
-      const previous = bestByRoad.get(road.id);
-      if (!previous || match.offset < previous.offset) bestByRoad.set(road.id, match);
-    }
-    for (const [roadId, match] of bestByRoad) {
-      const roadMatches = matchesByRoad.get(roadId) || new Map();
-      roadMatches.set(nodeId, match);
-      matchesByRoad.set(roadId, roadMatches);
-    }
-  }
-
-  for (let roadIndex = 0; roadIndex < roads.length; roadIndex++) {
-    const road = roads[roadIndex];
-    const roadLength = road.ms[road.ms.length - 1];
-    const roadMatches = matchesByRoad.get(road.id) || new Map();
-
-    for (const [nodeId, match] of roadMatches) {
-      const generated = generatedEndpointIds.has(nodeId);
-      const tolerance = generated
-        ? GENERATED_NODE_TO_LINK_TOLERANCE
-        : JUNCTION_TO_LINK_TOLERANCE;
-      if (!Number.isFinite(match.offset) || match.offset > tolerance) continue;
-
-      const existing = road.cuts.find(cut =>
-        Math.abs(cut.m - match.m) <= ROAD_CUT_TOLERANCE
-      );
-      if (existing) {
-        if (existing.node !== nodeId) {
-          connections.push({
-            road_id: road.id, node: nodeId, connected_node: existing.node,
-            offset_m: Number(match.offset.toFixed(3)), shared_position: true
-          });
-        }
-        continue;
-      }
-
-      if (match.m <= ROAD_CUT_TOLERANCE ||
-          roadLength - match.m <= ROAD_CUT_TOLERANCE) continue;
-
-      road.cuts.push({ m: match.m, node: nodeId });
-      connections.push({
-        road_id: road.id,
-        node: nodeId,
-        offset_m: Number(match.offset.toFixed(3))
-      });
-    }
-
-    road.cuts.sort((a, b) => a.m - b.m);
-    if ((roadIndex + 1) % 25 === 0) {
-      await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
-    }
-  }
-
-  console.info("Road-link junction connections:", connections.length);
-  return connections;
-}
-
-
 /* BUILD BASE GRAPH */
 
 async function build(
-  junctionData,
   roadData,
   destinationData,
   metadata
 ) {
   nodes = new Map();
-  junctionNodes = new Map();
   adjacency = new Map();
-  generatedEndpointIds = new Set();
   const topology = prebuiltRoutingNetwork?.schemaVersion === 1 ? prebuiltRoutingNetwork : null;
   if (!topology) throw new Error("Backend road-shape routing network is unavailable. Run the Build routing network workflow.");
   prebuiltRoutingLinks = topology
@@ -1085,8 +815,6 @@ async function build(
     for (const node of topology.nodes) {
       const point = node.xy;
       nodes.set(node.id, point);
-      junctionNodes.set(node.id, point);
-      if (node.generated) generatedEndpointIds.add(node.id);
     }
   }
   window.recordMapLoadTiming?.("Build: load backend road-shape topology", junctionLoadStartedAt);
@@ -1148,29 +876,27 @@ async function build(
         properties: p, pts: points
       });
 
-      const topologyLink = prebuiltRoutingLinks?.get(featureIndex + ":" + part.sourcePartIndex);
-      if (topologyLink ? topologyLink.access?.[vehicleMode] !== "yes" : !roadAccess(p)) continue;
-      if (topology && !topologyLink) {
+      const topologyLink = prebuiltRoutingLinks.get(featureIndex + ":" + part.sourcePartIndex);
+      if (!topologyLink) {
         throw new Error("Backend routing topology is missing road part " + featureIndex + ":" + part.sourcePartIndex + ".");
       }
+      if (topologyLink.access?.[vehicleMode] !== "yes") continue;
+
       const separation = dist(points[0], points[points.length - 1]);
-      const start = topologyLink
-        ? { id: topologyLink.startNode, ambiguous: false }
-        : nearestJunction(points[0]);
-      const end = topologyLink
-        ? { id: topologyLink.endNode, ambiguous: false }
-        : nearestJunction(points[points.length - 1]);
-      if (start.ambiguous || end.ambiguous) {
-        endpointErrors.push(id + ": ambiguous endpoint.");
-        continue;
-      }
+      const start = { id: topologyLink.startNode };
+      const end = { id: topologyLink.endNode };
       if (start.id === end.id && separation > 0.01) {
         endpointErrors.push(id + ": distinct endpoints collapse.");
         continue;
       }
 
-      points[0] = junctionNodes.get(start.id);
-      points[points.length - 1] = junctionNodes.get(end.id);
+      const startPoint = nodes.get(start.id);
+      const endPoint = nodes.get(end.id);
+      if (!startPoint || !endPoint) {
+        throw new Error("Backend routing topology references a missing endpoint node for road " + id + ".");
+      }
+      points[0] = startPoint;
+      points[points.length - 1] = endPoint;
       const measures = [0];
       for (let i = 1; i < points.length; i++) {
         measures.push(measures[i - 1] + dist(points[i - 1], points[i]));
@@ -1527,14 +1253,6 @@ function searchKey(value) {
 }
 
 
-function destinationCategory(item) {
-  const type = String(item?.type || "").trim().toUpperCase();
-  if (type === "WAN") return "WAN";
-  if (type === "LAAR") return "LAAR";
-  if (type === "OFFICE") return "Office";
-  return "Other";
-}
-
 function buildDestinationOptions() {
   const pointIndexes = new Map();
   locations.forEach((location, index) => {
@@ -1641,7 +1359,7 @@ function setDestinationSelectionMode(enabled) {
     // Remove any previously calculated route and its map highlights before
     // presenting destination areas for selection.
     clearRoute();
-    clearRouteDebugHighlight();
+    
     clearRouteFailureBanner();
     map?.closePopup();
     status("Select a highlighted destination area on the map. This does not change the starting location.");
@@ -1846,7 +1564,7 @@ function calculate(collapseMobilePanelOnSuccess = false, fitMapToNewRoute = fals
   window.laarRouteAvailable = false;
   document.dispatchEvent(new CustomEvent("laar-route-state-change"));
   clearRoute();
-  clearRouteDebugHighlight();
+  
   clearRouteFailureBanner();
   const baseGraph = adjacency;
 
@@ -1938,8 +1656,7 @@ function calculate(collapseMobilePanelOnSuccess = false, fitMapToNewRoute = fals
 
       for (const edge of adjacency.get(currentState.node) || []) {
         if (edge.roadId !== undefined && edge.roadId !== null) {
-          routeDebugRoadIds.add(edge.roadId);
-        }
+          }
 
         const edgeRoad = roadById.get(edge.roadId);
         const edgeIsCommunity = edgeRoad?.type === "community";
@@ -2365,7 +2082,7 @@ async function init() {
     const networkBuildStartedAt = performance.now();
     const invalidAccessCount = reportAccessData(r);
     console.info("Using required prebuilt routing network", prebuiltRoutingNetwork.statistics);
-    await build(null, r, d, metadata);
+    await build(r, d, metadata);
     window.recordMapLoadTiming?.("Build selected vehicle routing network (" + vehicleMode + ")", networkBuildStartedAt);
 
     // Reapply the selected vehicle's road styling after its graph is ready.
