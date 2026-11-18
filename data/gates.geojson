@@ -7,7 +7,7 @@
 { "type": "Feature", "properties": { "Name": "GATE 2D", "ShortName": "2D", "District": "MEDIA" }, "geometry": { "type": "Point", "coordinates": [ 46.581321027499591, 24.710717667208982 ] } },
 { "type": "Feature", "properties": { "Name": "GATE 2A", "ShortName": "2A", "District": "SOUTHERN" }, "geometry": { "type": "Point", "coordinates": [ 46.591523727668083, 24.716705916502921 ] } },
 { "type": "Feature", "properties": { "Name": "GATE 2P", "ShortName": "2P", "District": "KHUZAMA" }, "geometry": { "type": "Point", "coordinates": [ 46.60943435127016, 24.712331599208582 ] } },
-{ "type": "Feature", "properties": { "Name": "GATE 2R", "ShortName": "2R", "District": "KHUZAMA" }, "geometry": { "type": "Point", "coordinates": [ 46.608308669164892, 24.713706312771055 ] } },
+{ "type": "Feature", "properties": { "Name": "GATE 2R", "ShortName": "2R", "District": "KHUZAMA" }, "geometry": { "type": "Point", "coordinates": [ 46.612086642690585, 24.715187929436755 ] } },
 { "type": "Feature", "properties": { "Name": "GATE 2Q", "ShortName": "2Q", "District": "BOULEVARD" }, "geometry": { "type": "Point", "coordinates": [ 46.601716959261545, 24.72286067002063 ] } }
 ]
 }
