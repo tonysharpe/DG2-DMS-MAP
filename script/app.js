@@ -2152,7 +2152,7 @@ async function init() {
     const contractorDialog = $("contractorFilterDialog");
     const filterGroups = [
       {id: "contractorFilterOptions", field: "contractor", selected: selectedContractors},
-      {id: "destinationTypeFilterOptions", field: "type", selected: selectedDestinationTypes, values: ["Office", "LAAR", "WAN"]}
+      {id: "destinationTypeFilterOptions", field: "type", selected: selectedDestinationTypes, values: ["LAAR", "WAN"]}
     ];
     const closeContractorDialog = () => {
       if (contractorDialog) contractorDialog.hidden = true;
