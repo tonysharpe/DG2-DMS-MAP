@@ -962,7 +962,7 @@ async function build(
 
   const locationAttachmentStartedAt = performance.now();
   const datasets = [
-    ["destination", destinationData, "data/destinations_points.geojson"]
+    ["destination", destinationData, "data/destination_points.geojson"]
   ];
 
   for (const [kind, data, filename] of datasets) {
@@ -1951,7 +1951,7 @@ async function init() {
     L.control.scale({ imperial: false }).addTo(map);
 
     const pending = new Set([
-      ROADS_FILE, "data/boundary.geojson", "data/gates.geojson", "data/destinations_points.geojson",
+      ROADS_FILE, "data/boundary.geojson", "data/gates.geojson", "data/destination_points.geojson",
       "data/meta.json", "data/destination_areas.geojson", "data/routing-network.json"
     ]);
 
@@ -2062,7 +2062,7 @@ async function init() {
 
     const routingDataStartedAt = performance.now();
     const [d, metadata, topology] = await Promise.all([
-      load("data/destinations_points.geojson"),
+      load("data/destination_points.geojson"),
       load("data/meta.json", true),
       load("data/routing-network.json")
     ]);
