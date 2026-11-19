@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 32" role="img" aria-label="Pick-up">
-<path d="M4 17h18V9h9l8 8h5v7H4z" fill="#000"/>
-<path d="M25 11h5l5 6H25z" fill="#fff"/>
-<path d="M4 17h16v4H4z" fill="#000"/>
-<circle cx="12" cy="25" r="4" fill="#000"/><circle cx="36" cy="25" r="4" fill="#000"/>
-<circle cx="12" cy="25" r="1.5" fill="#fff"/><circle cx="36" cy="25" r="1.5" fill="#fff"/>
-</svg>
