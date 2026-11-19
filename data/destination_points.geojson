@@ -371,7 +371,7 @@
 { "type": "Feature", "properties": { "name": "DGII-WAN-259", "type": "WAN", "package": "D2", "contractor": "RTCC" }, "geometry": { "type": "Point", "coordinates": [ 46.586060617926492, 24.727802715847098 ] } },
 { "type": "Feature", "properties": { "name": "DGII-WAN-260", "type": "WAN", "package": "D2", "contractor": "RTCC" }, "geometry": { "type": "Point", "coordinates": [ 46.586060617926492, 24.727802715847098 ] } },
 { "type": "Feature", "properties": { "name": "DGII-WAN-261", "type": "WAN", "package": "D2", "contractor": "NESMA" }, "geometry": { "type": "Point", "coordinates": [ 46.601482923550059, 24.71912419559975 ] } },
-{ "type": "Feature", "properties": { "name": "DGII-WAN-262", "type": "WAN", "package": "D2", "contractor": "NESMA" }, "geometry": { "type": "Point", "coordinates": [ 46.607617006997984, 24.709271319261138 ] } },
+{ "type": "Feature", "properties": { "name": "DGII-WAN-262", "type": "WAN", "package": "D2", "contractor": "NESMA" }, "geometry": { "type": "Point", "coordinates": [ 46.606145107939462, 24.710168513354674 ] } },
 { "type": "Feature", "properties": { "name": "DGII-WAN-263", "type": "WAN", "package": "D2", "contractor": "UHJV" }, "geometry": { "type": "Point", "coordinates": [ 46.591273073041123, 24.724490181753701 ] } },
 { "type": "Feature", "properties": { "name": "DGII-WAN-264", "type": "WAN", "package": "D2", "contractor": "UHJV" }, "geometry": { "type": "Point", "coordinates": [ 46.591363125458066, 24.724536533833117 ] } },
 { "type": "Feature", "properties": { "name": "DGII-WAN-265", "type": "WAN", "package": "D2", "contractor": "ALAYUNI" }, "geometry": { "type": "Point", "coordinates": [ 46.591435994057711, 24.732086084301073 ] } },
@@ -427,7 +427,7 @@
 { "type": "Feature", "properties": { "name": "DGII-WAN-306", "type": "WAN", "package": "D2", "contractor": "TAWAL" }, "geometry": { "type": "Point", "coordinates": [ 46.603650728218824, 24.712900516598836 ] } },
 { "type": "Feature", "properties": { "name": "DGII-LAAR-601", "type": "LAAR", "package": "D2", "contractor": "ALYAMAMA" }, "geometry": { "type": "Point", "coordinates": [ 46.59086226059641, 24.729455523020018 ] } },
 { "type": "Feature", "properties": { "name": "DGII-LAAR-604", "type": "LAAR", "package": "D2", "contractor": "NESMA" }, "geometry": { "type": "Point", "coordinates": [ 46.600984363971826, 24.718975490552225 ] } },
-{ "type": "Feature", "properties": { "name": "DGII-WAN-307", "type": "WAN", "package": "D2", "contractor": "TAWAL" }, "geometry": { "type": "Point", "coordinates": [ 46.609827033906527, 24.710892542663913 ] } },
+{ "type": "Feature", "properties": { "name": "DGII-WAN-307", "type": "WAN", "package": "D2", "contractor": "TAWAL" }, "geometry": { "type": "Point", "coordinates": [ 46.609204183493134, 24.711288035906701 ] } },
 { "type": "Feature", "properties": { "name": "DGII-WAN-308", "type": "WAN", "package": "D2", "contractor": "TAWAL" }, "geometry": { "type": "Point", "coordinates": [ 46.593064318955932, 24.739614175476973 ] } },
 { "type": "Feature", "properties": { "name": "DGII-WAN-309", "type": "WAN", "package": "D2", "contractor": "TAWAL" }, "geometry": { "type": "Point", "coordinates": [ 46.603077594340995, 24.719441752799732 ] } },
 { "type": "Feature", "properties": { "name": "DGII-WAN-310", "type": "WAN", "package": "D2", "contractor": "TAWAL" }, "geometry": { "type": "Point", "coordinates": [ 46.60482415081399, 24.709570450582753 ] } }
