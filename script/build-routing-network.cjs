@@ -14,7 +14,7 @@ const UTM = "+proj=utm +zone=38 +datum=WGS84 +units=m +no_defs";
 const toLonLat = coordinates => proj4(UTM, "EPSG:4326", coordinates);
 const SHAPE_POINT_CONNECT_TOLERANCE = 0.1;
 const CHECK_NODE_MAX_DISTANCE = 5.0;
-const VEHICLES = ["car", "suv", "pickup", "minibus", "bus", "truck"];
+const VEHICLES = ["car", "suv", "pickup", "minibus", "bus", "truck", "concrete", "tanker"];
 const SUPPORTED_TYPES = new Set(["major", "minor", "local", "public", "haul", "community", "main"]);
 
 const readJson = file => JSON.parse(fs.readFileSync(file, "utf8"));
