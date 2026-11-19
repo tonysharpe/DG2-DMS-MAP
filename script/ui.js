@@ -211,7 +211,7 @@
     const vehicleValue = vehicle?.value || "truck";
     const sourceIcon = document.querySelector(
       'input[name="vehicleTypeChoice"][value="' + vehicleValue + '"]'
-    )?.closest("label")?.querySelector("svg.vehicle-icon");
+    )?.closest("label")?.querySelector("img.vehicle-icon");
 
     vehicleIcon.replaceChildren();
     if (sourceIcon) {
