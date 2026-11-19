@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 32" role="img" aria-label="Bus">
-<path d="M5 5h34a4 4 0 0 1 4 4v15H3V9a4 4 0 0 1 2-4z" fill="#000"/>
-<path d="M7 9h7v7H7zm10 0h7v7h-7zm10 0h7v7h-7zm10 0h3v7h-3z" fill="#fff"/>
-<circle cx="11" cy="25" r="4" fill="#000"/><circle cx="36" cy="25" r="4" fill="#000"/>
-<circle cx="11" cy="25" r="1.5" fill="#fff"/><circle cx="36" cy="25" r="1.5" fill="#fff"/>
-</svg>
