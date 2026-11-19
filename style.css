@@ -3661,10 +3661,11 @@ body {
     height: 20px;
     color: #747A80;
   }
-  .mobile-header-summary__vehicle-icon svg {
+  .mobile-header-summary__vehicle-icon img {
     display: block;
     width: 22px;
     height: 16px;
+    object-fit: contain;
   }
   #mobileHeaderDestination {
     min-width: 0;
