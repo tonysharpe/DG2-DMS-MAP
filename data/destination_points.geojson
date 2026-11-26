@@ -22,7 +22,6 @@
 { "type": "Feature", "properties": { "name": "DGII-LAAR-155", "type": "LAAR", "package": "D2", "contractor": "ALAYUNI" }, "geometry": { "type": "Point", "coordinates": [ 46.588826069505785, 24.726457903203695 ] } },
 { "type": "Feature", "properties": { "name": "DGII-LAAR-163", "type": "LAAR", "package": "D2", "contractor": "DC" }, "geometry": { "type": "Point", "coordinates": [ 46.595982604538278, 24.71401480612824 ] } },
 { "type": "Feature", "properties": { "name": "DGII-LAAR-602", "type": "LAAR", "package": "D2", "contractor": "ALAYUNI" }, "geometry": { "type": "Point", "coordinates": [ 46.595805175106506, 24.727197724413923 ] } },
-{ "type": "Feature", "properties": { "name": "DGII-LAAR-173", "type": "LAAR", "package": "D1", "contractor": "ALFANAR" }, "geometry": { "type": "Point", "coordinates": [ 46.595314193612026, 24.733049236110649 ] } },
 { "type": "Feature", "properties": { "name": "DGII-LAAR-177", "type": "LAAR", "package": "D2", "contractor": "ALAYUNI" }, "geometry": { "type": "Point", "coordinates": [ 46.586923869467086, 24.728521236625383 ] } },
 { "type": "Feature", "properties": { "name": "DGII-LAAR-189", "type": "LAAR", "package": "D2", "contractor": "STC" }, "geometry": { "type": "Point", "coordinates": [ 46.592086718937217, 24.716939693452147 ] } },
 { "type": "Feature", "properties": { "name": "DGII-LAAR-194", "type": "LAAR", "package": "D2", "contractor": "STC" }, "geometry": { "type": "Point", "coordinates": [ 46.602016909697923, 24.716095044059148 ] } },
@@ -430,6 +429,16 @@
 { "type": "Feature", "properties": { "name": "DGII-WAN-307", "type": "WAN", "package": "D2", "contractor": "TAWAL" }, "geometry": { "type": "Point", "coordinates": [ 46.609204183493134, 24.711288035906701 ] } },
 { "type": "Feature", "properties": { "name": "DGII-WAN-308", "type": "WAN", "package": "D2", "contractor": "TAWAL" }, "geometry": { "type": "Point", "coordinates": [ 46.593064318955932, 24.739614175476973 ] } },
 { "type": "Feature", "properties": { "name": "DGII-WAN-309", "type": "WAN", "package": "D2", "contractor": "TAWAL" }, "geometry": { "type": "Point", "coordinates": [ 46.603077594340995, 24.719441752799732 ] } },
-{ "type": "Feature", "properties": { "name": "DGII-WAN-310", "type": "WAN", "package": "D2", "contractor": "TAWAL" }, "geometry": { "type": "Point", "coordinates": [ 46.60482415081399, 24.709570450582753 ] } }
+{ "type": "Feature", "properties": { "name": "DGII-WAN-310", "type": "WAN", "package": "D2", "contractor": "TAWAL" }, "geometry": { "type": "Point", "coordinates": [ 46.60482415081399, 24.709570450582753 ] } },
+{ "type": "Feature", "properties": { "name": "DGII-WAN-295", "type": "WAN", "package": "D2", "contractor": "TAWAL" }, "geometry": { "type": "Point", "coordinates": [ 46.583766042284196, 24.713468551909266 ] } },
+{ "type": "Feature", "properties": { "name": "DGII-LAAR-596", "type": "LAAR", "package": "D2", "contractor": "ALAYUNI" }, "geometry": { "type": "Point", "coordinates": [ 46.594544021596853, 24.718301462122923 ] } },
+{ "type": "Feature", "properties": { "name": "DGII-LAAR-597", "type": "LAAR", "package": "D2", "contractor": "ALAYUNI" }, "geometry": { "type": "Point", "coordinates": [ 46.594202359630778, 24.718227871275285 ] } },
+{ "type": "Feature", "properties": { "name": "DGII-LAAR-598", "type": "LAAR", "package": "D2", "contractor": "ALAYUNI" }, "geometry": { "type": "Point", "coordinates": [ 46.589580307006322, 24.727031185264153 ] } },
+{ "type": "Feature", "properties": { "name": "DGII-LAAR-599", "type": "LAAR", "package": "D2", "contractor": "ALAYUNI" }, "geometry": { "type": "Point", "coordinates": [ 46.58806078917128, 24.726580840574531 ] } },
+{ "type": "Feature", "properties": { "name": "DGII-LAAR-600", "type": "LAAR", "package": "D2", "contractor": "NESMA" }, "geometry": { "type": "Point", "coordinates": [ 46.601619035684081, 24.716556222833262 ] } },
+{ "type": "Feature", "properties": { "name": "DGII-LAAR-605", "type": "LAAR", "package": "D2", "contractor": "SATCO" }, "geometry": { "type": "Point", "coordinates": [ 46.513615996401739, 24.725753759264656 ] } },
+{ "type": "Feature", "properties": { "name": "DGII-LAAR-606", "type": "LAAR", "package": "D2", "contractor": "NESMA" }, "geometry": { "type": "Point", "coordinates": [ 46.601966252499913, 24.719540413721401 ] } },
+{ "type": "Feature", "properties": { "name": "DGII-LAAR-607", "type": "LAAR", "package": "D2", "contractor": "NESMA" }, "geometry": { "type": "Point", "coordinates": [ 46.603175297240774, 24.720238780281257 ] } },
+{ "type": "Feature", "properties": { "name": "DGII-LAAR-608", "type": "LAAR", "package": "D2", "contractor": "ALAYUNI" }, "geometry": { "type": "Point", "coordinates": [ 46.595263963129383, 24.718745005397789 ] } }
 ]
 }
